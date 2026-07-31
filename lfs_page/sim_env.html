@@ -331,20 +331,41 @@ function drawLive(r, cur) {
 
   // 四條車道線,只畫到相機模型給的有效視野距離
   const VR = Math.min(D1, rangeAt(78, false));
+
+  // 中間兩條是虛線。這裡不能用 setLineDash —— 那是畫在畫面座標上的,
+  // 車子開再遠虛線都釘在原地。改成把每一段實線錨在世界座標,
+  // 依已行駛距離推進,虛線才會朝觀者流過來。
+  const travelled = cur * 0.9;                   // m
+  const PERIOD = 13, MARK = 5.5;                 // 一段虛線的週期與實線長
+  const phase = travelled % PERIOD;
+
+  const stroke = (from, to, off) => {
+    ctx.beginPath();
+    for (let d = from; d <= to; d += 1.5) {
+      const q = proj(d, laneY(d, off));
+      ctx.lineTo(q.px, q.py);
+    }
+    const q = proj(to, laneY(to, off));
+    ctx.lineTo(q.px, q.py);
+    ctx.stroke();
+  };
+
   LANE_OFF.forEach(off => {
     const edge = Math.abs(off) > 3;
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = edge ? 2.2 : 1.6;
-    ctx.setLineDash(edge ? [] : [6, 7]);
-    ctx.globalAlpha = edge ? 0.95 : 0.8;
-    ctx.beginPath();
-    for (let d = D0; d <= VR; d += 2) {
-      const q = proj(d, laneY(d, off));
-      ctx.lineTo(q.px, q.py);
+    ctx.globalAlpha = edge ? 0.95 : 0.85;
+    if (edge) {
+      stroke(D0, VR, off);                       // 外側兩條是實線
+    } else {
+      for (let n = -1; ; n++) {
+        const a = D0 + n * PERIOD - phase;
+        if (a > VR) break;
+        const from = Math.max(a, D0), to = Math.min(a + MARK, VR);
+        if (to > from) stroke(from, to, off);
+      }
     }
-    ctx.stroke();
   });
-  ctx.setLineDash([]);
   ctx.globalAlpha = 1;
 
   // 前方車輛:由遠而近畫,近的蓋住遠的
@@ -434,7 +455,9 @@ function drawAccum(r, cur, k) {
 
 function drawRecord(p, k) {
   const r = plotOf(p);
-  const cur = Math.floor(60 + ease(clamp(k / 0.92, 0, 1)) * (PATH.length - 1 - 60));
+  // 起點不從頭開始:表觀車速才不會為了把整條路跑完而飆到不合理
+  const C0i = 120;
+  const cur = Math.floor(C0i + ease(clamp(k / 0.92, 0, 1)) * (PATH.length - 1 - C0i));
 
   // 左右各一格(直排版面時左右仍然並排,因為面板本來就夠寬)
   const gap = 8, hw = (r.w - gap) / 2;
@@ -513,8 +536,8 @@ function drawScene(p, k, time) {
 }
 
 /* ---------- 主迴圈 ---------- */
-// 第二幕有記錄/補償/路型三段,給它比較長的時間
-const T1 = 3.2, T2 = 8.4, T3 = 13.4, TEND = 15.6;
+// 第二幕要跑完一段有感的路程,又不能讓虛線快到閃爍,所以給它最長的時間
+const T1 = 3.2, T2 = 10.4, T3 = 15.4, TEND = 17.6;
 const t0 = performance.now();
 
 function frame(now) {
