@@ -47,31 +47,42 @@ const rnd = s => { const x = Math.sin(s * 127.1) * 43758.5453; return x - Math.f
 /* ---------- 版面 ---------- */
 const META = [
   { n: '1', t: '相機模型', s: 'Mini-FOT 統計:車速 → 有效視野距離' },
-  { n: '2', t: '場景記錄', s: '車道線 C0 與物件位置逐幀累積' },
+  { n: '2', t: '場景記錄', s: '左:當下場景　右:逐幀累積的結果' },
   { n: '3', t: '場景合成', s: '加入合成車流,產生沒發生過的情境' },
 ];
 
 let L = null, scale = 1, offX = 0, offY = 0;
 
+// 第二格裡有「即時場景 + 累積圖」兩個子畫面,所以比另外兩格大一號
+const SHARE = [0.29, 0.42, 0.29];
+
 function buildLayout(cssW, cssH) {
   const vertical = cssW / cssH < 1.5;
   if (vertical) {
-    const W = 360, H = 760, pad = 16, top = 62, gap = 16;
-    const ph = Math.floor((H - top - 44 - gap * 2) / 3);
+    const W = 360, H = 830, pad = 16, top = 62, gap = 16;
+    const avail = H - top - 44 - gap * 2;
+    let y = top;
     return {
       W, H, vertical, headY: 26, footY: H - 42,
-      panels: META.map((m, i) => ({
-        ...m, x: pad, y: top + i * (ph + gap), w: W - pad * 2, h: ph,
-      })),
+      panels: META.map((m, i) => {
+        const h = Math.floor(avail * SHARE[i]);
+        const box = { ...m, x: pad, y, w: W - pad * 2, h };
+        y += h + gap;
+        return box;
+      }),
     };
   }
-  const W = 920, H = 400, pad = 22, top = 66, gap = 36;
-  const pw = Math.floor((W - pad * 2 - gap * 2) / 3);
+  const W = 920, H = 400, pad = 22, top = 66, gap = 30;
+  const avail = W - pad * 2 - gap * 2;
+  let x = pad;
   return {
     W, H, vertical, headY: 30, footY: 374,
-    panels: META.map((m, i) => ({
-      ...m, x: pad + i * (pw + gap), y: top, w: pw, h: H - top - 62,
-    })),
+    panels: META.map((m, i) => {
+      const w = Math.floor(avail * SHARE[i]);
+      const box = { ...m, x, y: top, w, h: H - top - 62 };
+      x += w + gap;
+      return box;
+    }),
   };
 }
 
@@ -287,53 +298,108 @@ function offsetPt(i, off) {
   return { x: p.x - Math.sin(p.th) * off, y: p.y + Math.cos(p.th) * off };
 }
 
-function drawRecord(p, k) {
-  const r = plotOf(p);
-  const XMIN = -200, YMIN = -100, YMAX = 20;         // 與實際工具同一組軸範圍
+// 沿路徑第 i 點往前看 d 公尺、橫向偏移 off 時,在本車座標系的位置
+function aheadInEgo(cur, d, off) {
+  const w = offsetPt(cur + Math.round(d / 0.9), off);
+  return toEgo(w.x, w.y, cur);
+}
 
-  // 版面感知:寬螢幕的面板是直的,縱向軸走垂直(和工具輸出一樣);
-  // 窄螢幕的面板是橫的,縱向軸改走水平,本車在右、歷史往左延伸。
-  const vert = L.vertical;
-  const G = (x, y) => vert
-    ? { px: r.x + r.w * (1 - x / XMIN),
-        py: r.y + ((YMAX - y) / (YMAX - YMIN)) * r.h }
-    : { px: r.x + ((y - YMIN) / (YMAX - YMIN)) * r.w,
-        py: r.y + (x / XMIN) * r.h };
+/* --- 子畫面 A:當下場景(透視) ---
+   投影刻意不是嚴格針孔:子畫面很窄,若橫縱用同一個焦距,
+   近端十公尺處的三線道會整條溢出畫面。改成橫縱各自取焦距、
+   近端從 12 m 起畫、視點抬高一些,才畫得出可讀的路。          */
+function drawLive(r, cur) {
+  const hz   = r.y + r.h * 0.28;                 // 地平線
+  const cx   = r.x + r.w * 0.5;
+  const FX   = r.w * 1.10, FY = r.h * 1.60;      // 橫向/縱向焦距
+  const CAMH = 4.0, D0 = 9, D1 = 95;            // 視點高 / 近端 / 遠端
+  const proj = (d, l) => ({ px: cx + (l / d) * FX, py: hz + (CAMH / d) * FY });
+  const laneY = (d, off) => aheadInEgo(cur, d, off).y;
 
-  const moveLine = (ax, ay, bx, by) => {
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 8); ctx.clip();
+
+  ctx.fillStyle = '#dde5ee'; ctx.fillRect(r.x, r.y, r.w, hz - r.y);       // 天空
+  ctx.fillStyle = '#ccd3cb'; ctx.fillRect(r.x, hz, r.w, r.y + r.h - hz);  // 路旁
+
+  // 路面
+  ctx.fillStyle = '#b7bec6';
+  ctx.beginPath();
+  for (let d = D1; d >= D0; d -= 2) { const q = proj(d, laneY(d, -6.2)); ctx.lineTo(q.px, q.py); }
+  for (let d = D0; d <= D1; d += 2) { const q = proj(d, laneY(d,  6.2)); ctx.lineTo(q.px, q.py); }
+  ctx.closePath(); ctx.fill();
+
+  // 四條車道線,只畫到相機模型給的有效視野距離
+  const VR = Math.min(D1, rangeAt(78, false));
+  LANE_OFF.forEach(off => {
+    const edge = Math.abs(off) > 3;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = edge ? 2.2 : 1.6;
+    ctx.setLineDash(edge ? [] : [6, 7]);
+    ctx.globalAlpha = edge ? 0.95 : 0.8;
+    ctx.beginPath();
+    for (let d = D0; d <= VR; d += 2) {
+      const q = proj(d, laneY(d, off));
+      ctx.lineTo(q.px, q.py);
+    }
+    ctx.stroke();
+  });
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+
+  // 前方車輛:由遠而近畫,近的蓋住遠的
+  OBJS.map(o => ({ o, d: o.lead * 0.9 }))
+      .sort((a, b) => b.d - a.d)
+      .forEach(({ o, d }) => {
+        const u = cur / PATH.length;
+        if (u < o.from || u > o.to || d < D0 || d > VR) return;
+        const q = proj(d, laneY(d, o.off));
+        const w = (2.0 / d) * FX, h = w * 0.85;
+        ctx.fillStyle = '#454d59';
+        ctx.beginPath();
+        ctx.roundRect(q.px - w / 2, q.py - h, w, h, Math.max(1, w * 0.14));
+        ctx.fill();
+      });
+  ctx.restore();
+
+  ctx.save();
+  ctx.strokeStyle = C('--line'); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 8); ctx.stroke();
+  ctx.restore();
+
+  text('當下場景', r.x + 7, r.y + 13,
+       { size: 8.5, font: 'mono', color: '--ink-2' });
+}
+
+/* --- 子畫面 B:累積圖(x 走水平、y 走垂直) --- */
+function drawAccum(r, cur, k) {
+  const XMIN = -200, YMIN = -100, YMAX = 20;
+  // 本車在右,已經過的路往左延伸
+  const G = (x, y) => ({
+    px: r.x + r.w * (1 - x / XMIN),
+    py: r.y + ((YMAX - y) / (YMAX - YMIN)) * r.h,
+  });
+  const seg = (ax, ay, bx, by) => {
     const a = G(ax, ay), b = G(bx, by);
     ctx.beginPath(); ctx.moveTo(a.px, a.py); ctx.lineTo(b.px, b.py); ctx.stroke();
   };
 
-  // 格線與外框
   ctx.save();
+  ctx.fillStyle = '#fff'; ctx.beginPath();
+  ctx.roundRect(r.x, r.y, r.w, r.h, 8); ctx.fill();
   ctx.strokeStyle = C('--grid'); ctx.lineWidth = 1;
-  for (const v of [-150, -100, -50]) moveLine(v, YMIN, v, YMAX);
-  for (const v of [-80, -60, -40, -20, 0]) moveLine(XMIN, v, 0, v);
-  ctx.strokeStyle = C('--line'); ctx.lineWidth = 1.1;
-  ctx.beginPath(); ctx.rect(r.x, r.y, r.w, r.h); ctx.stroke();
+  for (const v of [-150, -100, -50]) seg(v, YMIN, v, YMAX);
+  for (const v of [-80, -40, 0]) seg(XMIN, v, 0, v);
+  ctx.strokeStyle = C('--line'); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 8); ctx.stroke();
   ctx.restore();
 
-  // 軸標題放在各自那條軸的外側
-  const axStyle = { size: 9.5, font: 'mono', color: '--ink-3' };
-  if (vert) {
-    text('y(m)', r.x, r.y - 6, axStyle);
-    text('x(m)', r.x + r.w, r.y + r.h + 20, { ...axStyle, align: 'right' });
-  } else {
-    text('x(m)', r.x, r.y - 6, axStyle);
-    text('y(m)', r.x + r.w, r.y + r.h + 22, { ...axStyle, align: 'right' });
-  }
-
-  // 目前開到哪、尾巴留多長
-  const TRAIL = 235;
-  const cur = Math.floor(60 + ease(clamp(k / 0.92, 0, 1)) * (PATH.length - 1 - 60));
-  const lo  = Math.max(0, cur - TRAIL);
+  const TRAIL = 235, lo = Math.max(0, cur - TRAIL);
 
   ctx.save();
-  ctx.beginPath(); ctx.rect(r.x, r.y, r.w, r.h); ctx.clip();
+  ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 8); ctx.clip();
 
-  // 四條車道線
-  ctx.strokeStyle = C('--green'); ctx.lineWidth = 1.5; ctx.globalAlpha = 0.9;
+  ctx.strokeStyle = C('--green'); ctx.lineWidth = 1.4; ctx.globalAlpha = 0.9;
   for (const off of LANE_OFF) {
     ctx.beginPath();
     for (let i = lo; i <= cur; i += 2) {
@@ -343,34 +409,43 @@ function drawRecord(p, k) {
     ctx.stroke();
   }
 
-  // 物件累積點(多目標,會中途進出視野)
   ctx.fillStyle = '#1d1d1f'; ctx.globalAlpha = 0.85;
   for (const o of OBJS) {
     const a = Math.max(lo, Math.floor(o.from * PATH.length));
     const b = Math.min(cur, Math.floor(o.to * PATH.length));
     for (let i = a; i <= b; i += 3) {
       const w = offsetPt(i + o.lead, o.off), e = toEgo(w.x, w.y, cur);
-      if (e.x > 6) continue;                        // 只畫已經過的
+      if (e.x > 6) continue;
       const q = G(e.x, e.y);
-      ctx.beginPath(); ctx.arc(q.px, q.py, 1.5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(q.px, q.py, 1.4, 0, Math.PI * 2); ctx.fill();
     }
   }
 
-  // 本車
   ctx.globalAlpha = 1; ctx.fillStyle = C('--blue');
   const eg = G(0, 0);
-  ctx.beginPath(); ctx.arc(eg.px, eg.py, 3.2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(eg.px, eg.py, 3, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
 
-  // 軌跡佔掉的角落不同,文字跟著換位置
-  const lab = clamp((k - 0.12) * 4, 0, 1);
-  text('綠 = 車道線 C0 · 黑 = 物件 · 藍 = 本車', r.x + 7, r.y + 13,
-       { size: 8.5, font: 'mono', color: '--ink-3', alpha: lab });
+  text('逐幀累積', r.x + 7, r.y + 13, { size: 8.5, font: 'mono', color: '--ink-2' });
+  text('x(m) →', r.x + r.w - 6, r.y + r.h - 7,
+       { size: 8, font: 'mono', color: '--ink-3', align: 'right' });
+  text('y(m)', r.x + 7, r.y + r.h - 7, { size: 8, font: 'mono', color: '--ink-3' });
+}
 
-  const ty = vert ? r.y + 13 : r.y + r.h - 9;
-  text('Time', r.x + r.w - 74, ty, { size: 9, font: 'mono', color: '--ink-3' });
-  text((8.9 + (cur / PATH.length) * 17).toFixed(2), r.x + r.w - 7, ty,
-       { size: 9, font: 'mono', color: '--ink-2', align: 'right' });
+function drawRecord(p, k) {
+  const r = plotOf(p);
+  const cur = Math.floor(60 + ease(clamp(k / 0.92, 0, 1)) * (PATH.length - 1 - 60));
+
+  // 左右各一格(直排版面時左右仍然並排,因為面板本來就夠寬)
+  const gap = 8, hw = (r.w - gap) / 2;
+  drawLive({ x: r.x, y: r.y, w: hw, h: r.h }, cur);
+  drawAccum({ x: r.x + hw + gap, y: r.y, w: hw, h: r.h }, cur, k);
+
+  text('綠 = 車道線 C0 · 黑 = 物件 · 藍 = 本車', r.x, r.y + r.h + 13,
+       { size: 8.5, font: 'mono', color: '--ink-3' });
+  text('Time ' + (8.9 + (cur / PATH.length) * 17).toFixed(2),
+       r.x + r.w, r.y + r.h + 13,
+       { size: 8.5, font: 'mono', color: '--ink-2', align: 'right' });
 }
 
 /* ---------- 第 3 幕:場景合成 ---------- */
