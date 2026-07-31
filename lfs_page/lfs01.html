@@ -91,22 +91,12 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 .l1-inner{max-width:720px;margin:0 auto}
 .l1-role{font-size:clamp(26px,4.2vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.32;margin-bottom:22px}
 .l1-sub{font-size:clamp(15px,2vw,18px);font-weight:500;color:var(--ink-2);max-width:600px;margin:0 auto 34px;line-height:1.7}
-.l1-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:0 auto 30px;max-width:760px}
-.mc-card{display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 18px 16px}
-.mc-accent{width:28px;height:3px;border-radius:2px;margin-bottom:10px}
-.mc-accent--safety{background:#f59e0b}.mc-accent--hw{background:#0071e3}.mc-accent--dev{background:#0d9488}
-.mc-badge{font-size:10px;font-weight:700;letter-spacing:.09em;border-radius:980px;padding:4px 11px;margin-bottom:10px}
-.mc-badge--safety{background:#fff8ec;color:#c07c0b}.mc-badge--hw{background:#eef4ff;color:#0071e3}.mc-badge--dev{background:#edfaf5;color:#0b9070}
-.mc-before{font-family:var(--mono);font-size:14px;font-weight:600;color:#c0c0c5;text-decoration:line-through;text-decoration-color:rgba(0,0,0,.18);text-decoration-thickness:1.5px}
-.mc-dnarrow{font-size:11px;color:#dedee3;margin:2px 0}
-.mc-after-val{font-family:var(--mono);font-size:clamp(24px,3.6vw,32px);font-weight:700;letter-spacing:-.02em;line-height:1.1;margin:2px 0 10px}
-.mc-sep{width:16px;height:1px;background:rgba(0,0,0,.08);margin-bottom:8px}
-.mc-label-text{font-size:12px;color:var(--ink-3);font-weight:500;line-height:1.5}
 .l1-trust{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:var(--ink-3);font-family:var(--mono);flex-wrap:wrap}
 .l1-trust .dot{width:6px;height:6px;border-radius:50%;background:var(--blue)}
 
 /* ── layered sieve (hero) ── */
-.sieve{max-width:640px;margin:34px auto 6px}
+/* 下方留白原本由已移除的 .l1-metrics 提供,改由 .sieve 自己撐出來 */
+.sieve{max-width:640px;margin:34px auto 30px}
 .sieve-src{font-family:var(--mono);font-size:11px;color:var(--ink-3);text-align:center;line-height:1.9;margin-bottom:4px}
 .sieve svg{width:100%;height:auto;display:block}
 .sieve-final{text-align:center;margin-top:4px}
@@ -358,7 +348,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 }
 
 @media(max-width:680px){
-  .l1-metrics{grid-template-columns:1fr;gap:28px}
   .rc2,.vs,.pillars,.infl,.rcmp-reads{grid-template-columns:1fr}
   .vs{gap:10px}.vs-col.old,.vs-col.new{border-radius:16px}.vs-mid{transform:rotate(90deg)}
   .tl{grid-template-columns:1fr;gap:20px}.tl::before{display:none}
@@ -496,36 +485,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
       <div class="sieve-final">
         <div class="t">一條穩定車道線 ＋ 封閉解半徑</div>
         <div class="badges"><span class="b">ACC</span><span class="b">AEB</span><span class="b">LFC</span><span class="b">LCC</span></div>
-      </div>
-    </div>
-
-    <div class="l1-metrics">
-      <div class="mc-card">
-        <div class="mc-accent mc-accent--safety"></div>
-        <span class="mc-badge mc-badge--safety">成本</span>
-        <span class="mc-before">USD 470–625K</span>
-        <span class="mc-dnarrow">↓</span>
-        <span class="mc-after-val grad">≈0 運算成本</span>
-        <span class="mc-sep"></span>
-        <span class="mc-label-text">Lane Degrade 取代供應商重訓<br>行為等效已驗證</span>
-      </div>
-      <div class="mc-card">
-        <div class="mc-accent mc-accent--hw"></div>
-        <span class="mc-badge mc-badge--hw">系統穩定</span>
-        <span class="mc-before">四功能各自校</span>
-        <span class="mc-dnarrow">↓</span>
-        <span class="mc-after-val grad">一套餵飽四功能</span>
-        <span class="mc-sep"></span>
-        <span class="mc-label-text">AEB/ACC/LFC/LCC<br>不再各自調場景</span>
-      </div>
-      <div class="mc-card">
-        <div class="mc-accent mc-accent--dev"></div>
-        <span class="mc-badge mc-badge--dev">安全精度</span>
-        <span class="mc-before">25m 半徑誤差</span>
-        <span class="mc-dnarrow">↓</span>
-        <span class="mc-after-val grad">消除·成量產標準</span>
-        <span class="mc-sep"></span>
-        <span class="mc-label-text">修正業界通用半徑公式<br>（R=180m、yaw 0.3rad 時的舊誤差）</span>
       </div>
     </div>
     <div class="l1-trust">
