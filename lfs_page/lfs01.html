@@ -386,6 +386,16 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 .ln-specs li::before{content:'•';position:absolute;left:0;color:var(--blue);font-weight:700}
 .ln-specs li b{color:var(--ink);font-weight:700}
 @media(max-width:640px){.ln-flow{flex-wrap:nowrap}.ln-specs ul{grid-template-columns:1fr}}
+/* ── 五大職能總覽(#matrix)── */
+.matrix{display:grid;grid-template-columns:repeat(5,1fr);gap:13px;max-width:1040px;margin:0 auto}
+.matrix-c{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 16px;box-shadow:var(--shadow);text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:9px;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+.matrix-c:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--blue)}
+.matrix-k{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--blue);letter-spacing:.06em}
+.matrix-t{font-size:14px;font-weight:700;color:var(--ink);line-height:1.35}
+.matrix-d{font-size:11.5px;color:var(--ink-2);line-height:1.6;flex:1}
+.matrix-go{font-size:11px;font-weight:700;color:var(--blue);display:flex;align-items:center;gap:4px}
+@media(max-width:900px){.matrix{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.matrix{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -403,6 +413,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 
 <nav class="chnav" id="chnav" aria-label="章節導覽">
   <div class="in">
+    <a href="#matrix" data-sec="matrix">五大職能</a>
     <a href="#root-cause" data-sec="root-cause">根因拆解</a>
     <a href="#architecture" data-sec="architecture">系統架構</a>
     <a href="#decision-1" data-sec="decision-1">決策① Lane Degrade</a>
@@ -524,6 +535,49 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 </section>
 
 <!-- ===== 2. ROOT CAUSE ===== -->
+<section id="matrix" style="padding-top:0">
+  <div class="wrap">
+    <div class="unit">
+      <div class="unit-head" style="margin-bottom:22px">
+        <div class="unit-tag">五大職能 · 沒空看完全文就看這裡</div>
+        <div class="unit-title" style="font-size:clamp(19px,2.6vw,26px)">同一個專案，五種能力的證據</div>
+      </div>
+      <div class="matrix">
+        <a class="matrix-c" href="#decision-2">
+          <span class="matrix-k">01 · 技術深度</span>
+          <span class="matrix-t">推導半徑封閉解</span>
+          <span class="matrix-d">修正業界用了多年的公式，25m 誤差歸零，成為量產標準。</span>
+          <span class="matrix-go">看半徑公式 →</span>
+        </a>
+        <a class="matrix-c" href="#root-cause">
+          <span class="matrix-k">02 · 系統思維</span>
+          <span class="matrix-t">三柱架構、根因三分類</span>
+          <span class="matrix-d">把五花八門的路測問題收斂成偏差／缺失／誤判三型，各自對應解法。</span>
+          <span class="matrix-go">看根因拆解 →</span>
+        </a>
+        <a class="matrix-c" href="#decision-1">
+          <span class="matrix-k">03 · 成本判斷</span>
+          <span class="matrix-t">融合層解法，省千萬重訓</span>
+          <span class="matrix-d">Lane Degrade 用幾行邏輯，換到跟供應商重訓等效的行為，成本近零。</span>
+          <span class="matrix-go">看 Lane Degrade →</span>
+        </a>
+        <a class="matrix-c" href="#influence">
+          <span class="matrix-k">04 · 跨團隊影響力</span>
+          <span class="matrix-t">同一套尺，量三大感知廠</span>
+          <span class="matrix-d">制定的驗證方法對接 Mobileye／PCT／Stradvision／Horizon，並賦能兩個團隊自建系統。</span>
+          <span class="matrix-go">看影響力 →</span>
+        </a>
+        <a class="matrix-c" href="#validation">
+          <span class="matrix-k">05 · 安全嚴謹度</span>
+          <span class="matrix-t">四層驗證＋70°C 極限環境</span>
+          <span class="matrix-d">MIL→CIL→HIL→Road 全走完，ISO 26262 實戰、ASIL 分解與 FMEA。</span>
+          <span class="matrix-go">看驗證章節 →</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="band-alt" id="root-cause">
   <div class="wrap">
     <div class="unit">
@@ -1097,7 +1151,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
       <div class="unit-head">
         <div class="unit-tag">VALIDATION · 驗證</div>
         <div class="unit-title">穩定不是形容詞<br>是驗出來的結果</div>
-        <p class="unit-lead">四層驗證、1600 km 實路、70°C 極端環境——LFS 的「穩」，不是我說的，是每一層驗證留下的證據說的。</p>
+        <p class="unit-lead">四層驗證、深圳→上海 1,600 km Mini-FOT 實路資料、70°C 極端環境——LFS 的「穩」，不是我說的，是每一層驗證留下的證據說的。</p>
       </div>
 
       <div class="pyr" style="margin-top:36px">

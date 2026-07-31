@@ -22,6 +22,7 @@ import os
 import re
 import sys
 import glob
+import subprocess
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
@@ -138,15 +139,31 @@ def check_links():
     return fails
 
 
+def tracked_html():
+    """只看「會被發布」的檔案。下架到 .gitignore 的舊草稿留在本機,
+       不該再被當成孤兒回報。沒有 git 時退回掃描整個資料夾。"""
+    try:
+        r = subprocess.run(['git', '-c', 'core.quotepath=false', 'ls-files'],
+                           capture_output=True, text=True, encoding='utf-8')
+        if r.returncode == 0:
+            files = [f for f in r.stdout.split('\n') if f.endswith('.html')]
+            if files:
+                return sorted(files)
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return sorted(glob.glob('*.html') + glob.glob('*/*.html'))
+
+
 def check_orphans_and_todos():
     warns = []
+    files = tracked_html()
     refs = set()
-    for p in glob.glob('*.html') + glob.glob('*/*.html'):
+    for p in files:
         for r in re.findall(r'(?:href|src|data-src)="([^"#]+)"', read(p)):
             if not r.startswith(('http', 'mailto:', 'data:')):
                 refs.add(os.path.normpath(os.path.join(os.path.dirname(p), r)))
 
-    for f in sorted(glob.glob('*.html') + glob.glob('*/*.html')):
+    for f in files:
         if f != REDIRECT and os.path.normpath(f) not in refs:
             warns.append('孤兒(沒有任何頁面連到它): %s' % f)
 
