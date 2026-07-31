@@ -8,7 +8,7 @@
 
 | 頁面 | 檔案 | 內容 |
 |---|---|---|
-| 履歷 | `index.html` | 工作經歷、技能、學習能力、學歷、發明專利 |
+| 履歷 | `home/index.html` | 工作經歷、技能、學習能力、學歷、發明專利 |
 | TRJ 軌跡規劃 | `trj_page/01_trj_page.html` | 把 9 項側向功能收斂成單一共用模組 |
 | LFS 車道融合 | `lfs_page/lfs01.html` | 讓不完美的感知也能安全地用 |
 
@@ -17,7 +17,8 @@
 ## 結構
 
 ```
-index.html              履歷(首頁)
+index.html              轉址頁 → home/index.html(GitHub Pages 首頁需要它)
+home/index.html         履歷本體
 trj_page/               TRJ 專案頁 + 6 個內嵌 demo
 lfs_page/               LFS 專案頁 + 4 個內嵌 demo
 assets/

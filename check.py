@@ -28,7 +28,10 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='repla
 ROOT = os.path.dirname(os.path.abspath(__file__))
 os.chdir(ROOT)
 
-PAGES = ['index.html', 'trj_page/01_trj_page.html', 'lfs_page/lfs01.html']
+PAGES = ['home/index.html', 'trj_page/01_trj_page.html', 'lfs_page/lfs01.html']
+
+# 根目錄的 index.html 只是轉址頁,不是內容頁,不列入數字檢查
+REDIRECT = 'index.html'
 
 DASH = r'[-–—]'   # 半形連字號 / en dash / em dash 都算
 
@@ -58,14 +61,14 @@ STALE = [
 # 2. 關鍵數字 —— 指定頁面「必須」找得到,漏掉代表被改壞或被誤刪
 # ---------------------------------------------------------------------------
 REQUIRED = [
-    ('TRJ 開發週期',   r'2~3\s*天',                    ['index.html', 'trj_page/01_trj_page.html']),
-    ('TRJ 運算量',     r'37\s*%',                      ['index.html', 'trj_page/01_trj_page.html']),
-    ('TRJ 功能數',     r'9\s*項[橫側]向功能',           ['index.html', 'trj_page/01_trj_page.html']),
-    ('AMR 成功率',     r'40\s*%?\s*(提升至|→)\s*~?\s*100', ['index.html']),
-    ('C1 Bias 補償率', r'86\.81\s*%',                  ['index.html', 'lfs_page/lfs01.html']),
-    ('供應商報價',     r'470\s*' + DASH + r'\s*625K',   ['index.html', 'lfs_page/lfs01.html']),
-    ('感知供應商數',   r'4\s*[大家]感知廠|4\s*家供應商|對接\s*4\s*大廠', ['index.html', 'lfs_page/lfs01.html']),
-    ('Mini-FOT 里程',  r'1,?600\s*km',                 ['index.html', 'trj_page/01_trj_page.html', 'lfs_page/lfs01.html']),
+    ('TRJ 開發週期',   r'2~3\s*天',                    ['home/index.html', 'trj_page/01_trj_page.html']),
+    ('TRJ 運算量',     r'37\s*%',                      ['home/index.html', 'trj_page/01_trj_page.html']),
+    ('TRJ 功能數',     r'9\s*項[橫側]向功能',           ['home/index.html', 'trj_page/01_trj_page.html']),
+    ('AMR 成功率',     r'40\s*%?\s*(提升至|→)\s*~?\s*100', ['home/index.html']),
+    ('C1 Bias 補償率', r'86\.81\s*%',                  ['home/index.html', 'lfs_page/lfs01.html']),
+    ('供應商報價',     r'470\s*' + DASH + r'\s*625K',   ['home/index.html', 'lfs_page/lfs01.html']),
+    ('感知供應商數',   r'4\s*[大家]感知廠|4\s*家供應商|對接\s*4\s*大廠', ['home/index.html', 'lfs_page/lfs01.html']),
+    ('Mini-FOT 里程',  r'1,?600\s*km',                 ['home/index.html', 'trj_page/01_trj_page.html', 'lfs_page/lfs01.html']),
     ('姓名',           r'Ming-Kai Kan',                PAGES),
 ]
 
@@ -144,7 +147,7 @@ def check_orphans_and_todos():
                 refs.add(os.path.normpath(os.path.join(os.path.dirname(p), r)))
 
     for f in sorted(glob.glob('*.html') + glob.glob('*/*.html')):
-        if f != 'index.html' and os.path.normpath(f) not in refs:
+        if f != REDIRECT and os.path.normpath(f) not in refs:
             warns.append('孤兒(沒有任何頁面連到它): %s' % f)
 
     for page in PAGES:
