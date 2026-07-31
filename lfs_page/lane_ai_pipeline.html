@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>相機 AI 車道線偵測 — 架構與資料流</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;--bg-alt:#f5f5f7;--ink:#1d1d1f;--ink-2:#6e6e73;--ink-3:#86868b;
+  --line:#d2d2d7;--blue:#0071e3;--blue-d:#0066cc;
+  --grad:linear-gradient(118deg,#0a84ff 0%,#0071e3 42%,#28c6e8 100%);
+  --amber:#b45309;--amber-bg:#fff7ed;--amber-line:#fde3c8;
+  --green:#0a8a5c;--green-bg:#ecfdf5;--green-line:#86efac;
+  --purple:#6d28d9;--purple-bg:#f5f3ff;--purple-line:#ddd6fe;
+  --sans:"SF Pro TC","SF Pro Display",-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --shadow:0 4px 20px rgba(0,0,0,.06);--shadow-lg:0 18px 50px rgba(0,0,0,.12);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.wrap{max-width:980px;margin:0 auto;padding:0 22px}
+
+.pnav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(0,0,0,.08)}
+.pnav .in{max-width:980px;margin:0 auto;height:52px;padding:0 22px;display:flex;align-items:center;justify-content:space-between}
+.pnav .brand{font-size:14.5px;font-weight:700;letter-spacing:-.01em;color:var(--ink);text-decoration:none}
+.pnav .back{font-size:13px;color:var(--ink-2);text-decoration:none;font-weight:500}
+.pnav .back:hover{color:var(--ink)}
+
+.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+section{padding:clamp(48px,8vw,96px) 0;scroll-margin-top:70px}
+.band-alt{background:var(--bg-alt)}
+.unit{margin:0 auto}
+.unit-head{text-align:center;margin-bottom:32px}
+.unit-tag{font-size:12px;font-weight:700;color:var(--blue);letter-spacing:.06em;margin-bottom:8px}
+.unit-title{font-size:clamp(22px,3.4vw,34px);font-weight:700;letter-spacing:-.015em;line-height:1.28}
+.unit-lead{font-size:14px;color:var(--ink-2);margin-top:14px;max-width:640px;margin-left:auto;margin-right:auto;line-height:1.75}
+.p-mid{font-size:16px;color:var(--ink);font-weight:600;line-height:1.7;max-width:600px;margin:28px auto 0;text-align:center}
+
+/* ── hero ── */
+.hero{padding:clamp(64px,10vw,110px) 0 20px;text-align:center}
+.hero-eyebrow{font-size:12.5px;font-weight:700;color:var(--blue);letter-spacing:.08em;margin-bottom:14px}
+.hero-title{font-size:clamp(28px,4.6vw,46px);font-weight:800;letter-spacing:-.02em;line-height:1.2}
+.hero-sub{font-size:15.5px;color:var(--ink-2);max-width:620px;margin:20px auto 0;line-height:1.8}
+.audience-row{display:flex;gap:10px;justify-content:center;margin-top:26px;flex-wrap:wrap}
+.aud{font-family:var(--mono);font-size:11.5px;font-weight:700;padding:7px 14px;border-radius:980px;border:1px solid var(--line);color:var(--ink-2)}
+.aud b{color:var(--blue)}
+
+/* ── legend switch ── */
+.legend-row{display:flex;gap:14px;justify-content:center;margin-top:36px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2);font-weight:600}
+.legend-dot{width:10px;height:10px;border-radius:50%}
+.legend-dot.hr{background:var(--green)}
+.legend-dot.tech{background:var(--purple)}
+
+/* ── pipeline timeline ── */
+.pipeline{position:relative;max-width:760px;margin:44px auto 0;padding-left:52px}
+.pipeline::before{content:'';position:absolute;left:21px;top:6px;bottom:6px;width:2px;background:linear-gradient(180deg,var(--blue) 0%,#28c6e8 50%,var(--green) 100%);opacity:.35}
+.stage{position:relative;margin-bottom:34px}
+.stage:last-child{margin-bottom:0}
+.stage-badge{position:absolute;left:-52px;top:0;width:42px;height:42px;border-radius:50%;background:#fff;border:2px solid var(--blue);display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 2px 8px rgba(0,113,227,.18);z-index:2}
+.stage-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow)}
+.stage-num{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--blue);letter-spacing:.08em;margin-bottom:4px}
+.stage-title{font-size:16.5px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.stage-hr{font-size:13.5px;color:var(--ink-2);line-height:1.7;background:var(--green-bg);border:1px solid var(--green-line);border-radius:10px;padding:10px 13px;margin-bottom:10px}
+.stage-hr b{color:var(--green);font-weight:700}
+.stage-tech{display:flex;flex-wrap:wrap;gap:6px}
+.tech-tag{font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--purple);background:var(--purple-bg);border:1px solid var(--purple-line);border-radius:7px;padding:4px 9px}
+.stage-io{display:flex;gap:8px;margin-top:10px;font-family:var(--mono);font-size:10.5px;color:var(--ink-3)}
+.stage-io span b{color:var(--ink-2)}
+
+/* ── LaneNet architecture diagram (Step 3) ── */
+.lanenet{margin-top:14px;padding:18px 16px;background:var(--bg-alt);border-radius:14px;border:1px solid var(--line)}
+.lanenet-title{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--ink-3);letter-spacing:.07em;margin-bottom:14px;text-transform:uppercase}
+.ln-flow{display:flex;align-items:center;gap:4px;overflow-x:auto;padding-bottom:4px}
+.ln-node{flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;width:92px}
+.ln-img{width:88px;height:60px;border-radius:8px;overflow:hidden;border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.08);background:#fff}
+.ln-img svg{display:block;width:100%;height:100%}
+.ln-label{font-size:9px;color:var(--ink-2);text-align:center;line-height:1.35;font-weight:600}
+.ln-arrow{flex:none;color:var(--ink-3);font-size:15px;font-weight:700;padding:0 1px}
+.ln-branches{flex:none;display:flex;flex-direction:column;gap:8px}
+.ln-branch-row{display:flex;align-items:center;gap:4px}
+.ln-branch-tag{font-family:var(--mono);font-size:8px;font-weight:700;color:#fff;border-radius:5px;padding:2px 6px;position:absolute;top:-9px;left:50%;transform:translateX(-50%);white-space:nowrap}
+.ln-img{position:relative}
+.ln-combine{flex:none;width:30px;height:30px;border-radius:50%;background:#fff;border:1.5px solid var(--ink-3);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--ink-2);font-weight:700}
+.ln-specs{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.ln-specs-t{font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.ln-specs ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px 18px}
+.ln-specs li{font-size:11.5px;color:var(--ink-2);line-height:1.6;padding-left:14px;position:relative}
+.ln-specs li::before{content:'•';position:absolute;left:0;color:var(--blue);font-weight:700}
+.ln-specs li b{color:var(--ink);font-weight:700}
+@media(max-width:640px){.ln-flow{flex-wrap:nowrap}.ln-specs ul{grid-template-columns:1fr}}
+
+/* ── arrow connector between stage cards on wide screens (visual flow) ── */
+.flowcap{font-size:11px;color:var(--ink-3);text-align:center;margin-top:8px;font-family:var(--mono)}
+
+/* ── overview svg diagram ── */
+.svgcard{max-width:920px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px 18px 16px;box-shadow:var(--shadow)}
+.svgcard svg{display:block;width:100%;height:auto}
+.svgcap{font-size:12px;color:var(--ink-3);text-align:center;margin-top:10px;line-height:1.7}
+.flow{stroke-dasharray:8 8;animation:dashf 1.1s linear infinite}
+@keyframes dashf{to{stroke-dashoffset:-32}}
+
+/* ── comparison table ── */
+.vtab{width:100%;border-collapse:collapse;margin-top:20px;font-size:13px}
+.vtab th,.vtab td{border-bottom:1px solid var(--line);padding:11px 12px;text-align:left;vertical-align:top}
+.vtab th{font-weight:700;color:var(--ink-2);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;background:var(--bg-alt)}
+.vtab td b{color:var(--ink)}
+.vtab tr:last-child td{border-bottom:none}
+
+/* ── why-it-matters cards ── */
+.why{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px}
+.why-c{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px}
+.why-n{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.05em;margin-bottom:8px}
+.why-t{font-size:14.5px;font-weight:700;margin-bottom:6px}
+.why-d{font-size:12.5px;color:var(--ink-2);line-height:1.7}
+@media(max-width:760px){.why{grid-template-columns:1fr}}
+
+/* ── FAQ ── */
+.detwrap{max-width:700px;margin:26px auto 0;display:flex;flex-direction:column;gap:10px}
+details{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px}
+summary{cursor:pointer;font-weight:600;font-size:13.5px;color:var(--ink);list-style:none;display:flex;align-items:center;justify-content:space-between}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'+';color:var(--blue);font-size:16px;font-weight:700}
+details[open] summary::after{content:'−'}
+details .a{font-size:13px;color:var(--ink-2);line-height:1.8;margin-top:10px}
+
+footer{padding:40px 0;text-align:center;font-size:12px;color:var(--ink-3);border-top:1px solid var(--line)}
+
+@media(max-width:640px){
+  .pipeline{padding-left:44px}
+  .stage-badge{left:-44px;width:36px;height:36px;font-size:16px}
+  .pipeline::before{left:17px}
+}
+</style>
+</head>
+<body>
+
+<nav class="pnav">
+  <div class="in">
+    <a class="brand" href="lfs.html">← LFS 車道融合系統</a>
+    <a class="back" href="lfs.html">返回主頁</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-eyebrow">CAMERA AI · LANE DETECTION</div>
+    <h1 class="hero-title">相機怎麼「看懂」車道線？<br><span class="grad">一張圖看懂 AI 演算法架構</span></h1>
+    <p class="hero-sub">從鏡頭拍到的一張畫面，到系統能拿來控制方向盤的一條數學曲線——中間經過 6 個步驟。這頁用兩種語言講同一件事：<b>綠色</b>是給非技術背景快速理解的白話說明，<b>紫色標籤</b>是給技術主管看的實作細節。</p>
+    <div class="audience-row">
+      <div class="aud">給 HR / PM 看 → <b>綠色說明</b>就夠</div>
+      <div class="aud">給技術主管看 → 加看<b>紫色標籤</b>與下方表格</div>
+    </div>
+    <div class="legend-row">
+      <div class="legend-item"><span class="legend-dot hr"></span>白話說明（做什麼、為什麼）</div>
+      <div class="legend-item"><span class="legend-dot tech"></span>技術細節（怎麼做、用什麼方法）</div>
+    </div>
+  </div>
+</section>
+
+<section id="overview" class="band-alt">
+  <div class="wrap">
+    <div class="unit">
+      <div class="unit-head">
+        <div class="unit-tag">OVERVIEW · 總覽</div>
+        <div class="unit-title">一句話講完整套系統</div>
+        <p class="unit-lead">攝影機像「眼睛」，AI 模型像「大腦」，車道線輸出像「告訴身體該怎麼走」。系統要在每秒 30 張畫面裡，把馬路上的白線／黃線找出來，轉成一條車輛看得懂的曲線，還要在下雨、逆光、被車擋住時，不能亂猜、也不能突然斷線。</p>
+      </div>
+      <div class="svgcard">
+        <svg viewBox="0 0 900 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="車道線偵測資料流總覽">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#0071e3"/>
+            </marker>
+          </defs>
+          <!-- 6 boxes -->
+          <g font-family="Noto Sans TC, sans-serif">
+            <!-- box template positions -->
+            <g>
+              <rect x="10" y="60" width="130" height="70" rx="14" fill="#eef4ff" stroke="#0071e3" stroke-width="1.2"/>
+              <text x="75" y="88" text-anchor="middle" font-size="20">📷</text>
+              <text x="75" y="110" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1d1d1f">攝影機取像</text>
+              <text x="75" y="124" text-anchor="middle" font-size="9" fill="#6e6e73">30–60 fps</text>
+            </g>
+            <line class="flow" x1="140" y1="95" x2="164" y2="95" stroke="#0071e3" stroke-width="2" marker-end="url(#arrow)"/>
+            <g>
+              <rect x="165" y="60" width="130" height="70" rx="14" fill="#eef4ff" stroke="#0071e3" stroke-width="1.2"/>
+              <text x="230" y="88" text-anchor="middle" font-size="20">🧹</text>
+              <text x="230" y="110" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1d1d1f">影像前處理</text>
+              <text x="230" y="124" text-anchor="middle" font-size="9" fill="#6e6e73">校正 / BEV</text>
+            </g>
+            <line class="flow" x1="295" y1="95" x2="319" y2="95" stroke="#0071e3" stroke-width="2" marker-end="url(#arrow)"/>
+            <g>
+              <rect x="320" y="52" width="140" height="86" rx="14" fill="#f5f3ff" stroke="#6d28d9" stroke-width="1.2"/>
+              <text x="390" y="84" text-anchor="middle" font-size="22">🧠</text>
+              <text x="390" y="108" text-anchor="middle" font-size="12" font-weight="700" fill="#1d1d1f">AI 模型推論</text>
+              <text x="390" y="123" text-anchor="middle" font-size="9" fill="#6e6e73">CNN 語意分割</text>
+            </g>
+            <line class="flow" x1="460" y1="95" x2="484" y2="95" stroke="#0071e3" stroke-width="2" marker-end="url(#arrow)"/>
+            <g>
+              <rect x="485" y="60" width="130" height="70" rx="14" fill="#eef4ff" stroke="#0071e3" stroke-width="1.2"/>
+              <text x="550" y="88" text-anchor="middle" font-size="20">📈</text>
+              <text x="550" y="110" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1d1d1f">曲線擬合</text>
+              <text x="550" y="124" text-anchor="middle" font-size="9" fill="#6e6e73">多項式 C0–C3</text>
+            </g>
+            <line class="flow" x1="615" y1="95" x2="639" y2="95" stroke="#0071e3" stroke-width="2" marker-end="url(#arrow)"/>
+            <g>
+              <rect x="640" y="60" width="130" height="70" rx="14" fill="#eef4ff" stroke="#0071e3" stroke-width="1.2"/>
+              <text x="705" y="88" text-anchor="middle" font-size="20">🔄</text>
+              <text x="705" y="110" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1d1d1f">時序追蹤</text>
+              <text x="705" y="124" text-anchor="middle" font-size="9" fill="#6e6e73">Kalman Filter</text>
+            </g>
+            <line class="flow" x1="770" y1="95" x2="794" y2="95" stroke="#0071e3" stroke-width="2" marker-end="url(#arrow)"/>
+            <g>
+              <rect x="795" y="60" width="100" height="70" rx="14" fill="#ecfdf5" stroke="#0a8a5c" stroke-width="1.2"/>
+              <text x="845" y="88" text-anchor="middle" font-size="20">🚗</text>
+              <text x="845" y="110" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1d1d1f">輸出</text>
+              <text x="845" y="124" text-anchor="middle" font-size="9" fill="#6e6e73">給 ADAS</text>
+            </g>
+            <text x="450" y="165" text-anchor="middle" font-size="10.5" fill="#86868b" font-family="JetBrains Mono, monospace">單張畫面（毫秒級）→ 穩定車道線曲線 → LKA / LDW / ACC / LCC</text>
+          </g>
+        </svg>
+        <p class="svgcap">每一格箭頭代表資料在系統裡「流動」的方向——從相機的原始像素，一路加工成一條可以直接拿去控制車輛的數學曲線。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pipeline">
+  <div class="wrap">
+    <div class="unit">
+      <div class="unit-head">
+        <div class="unit-tag">PIPELINE · 六步驟拆解</div>
+        <div class="unit-title">每一步在做什麼、用什麼方法</div>
+        <p class="unit-lead">往下捲動，看懂每一步「做什麼」（綠色）以及「怎麼做」（紫色技術標籤）。</p>
+      </div>
+
+      <div class="pipeline">
+
+        <div class="stage">
+          <div class="stage-badge">📷</div>
+          <div class="stage-card">
+            <div class="stage-num">STEP 1 · 感測</div>
+            <div class="stage-title">攝影機取像 Image Acquisition</div>
+            <div class="stage-hr"><b>白話：</b>前鏡頭像人的眼睛，持續拍下車前的畫面，是整套系統唯一的資料來源。</div>
+            <div class="stage-tech">
+              <span class="tech-tag">RGB / YUV Frame</span>
+              <span class="tech-tag">30–60 fps</span>
+              <span class="tech-tag">ROI 裁切</span>
+              <span class="tech-tag">HDR 曝光</span>
+            </div>
+            <div class="stage-io"><span><b>輸出：</b>原始影像幀</span></div>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="stage-badge">🧹</div>
+          <div class="stage-card">
+            <div class="stage-num">STEP 2 · 前處理</div>
+            <div class="stage-title">影像前處理 Preprocessing</div>
+            <div class="stage-hr"><b>白話：</b>先把鏡頭本身的變形校正掉、把畫面調整成 AI 看得舒服的樣子，減少後面誤判。</div>
+            <div class="stage-tech">
+              <span class="tech-tag">Lens Distortion Correction</span>
+              <span class="tech-tag">Camera Intrinsic/Extrinsic 校正</span>
+              <span class="tech-tag">IPM / BEV 轉換</span>
+              <span class="tech-tag">Resize · Normalize</span>
+            </div>
+            <div class="stage-io"><span><b>輸入：</b>原始影像幀　<b>輸出：</b>校正後標準化影像</span></div>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="stage-badge">🧠</div>
+          <div class="stage-card">
+            <div class="stage-num">STEP 3 · AI 推論（核心）</div>
+            <div class="stage-title">深度學習模型推論 Deep Learning Inference</div>
+            <div class="stage-hr"><b>白話：</b>這是真正的「AI」在運作的地方——模型判斷畫面裡哪些像素屬於車道線，即使線是斷的、模糊的，也能推測出來。</div>
+            <div class="stage-tech">
+              <span class="tech-tag">Encoder-Decoder（ENet）</span>
+              <span class="tech-tag">Backbone：BiSeNetV2</span>
+              <span class="tech-tag">雙分支：Segmentation + Embedding</span>
+              <span class="tech-tag">Loss：BCE + Discriminative Loss</span>
+              <span class="tech-tag">Dataset：TuSimple</span>
+              <span class="tech-tag">Embedding Dim：4</span>
+              <span class="tech-tag">Image Size：512×256</span>
+            </div>
+
+            <div class="lanenet">
+              <div class="lanenet-title">Network Architecture（LaneNet）— 模型內部怎麼跑</div>
+              <div class="ln-flow">
+
+                <div class="ln-node">
+                  <div class="ln-img">
+                    <svg viewBox="0 0 100 70" preserveAspectRatio="none">
+                      <rect width="100" height="70" fill="#dbe1ea"/>
+                      <rect width="100" height="26" fill="#c3ccd9"/>
+                      <polygon points="0,70 38,26 62,26 100,70" fill="#5f6b7a"/>
+                      <line x1="46" y1="26" x2="18" y2="70" stroke="#fff" stroke-width="2.4" stroke-dasharray="5 4"/>
+                      <line x1="54" y1="26" x2="82" y2="70" stroke="#fff" stroke-width="2.4" stroke-dasharray="5 4"/>
+                    </svg>
+                  </div>
+                  <div class="ln-label">輸入影像<br>512×256</div>
+                </div>
+
+                <div class="ln-arrow">→</div>
+
+                <div class="ln-node">
+                  <div class="ln-img">
+                    <svg viewBox="0 0 100 70">
+                      <rect x="18" y="30" width="26" height="34" fill="#0071e3" opacity=".22" stroke="#0071e3" stroke-width="1"/>
+                      <rect x="32" y="20" width="26" height="34" fill="#0071e3" opacity=".45" stroke="#0071e3" stroke-width="1"/>
+                      <rect x="46" y="10" width="26" height="34" fill="#0071e3" opacity=".75" stroke="#0071e3" stroke-width="1"/>
+                    </svg>
+                  </div>
+                  <div class="ln-label">Shared Encoder<br>ENet / BiSeNetV2</div>
+                </div>
+
+                <div class="ln-arrow">→</div>
+
+                <div class="ln-branches">
+                  <div class="ln-branch-row">
+                    <div class="ln-node" style="width:70px">
+                      <div class="ln-img" style="height:40px">
+                        <svg viewBox="0 0 70 40">
+                          <rect x="10" y="8" width="16" height="24" fill="#6d28d9" opacity=".25" stroke="#6d28d9"/>
+                          <rect x="24" y="4" width="16" height="24" fill="#6d28d9" opacity=".55" stroke="#6d28d9"/>
+                        </svg>
+                      </div>
+                      <div class="ln-label" style="font-size:8px">Embedding<br>Branch</div>
+                    </div>
+                    <div class="ln-arrow" style="font-size:12px">→</div>
+                    <div class="ln-node" style="width:74px">
+                      <div class="ln-img" style="height:44px">
+                        <svg viewBox="0 0 100 60" preserveAspectRatio="none">
+                          <defs><linearGradient id="lng" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#7c3aed"/><stop offset=".35" stop-color="#06b6d4"/>
+                            <stop offset=".65" stop-color="#ec4899"/><stop offset="1" stop-color="#f59e0b"/>
+                          </linearGradient></defs>
+                          <rect width="100" height="60" fill="url(#lng)"/>
+                          <polygon points="0,60 38,22 62,22 100,60" fill="#000" opacity=".18"/>
+                        </svg>
+                      </div>
+                      <div class="ln-label" style="font-size:8px">Instance 特徵圖<br>(dim=4)</div>
+                    </div>
+                  </div>
+                  <div class="ln-branch-row">
+                    <div class="ln-node" style="width:70px">
+                      <div class="ln-img" style="height:40px">
+                        <svg viewBox="0 0 70 40">
+                          <rect x="10" y="8" width="16" height="24" fill="#6e6e73" opacity=".25" stroke="#6e6e73"/>
+                          <rect x="24" y="4" width="16" height="24" fill="#6e6e73" opacity=".55" stroke="#6e6e73"/>
+                        </svg>
+                      </div>
+                      <div class="ln-label" style="font-size:8px">Segmentation<br>Branch</div>
+                    </div>
+                    <div class="ln-arrow" style="font-size:12px">→</div>
+                    <div class="ln-node" style="width:74px">
+                      <div class="ln-img" style="height:44px">
+                        <svg viewBox="0 0 100 60" preserveAspectRatio="none">
+                          <rect width="100" height="60" fill="#0b0b0c"/>
+                          <line x1="46" y1="22" x2="18" y2="60" stroke="#fff" stroke-width="3"/>
+                          <line x1="54" y1="22" x2="82" y2="60" stroke="#fff" stroke-width="3"/>
+                        </svg>
+                      </div>
+                      <div class="ln-label" style="font-size:8px">Binary 車道遮罩</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="ln-combine">⊗</div>
+
+                <div class="ln-node">
+                  <div class="ln-img">
+                    <svg viewBox="0 0 100 70">
+                      <rect width="100" height="70" fill="#fafafa"/>
+                      <circle cx="30" cy="24" r="2.6" fill="#0071e3"/><circle cx="35" cy="30" r="2.6" fill="#0071e3"/><circle cx="26" cy="34" r="2.6" fill="#0071e3"/><circle cx="38" cy="20" r="2.6" fill="#0071e3"/>
+                      <circle cx="66" cy="42" r="2.6" fill="#ec4899"/><circle cx="72" cy="36" r="2.6" fill="#ec4899"/><circle cx="62" cy="48" r="2.6" fill="#ec4899"/><circle cx="70" cy="50" r="2.6" fill="#ec4899"/>
+                      <circle cx="12" cy="58" r="1.8" fill="#9ca3af"/><circle cx="86" cy="14" r="1.8" fill="#9ca3af"/>
+                    </svg>
+                  </div>
+                  <div class="ln-label">Clustering<br>依 Embedding 分群</div>
+                </div>
+
+                <div class="ln-arrow">→</div>
+
+                <div class="ln-node">
+                  <div class="ln-img">
+                    <svg viewBox="0 0 100 70" preserveAspectRatio="none">
+                      <rect width="100" height="70" fill="#7a3b46"/>
+                      <polygon points="0,70 38,26 62,26 100,70" fill="#5b2530" opacity=".5"/>
+                      <path d="M50,22 L16,70" stroke="#22c55e" stroke-width="3.4" fill="none"/>
+                      <path d="M50,22 L84,70" stroke="#22c55e" stroke-width="3.4" fill="none"/>
+                    </svg>
+                  </div>
+                  <div class="ln-label">最終車道<br>疊圖輸出</div>
+                </div>
+
+              </div>
+
+              <div class="ln-specs">
+                <div class="ln-specs-t">Network Architecture（LaneNet）</div>
+                <ul>
+                  <li>雙分支架構：<b>Segmentation Branch</b> + <b>Embedding Branch</b></li>
+                  <li>Encoder-decoder network：<b>ENet</b></li>
+                  <li>Backbone Network：<b>BiSeNetV2</b></li>
+                  <li>Loss Functions：<b>Binary Cross Entropy</b> + <b>Discriminative Loss</b></li>
+                  <li>Dataset：<b>TuSimple</b></li>
+                  <li>Embedding dimension：<b>4</b></li>
+                  <li>Image size：<b>512×256</b></li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="stage-io" style="margin-top:12px"><span><b>輸入：</b>標準化影像　<b>輸出：</b>車道像素機率圖 + 車道實例</span></div>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="stage-badge">📈</div>
+          <div class="stage-card">
+            <div class="stage-num">STEP 4 · 後處理</div>
+            <div class="stage-title">車道線後處理與曲線擬合 Post-processing</div>
+            <div class="stage-hr"><b>白話：</b>AI 給的是一堆「可能是線」的散點，這一步把散點連成一條平滑、有數學公式的線，車輛才能拿來計算。</div>
+            <div class="stage-tech">
+              <span class="tech-tag">像素分群 Clustering</span>
+              <span class="tech-tag">三次多項式擬合</span>
+              <span class="tech-tag">y = C0 + C1x + C2x² + C3x³</span>
+              <span class="tech-tag">信心分數 Confidence Score</span>
+            </div>
+            <div class="stage-io"><span><b>輸入：</b>車道像素機率圖　<b>輸出：</b>車道曲線係數（偏移／航向角／曲率／曲率變化率）</span></div>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="stage-badge">🔄</div>
+          <div class="stage-card">
+            <div class="stage-num">STEP 5 · 時序融合</div>
+            <div class="stage-title">時序追蹤與濾波 Temporal Tracking</div>
+            <div class="stage-hr"><b>白話：</b>單張畫面難免會抖動或短暫看不到線（路口、遮擋、逆光），這一步把「這一幀」和「前幾幀」串起來，讓輸出的線平滑、不忽有忽無。</div>
+            <div class="stage-tech">
+              <span class="tech-tag">Kalman Filter / EKF</span>
+              <span class="tech-tag">缺失時前向外插</span>
+              <span class="tech-tag">C1 Bias 閉迴路補償</span>
+              <span class="tech-tag">Residual Estimation 降級策略</span>
+            </div>
+            <div class="stage-io"><span><b>輸入：</b>當前幀曲線係數　<b>輸出：</b>平滑後的穩定車道模型</span></div>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="stage-badge">🚗</div>
+          <div class="stage-card">
+            <div class="stage-num">STEP 6 · 輸出與安全把關</div>
+            <div class="stage-title">車道模型輸出 Lane Model Output</div>
+            <div class="stage-hr"><b>白話：</b>最後把這條「大家都信得過」的車道線，同時交給車上好幾個功能使用，不用各自重做一次。</div>
+            <div class="stage-tech">
+              <span class="tech-tag">CAN / Ethernet 訊號</span>
+              <span class="tech-tag">Lane Valid Rate &gt; 97%</span>
+              <span class="tech-tag">Plausibility Check（ASIL）</span>
+              <span class="tech-tag">供 LKA · LDW · ACC · LCC 共用</span>
+            </div>
+            <div class="stage-io"><span><b>輸入：</b>穩定車道模型　<b>輸出：</b>供下游 ADAS 功能使用的車道訊號</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band-alt" id="why">
+  <div class="wrap">
+    <div class="unit">
+      <div class="unit-head">
+        <div class="unit-tag">WHY IT'S HARD · 技術亮點</div>
+        <div class="unit-title">為什麼這件事不簡單</div>
+        <p class="unit-lead">「找到線」不難，難的是在各種真實路況下都「找得穩」。這三點是整套架構真正的技術門檻。</p>
+      </div>
+      <div class="why">
+        <div class="why-c">
+          <div class="why-n">01</div>
+          <div class="why-t">即時性 Real-time</div>
+          <div class="why-d">每秒要處理數十張畫面，AI 推論與後處理必須在毫秒級完成，還要留餘裕給下游控制迴路。</div>
+        </div>
+        <div class="why-c">
+          <div class="why-n">02</div>
+          <div class="why-t">容錯與降級</div>
+          <div class="why-d">相機一定會短暫「看不清楚」——逆光、遮擋、路口斷線。系統要能優雅降級，而不是直接斷訊或亂給錯誤答案。</div>
+        </div>
+        <div class="why-c">
+          <div class="why-n">03</div>
+          <div class="why-t">一條線、多個功能共用</div>
+          <div class="why-d">同一條車道線同時要滿足 AEB、ACC、LFC、LCC 等多個功能的精度需求，不能各自調校、互相打架。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="table">
+  <div class="wrap">
+    <div class="unit">
+      <div class="unit-head">
+        <div class="unit-tag">SUMMARY · 一張表看完整流程</div>
+        <div class="unit-title">六步驟總覽表</div>
+      </div>
+      <table class="vtab">
+        <tr><th>步驟</th><th>做什麼（白話）</th><th>核心技術</th><th>輸出</th></tr>
+        <tr><td><b>1. 取像</b></td><td>拍下車前畫面</td><td>RGB/YUV, HDR, ROI</td><td>原始影像幀</td></tr>
+        <tr><td><b>2. 前處理</b></td><td>校正、標準化畫面</td><td>去畸變校正、IPM/BEV 轉換</td><td>標準化影像</td></tr>
+        <tr><td><b>3. AI 推論</b></td><td>判斷哪些像素是車道線</td><td>CNN 語意分割 / Row-anchor</td><td>車道機率圖</td></tr>
+        <tr><td><b>4. 曲線擬合</b></td><td>連成一條數學曲線</td><td>多項式擬合（C0–C3）</td><td>車道曲線係數</td></tr>
+        <tr><td><b>5. 時序追蹤</b></td><td>跨幀平滑、補償誤差</td><td>Kalman Filter、Bias 補償</td><td>穩定車道模型</td></tr>
+        <tr><td><b>6. 輸出</b></td><td>交給其他功能使用</td><td>訊號輸出、安全檢核</td><td>ADAS 可用訊號</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="band-alt" id="faq">
+  <div class="wrap">
+    <div class="unit">
+      <div class="unit-head">
+        <div class="unit-tag">FAQ · 給技術主管的追問</div>
+        <div class="unit-title">常見技術問題</div>
+      </div>
+      <div class="detwrap">
+        <details><summary>為什麼用多項式而不是直接輸出像素座標？</summary><div class="a">多項式係數（C0 偏移、C1 航向角、C2 曲率、C3 曲率變化率）是下游控制演算法直接需要的物理量，資料量小、易於跨幀平滑，也方便和其他感測器（如雷達、光達）做座標系融合。</div></details>
+        <details><summary>相機短暫看不到車道線時怎麼辦？</summary><div class="a">採三階段平滑降級：先用前向外插撐住短暫遮擋，接著前後向加權融合，長時間缺失則用後向重建並在安全時間窗（如 2 秒）內發出接管請求，避免系統「硬撐」或「暴衝式」失效。</div></details>
+        <details><summary>模型精度和即時性怎麼取捨？</summary><div class="a">在邊緣運算平台上，通常用輕量化 Backbone（如 EfficientNet-Lite、MobileNet 系列）搭配 INT8 量化，把單幀推論壓在毫秒級，再靠時序濾波彌補單幀精度的不足。</div></details>
+        <details><summary>怎麼知道系統「夠穩定」？</summary><div class="a">用 Lane Valid Rate、C0/C1 誤差、VRE（Valid Range Error）等 KPI 量化，並跑滿 MIL → CIL → HIL → Road 四層驗證，涵蓋長距離實路測試與極端環境（高溫、逆光、暴雨）。</div></details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">這套六步驟架構，是 <a href="lfs.html" style="color:var(--blue);text-decoration:none;font-weight:600">LFS 車道融合系統</a> 的資料流基礎 — 由此串起 AEB／ACC／LFC／LCC 四項功能共用同一條穩定車道線。</div>
+</footer>
+
+</body>
+</html>

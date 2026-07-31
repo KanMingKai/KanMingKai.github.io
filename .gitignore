@@ -1,24 +1,31 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# 作業系統
+Thumbs.db
+Desktop.ini
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+
+# 編輯器
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+
+# 暫存
+_selftest.txt
+*.tmp
+
+# ---------------------------------------------------------------
+# 不可公開 —— GitHub Pages 會把 repo 內容變成公開網址,
+# 以下檔案即使沒有任何頁面連到它們,只要 commit 進去就能被直接存取。
+# ---------------------------------------------------------------
+
+# 公司內部文件
+*.pptx
+
+# 專案檢討筆記:內含分工界線、自我評估與寫法建議等坦白內容,
+# 對自己有用,但被招募方看到會造成傷害。留在本機,不要進 repo。
+home/*.md
+
+# 面試講稿(附人資長／技術長講評,含自我扣分項)
+trj_portfolio.txt

@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>C1 Bias Demo — 已修正（淺色）</title>
+  <style>
+    :root{
+      --ink:#1d1d1f;--ink-2:#6e6e73;--ink-3:#86868b;--line:#d2d2d7;
+      --blue:#0071e3;--green:#0a8a5c;--amber:#c2760b;
+      --sans:"SF Pro TC",-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+      --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #ffffff; overflow: hidden; font-family: var(--sans); color: var(--ink); }
+    #canvas-container { position: absolute; top: 0; left: 0; width: 50vw; height: 100vh; }
+
+    #hud { position: absolute; top: 20px; left: 20px; color: var(--ink-2); font-size: 13px; line-height: 1.85; pointer-events: none; }
+    #hud .title { font-size: 19px; font-weight: 700; color: var(--ink); letter-spacing: 0.02em; margin-bottom: 2px; }
+    #hud .subtitle { font-size: 11px; color: var(--green); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; font-family: var(--mono); }
+    .badge { display: inline-block; border-radius: 6px; padding: 2px 9px; font-size: 11px; margin-right: 5px; font-weight: 600; }
+    .badge.green  { background: rgba(10,138,92,0.1);  border: 1px solid rgba(10,138,92,0.4);  color: var(--green); }
+    .badge.orange { background: rgba(234,106,10,0.1);  border: 1px solid rgba(234,106,10,0.4);  color: var(--amber); }
+    .badge.dim    { background: rgba(0,0,0,0.05);      border: 1px solid rgba(0,0,0,0.12);      color: var(--ink-3); }
+    #hud .hval { font-family: var(--mono); }
+
+    #bev-panel { position: absolute; top: 0; left: 50vw; width: 50vw; height: 100vh; pointer-events: none; }
+    #bev { display: block; width: 100%; height: 100%; }
+
+    /* Concept 2: technical callout leader — EGO camera → BEV */
+    #proj-beam { position: absolute; inset: 0; width: 100vw; height: 100vh; pointer-events: none; }
+    #callout-label {
+      position: absolute; pointer-events: none; white-space: nowrap;
+      display: flex; align-items: center; gap: 7px;
+      padding: 3px 9px; border-radius: 7px;
+      background: rgba(255,255,255,0.8);
+      font-family: var(--sans); font-size: 12px; font-weight: 700; color: var(--ink);
+    }
+    #callout-label .co-dot { width: 8px; height: 8px; border-radius: 2px; background: var(--green); flex-shrink: 0; }
+    #callout-label .co-sub { font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--ink-3); }
+
+    #legend { position: absolute; bottom: 24px; left: 20px; color: var(--ink-2); font-size: 12px; line-height: 2.2; pointer-events: none; }
+    .legend-row { display: flex; align-items: center; gap: 8px; }
+    .legend-swatch { width: 28px; height: 3px; border-radius: 2px; }
+  </style>
+</head>
+<body>
+<div id="canvas-container"></div>
+<!-- HUD -->
+<div id="hud">
+  <div class="title">C1 Bias 補償</div>
+  <div class="subtitle" id="hud-subtitle">感知裝歪 → 系統把車拉回車道中心</div>
+  <span class="badge green" id="badge-comp">補償中 0%</span>
+  <br/><br/>
+  <div>橫向誤差:&nbsp;&nbsp;<span class="hval" id="hud-lat" style="color:var(--amber)">+1.00 m</span></div>
+  <div>C1 偏差:&nbsp;&nbsp;&nbsp;&nbsp;<span class="hval" id="hud-c1" style="color:var(--amber)">+4.9°</span></div>
+</div>
+
+<!-- Legend -->
+<div id="legend">
+  <div class="legend-row">
+    <div class="legend-swatch" style="background:repeating-linear-gradient(90deg,#9a9aa0 0 8px,transparent 8px 14px)"></div>
+    真實車道線
+  </div>
+  <div class="legend-row" id="leg-perceived">
+    <div class="legend-swatch" style="background:#ea6a0a;" id="leg-swatch-perceived"></div>
+    <span id="leg-text-perceived">感知車道線（C1 偏差）</span>
+  </div>
+</div>
+
+<!-- BEV Panel -->
+<div id="bev-panel">
+  <canvas id="bev"></canvas>
+</div>
+<!-- overlay above the BEV so the frame + leader share one coordinate system -->
+<svg id="proj-beam" aria-hidden="true" preserveAspectRatio="none"></svg>
+
+<!-- Concept 2: callout title, positioned by layoutBeam() to sit at the leader end -->
+<div id="callout-label" aria-hidden="true">
+  <span class="co-dot"></span>
+  <span>EGO 相機感知</span>
+  <span class="co-sub">· BEV</span>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ─── C1 Bias parameters ───────────────────────────────────────────────────
+const LANE_HALF  = 1.9;
+const C1_BIAS    = 0.085;
+const EGO_OFFSET = LANE_HALF - 0.9;
+const LOOK_AHEAD = 12;
+
+let liveC1       = C1_BIAS;
+let corrStarted  = false;
+let corrComplete = false;
+
+// ─── Scene (light) ──────────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xffffff);
+scene.fog = new THREE.Fog(0xffffff, 60, 120);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(window.innerWidth / 2, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+const camera = new THREE.PerspectiveCamera(55, (window.innerWidth / 2) / window.innerHeight, 0.1, 200);
+camera.position.set(-0.6, 8, -14);
+camera.lookAt(0.5, 0, 10);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.target.set(0.5, 0, 6);
+controls.maxPolarAngle = Math.PI / 2.1;
+controls.minDistance = 4;
+controls.maxDistance = 60;
+controls.update();
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.15);
+dirLight.position.set(8, 20, -8);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(2048, 2048);
+Object.assign(dirLight.shadow.camera, { near:0.1, far:100, left:-30, right:30, top:30, bottom:-30 });
+dirLight.shadow.bias = -0.0004;
+scene.add(dirLight);
+const rimLight = new THREE.DirectionalLight(0xcfe1ff, 0.35);
+rimLight.position.set(-8, 5, 4);
+scene.add(rimLight);
+
+// ─── Ground (plain light grey, no grid) ──────────────────────────────────────
+const GRID_CELL = 2.5;
+const ROAD_LEN  = 80;
+const LANE_CYCLE = 4.0;
+
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(200, 200),
+  new THREE.MeshBasicMaterial({ color: 0xffffff })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.02;
+ground.receiveShadow = false;
+scene.add(ground);
+
+// ─── Helper ───────────────────────────────────────────────────────────────
+function straightPts(x, zFrom, zTo, n = 80) {
+  const pts = [];
+  for (let i = 0; i <= n; i++)
+    pts.push(new THREE.Vector3(x, 0.02, zFrom + (zTo - zFrom) * (i / n)));
+  return pts;
+}
+
+function makeDashedLine(points, color, dashLen = 2.5, gapLen = 1.5, opacity = 0.75) {
+  const group = new THREE.Group();
+  const mat   = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
+  let acc = 0, drawing = true, buf = [];
+  const flush = () => {
+    if (buf.length >= 2) group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(buf), mat));
+    buf = [];
+  };
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i], b = points[i + 1];
+    const segLen = a.distanceTo(b);
+    const dir = b.clone().sub(a).normalize();
+    let t = 0;
+    while (t < segLen) {
+      const limit = drawing ? dashLen : gapLen;
+      const step  = Math.min(limit - acc, segLen - t);
+      if (drawing) buf.push(a.clone().addScaledVector(dir, t));
+      t += step; acc += step;
+      if (acc >= limit - 1e-6) {
+        if (drawing) { buf.push(a.clone().addScaledVector(dir, t)); flush(); }
+        drawing = !drawing; acc = 0;
+      }
+    }
+  }
+  if (drawing && buf.length >= 2) flush();
+  return group;
+}
+
+// ─── World group ──────────────────────────────────────────────────────────
+const worldGroup = new THREE.Group();
+scene.add(worldGroup);
+const laneGroup = new THREE.Group();
+
+laneGroup.add(makeDashedLine(straightPts(-LANE_HALF, -10, ROAD_LEN), 0x8a8a90, 2.5, 1.5, 0.7));
+laneGroup.add(makeDashedLine(straightPts( LANE_HALF, -10, ROAD_LEN), 0x8a8a90, 2.5, 1.5, 0.7));
+
+const solidMat = new THREE.LineBasicMaterial({ color: 0xb4b4bc, transparent: true, opacity: 0.5 });
+for (const x of [-LANE_HALF * 3, LANE_HALF * 3])
+  laneGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(straightPts(x, -10, ROAD_LEN)), solidMat));
+
+// Warning line (fades out as correction happens)
+const warnLineMat = new THREE.LineBasicMaterial({ color: 0xea6a0a, transparent: true, opacity: 1.0 });
+const warnLine = new THREE.Line(
+  new THREE.BufferGeometry().setFromPoints(straightPts(LANE_HALF, -10, ROAD_LEN, 120)),
+  warnLineMat
+);
+laneGroup.add(warnLine);
+
+const warnGlowMat = new THREE.LineBasicMaterial({ color: 0xea6a0a, transparent: true, opacity: 0.22 });
+for (const dx of [-0.18, 0.18]) {
+  laneGroup.add(new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(straightPts(LANE_HALF + dx, -10, ROAD_LEN, 120)),
+    warnGlowMat
+  ));
+}
+
+// LKA target path (blue)
+const lkaMat = new THREE.LineBasicMaterial({ color: 0x0071e3, transparent: true, opacity: 0.75 });
+laneGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(straightPts(0, -5, ROAD_LEN, 100)), lkaMat));
+for (const dx of [-0.13, 0.13]) {
+  laneGroup.add(new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(straightPts(dx, -5, ROAD_LEN, 100)),
+    new THREE.LineBasicMaterial({ color: 0x0071e3, transparent: true, opacity: 0.16 })
+  ));
+}
+
+worldGroup.add(laneGroup);
+
+// Ground violation glow (fades out)
+const violGlowMat = new THREE.MeshBasicMaterial({
+  color: 0xea6a0a, transparent: true, opacity: 0.16, side: THREE.DoubleSide
+});
+const violGlow = new THREE.Mesh(new THREE.PlaneGeometry(0.28, 20), violGlowMat);
+violGlow.rotation.x = -Math.PI / 2;
+violGlow.position.set(LANE_HALF, 0.005, 6);
+scene.add(violGlow);
+
+// ─── Ego vehicle ──────────────────────────────────────────────────────────
+function buildEgo() {
+  const g = new THREE.Group();
+
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(1.8, 0.6, 4.2),
+    new THREE.MeshPhysicalMaterial({ color: 0xccd2da, metalness: 0.35, roughness: 0.32, clearcoat: 0.8, clearcoatRoughness: 0.1 })
+  );
+  body.position.y = 0.55; body.castShadow = true; g.add(body);
+
+  const cabin = new THREE.Mesh(
+    new THREE.BoxGeometry(1.5, 0.5, 2.2),
+    new THREE.MeshPhysicalMaterial({ color: 0x33465a, metalness: 0.2, roughness: 0.3, transparent: true, opacity: 0.82 })
+  );
+  cabin.position.set(0, 1.05, -0.3); cabin.castShadow = true; g.add(cabin);
+
+  // windshield camera — the sensor that produces the BEV (green lens ties to FOV/beam)
+  const camBody = new THREE.Mesh(
+    new THREE.BoxGeometry(0.36, 0.16, 0.24),
+    new THREE.MeshPhysicalMaterial({ color: 0x1d1d1f, metalness: 0.5, roughness: 0.35 })
+  );
+  camBody.position.set(0, 1.30, 0.72); camBody.castShadow = true; g.add(camBody);
+  const camLens = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.055, 0.07, 0.07, 18),
+    new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x0a8a5c, emissiveIntensity: 0.7 })
+  );
+  camLens.rotation.x = Math.PI / 2; camLens.position.set(0, 1.30, 0.86); g.add(camLens);
+  g.userData.camLens = camLens;   // referenced to project the leader origin each frame
+
+  const stripeMat = new THREE.MeshBasicMaterial({ color: 0xea6a0a, transparent: true, opacity: 0.9 });
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(1.82, 0.05, 4.22), stripeMat);
+  stripe.position.y = 0.3; g.add(stripe);
+  g.userData.stripeMat = stripeMat;
+
+  const wGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.22, 24);
+  const wMat = new THREE.MeshLambertMaterial({ color: 0x222228 });
+  for (const [wx, wy, wz] of [[-0.95,0.32,-1.35],[0.95,0.32,-1.35],[-0.95,0.32,1.35],[0.95,0.32,1.35]]) {
+    const w = new THREE.Mesh(wGeo, wMat); w.rotation.z = Math.PI / 2;
+    w.position.set(wx, wy, wz); w.castShadow = true; g.add(w);
+  }
+  for (const hx of [-0.65, 0.65]) {
+    const hl = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.12, 0.06), new THREE.MeshBasicMaterial({ color: 0xfff1b8 }));
+    hl.position.set(hx, 0.58, 2.12); g.add(hl);
+    const tl = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.12, 0.06), new THREE.MeshBasicMaterial({ color: 0xdd2222 }));
+    tl.position.set(hx, 0.58, -2.12); g.add(tl);
+  }
+  return g;
+}
+const ego = buildEgo();
+scene.add(ego);
+
+// ─── Dynamic Camera FOV cone (green) ──────────────────────────────────────
+const _FOV_TILT  = -10 * Math.PI / 180;
+const _FOV_HFOV  = Math.tan(Math.PI * 26 / 180);
+const _FOV_NEAR  = 4.5, _FOV_FAR = 55, _FOV_CZ = 2.3;
+const _sT = Math.sin(_FOV_TILT), _cT = Math.cos(_FOV_TILT);
+
+function _fovPt3D(cx, fwd, lat) {
+  return [cx + _sT*fwd + _cT*lat, 0.018, _FOV_CZ + _cT*fwd - _sT*lat];
+}
+
+const _fovFillPos  = new Float32Array(6 * 3);
+const _fovEdgeLPos = new Float32Array(2 * 3);
+const _fovEdgeRPos = new Float32Array(2 * 3);
+const _fovMntLPos  = new Float32Array(2 * 3);
+const _fovMntRPos  = new Float32Array(2 * 3);
+
+const _fovFillGeo  = new THREE.BufferGeometry();
+const _fovEdgeLGeo = new THREE.BufferGeometry();
+const _fovEdgeRGeo = new THREE.BufferGeometry();
+const _fovMntLGeo  = new THREE.BufferGeometry();
+const _fovMntRGeo  = new THREE.BufferGeometry();
+
+_fovFillGeo .setAttribute('position', new THREE.BufferAttribute(_fovFillPos,  3));
+_fovEdgeLGeo.setAttribute('position', new THREE.BufferAttribute(_fovEdgeLPos, 3));
+_fovEdgeRGeo.setAttribute('position', new THREE.BufferAttribute(_fovEdgeRPos, 3));
+_fovMntLGeo .setAttribute('position', new THREE.BufferAttribute(_fovMntLPos,  3));
+_fovMntRGeo .setAttribute('position', new THREE.BufferAttribute(_fovMntRPos,  3));
+
+scene.add(new THREE.Mesh(_fovFillGeo, new THREE.MeshBasicMaterial({
+  color: 0x10b981, transparent: true, opacity: 0.1, side: THREE.DoubleSide, depthWrite: false,
+})));
+const _fovEdgeMat = new THREE.LineBasicMaterial({ color: 0x10b981, transparent: true, opacity: 0.55 });
+scene.add(new THREE.Line(_fovEdgeLGeo, _fovEdgeMat));
+scene.add(new THREE.Line(_fovEdgeRGeo, _fovEdgeMat));
+const _fovMntMat = new THREE.LineBasicMaterial({ color: 0x10b981, transparent: true, opacity: 0.28 });
+scene.add(new THREE.Line(_fovMntLGeo, _fovMntMat));
+scene.add(new THREE.Line(_fovMntRGeo, _fovMntMat));
+const _fovDot = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), new THREE.MeshBasicMaterial({ color: 0x0a8a5c }));
+scene.add(_fovDot);
+
+function updateFOV3D(cx) {
+  const [NLx,NLy,NLz] = _fovPt3D(cx, _FOV_NEAR, -_FOV_NEAR * _FOV_HFOV);
+  const [NRx,NRy,NRz] = _fovPt3D(cx, _FOV_NEAR,  _FOV_NEAR * _FOV_HFOV);
+  const [FRx,FRy,FRz] = _fovPt3D(cx, _FOV_FAR,   _FOV_FAR  * _FOV_HFOV);
+  const [FLx,FLy,FLz] = _fovPt3D(cx, _FOV_FAR,  -_FOV_FAR  * _FOV_HFOV);
+  _fovFillPos .set([NLx,NLy,NLz, NRx,NRy,NRz, FRx,FRy,FRz, NLx,NLy,NLz, FRx,FRy,FRz, FLx,FLy,FLz]);
+  _fovEdgeLPos.set([NLx,NLy,NLz, FLx,FLy,FLz]);
+  _fovEdgeRPos.set([NRx,NRy,NRz, FRx,FRy,FRz]);
+  _fovMntLPos .set([cx, 1.30, 1.0, NLx,NLy,NLz]);
+  _fovMntRPos .set([cx, 1.30, 1.0, NRx,NRy,NRz]);
+  _fovFillGeo .attributes.position.needsUpdate = true;
+  _fovEdgeLGeo.attributes.position.needsUpdate = true;
+  _fovEdgeRGeo.attributes.position.needsUpdate = true;
+  _fovMntLGeo .attributes.position.needsUpdate = true;
+  _fovMntRGeo .attributes.position.needsUpdate = true;
+  _fovDot.position.set(cx, 1.30, 1.0);
+}
+updateFOV3D(EGO_OFFSET);
+
+// ─── BEV Canvas (light, full-bleed right half) ──────────────────────────────
+const bevCanvas = document.getElementById('bev');
+const bctx      = bevCanvas.getContext('2d');
+
+// fixed zoom (pixels-per-metre) preserved from the original 224×368 design
+const PXPM_X = 224 / 18;   // lateral scale
+const PXPM_Z = 314 / 54;   // forward scale
+const HDR_H = 0, FTR_H = 0;
+const VIEW_BCK = 4;
+const FRAME_M = 14, FRAME_R = 10;   // BEV frame inset & corner radius (shared with layoutBeam)
+
+let BW, BH, BEV_H, SX, SZ, EGO_CX, EGO_CY, VIEW_LAT, VIEW_FWD;
+
+function resizeBEV() {
+  const r = bevCanvas.parentElement.getBoundingClientRect();
+  BW = Math.max(2, Math.round(r.width));
+  BH = Math.max(2, Math.round(r.height));
+  bevCanvas.width  = BW;
+  bevCanvas.height = BH;
+  BEV_H    = BH - HDR_H - FTR_H;
+  SX = PXPM_X; SZ = PXPM_Z;
+  VIEW_LAT = BW / (2 * SX);
+  VIEW_FWD = BEV_H / SZ - VIEW_BCK;
+  EGO_CX = BW / 2;
+  EGO_CY = HDR_H + BEV_H - VIEW_BCK * SZ;
+}
+resizeBEV();
+
+function w2c(wx, wz) {
+  return [EGO_CX + wx * SX, EGO_CY - wz * SZ];
+}
+
+let scanY = HDR_H;
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function drawBEV(totalScroll, timeSec) {
+  const ctx = bctx;
+  const corr = 1 - liveC1 / C1_BIAS;
+
+  const curOff  = (liveC1 / C1_BIAS) * EGO_OFFSET;
+  const RIGHT_EGO =  LANE_HALF - curOff;
+  const LEFT_EGO  = -LANE_HALF - curOff;
+  const CTR_EGO   = -curOff;
+
+  ctx.clearRect(0, 0, BW, BH);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, BW, BH);
+
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(FRAME_M, FRAME_M, BW - 2 * FRAME_M, BH - 2 * FRAME_M, FRAME_R); ctx.clip();
+
+  // Grid
+  ctx.strokeStyle = 'rgba(0,0,0,0.06)'; ctx.lineWidth = 0.5;
+  for (let z = 0; z <= VIEW_FWD; z += 10) {
+    const [, cy] = w2c(0, z);
+    ctx.beginPath(); ctx.moveTo(1, cy); ctx.lineTo(BW - 1, cy); ctx.stroke();
+  }
+  const gx = Math.ceil(VIEW_LAT / 4) * 4;
+  for (let x = -gx; x <= gx; x += 4) {
+    const [cx] = w2c(x, 0);
+    ctx.beginPath(); ctx.moveTo(cx, HDR_H); ctx.lineTo(cx, HDR_H + BEV_H); ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(0,0,0,0.32)'; ctx.font = '8px monospace';
+  for (const zm of [20, 40]) {
+    const [, cy] = w2c(0, zm); ctx.fillText(`${zm}m`, BW - 22, cy - 2);
+  }
+
+  // True lane lines
+  ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 7]);
+  for (const bx of [RIGHT_EGO, LEFT_EGO]) {
+    const [cx0] = w2c(bx, -VIEW_BCK), [cx1] = w2c(bx,  VIEW_FWD);
+    const [, cy0] = w2c(0, -VIEW_BCK), [, cy1] = w2c(0,  VIEW_FWD);
+    ctx.beginPath(); ctx.moveTo(cx0, cy0); ctx.lineTo(cx1, cy1); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // True center line
+  ctx.strokeStyle = 'rgba(10,138,92,0.5)'; ctx.lineWidth = 1;
+  ctx.setLineDash([2, 6]);
+  {
+    const [cx0] = w2c(CTR_EGO, -VIEW_BCK), [cx1] = w2c(CTR_EGO, VIEW_FWD);
+    const [, cy0] = w2c(0, -VIEW_BCK), [, cy1] = w2c(0, VIEW_FWD);
+    ctx.beginPath(); ctx.moveTo(cx0, cy0); ctx.lineTo(cx1, cy1); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(10,138,92,0.85)'; ctx.font = '7px monospace';
+  const [tcxL] = w2c(CTR_EGO, 3);
+  ctx.fillText('真實中心', tcxL + 2, w2c(0, 3)[1]);
+
+  // Perceived lane lines (tilt reduces as liveC1 → 0)
+  const dashLZ = 2.5;
+  const offset  = totalScroll % LANE_CYCLE;
+  const kStart  = Math.floor((-VIEW_BCK + offset) / LANE_CYCLE) - 1;
+  ctx.lineWidth = 2.4;
+  for (const bx of [RIGHT_EGO, LEFT_EGO]) {
+    const isRight = (bx === RIGHT_EGO);
+    const baseR = 234, baseG = isRight ? 106 : 120, baseB = 10;
+    const corrR = 10, corrG = 138, corrB = 92;
+    const alpha = corr < 1 ? (isRight ? 0.75 + 0.25 * Math.abs(Math.sin(timeSec * 3.5)) : 0.8) : 0.9;
+    ctx.strokeStyle = `rgba(${Math.round(lerp(baseR,corrR,corr))},${Math.round(lerp(baseG,corrG,corr))},${Math.round(lerp(baseB,corrB,corr))},${alpha})`;
+
+    for (let k = kStart; k * LANE_CYCLE - offset < VIEW_FWD + 5; k++) {
+      const z0 = k * LANE_CYCLE - offset, z1 = z0 + dashLZ;
+      if (z1 < -VIEW_BCK || z0 > VIEW_FWD) continue;
+      const zS = Math.max(z0, -VIEW_BCK), zE = Math.min(z1, VIEW_FWD);
+      const xS = -bx + -liveC1 * zS;
+      const xE = -bx + -liveC1 * zE;
+      const [cxS, cyS] = w2c(xS, zS), [cxE, cyE] = w2c(xE, zE);
+      ctx.beginPath(); ctx.moveTo(cxS, cyS); ctx.lineTo(cxE, cyE); ctx.stroke();
+    }
+  }
+
+  // LKA target path (blue)
+  ctx.strokeStyle = 'rgba(0,113,227,0.75)'; ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  for (let i = 0; i <= 50; i++) {
+    const z = VIEW_FWD * 0.8 * i / 50;
+    const [cx, cy] = w2c(0, z);
+    i === 0 ? ctx.moveTo(cx, cy) : ctx.lineTo(cx, cy);
+  }
+  ctx.stroke();
+
+  // Lookahead crosshair
+  if (liveC1 > 0.005) {
+    const LA = Math.round(-CTR_EGO / liveC1);
+    if (LA > 0 && LA < VIEW_FWD) {
+      const [lax, lay] = w2c(0, LA);
+      ctx.strokeStyle = 'rgba(234,106,10,0.8)'; ctx.lineWidth = 1.2;
+      ctx.setLineDash([3, 4]);
+      ctx.beginPath(); ctx.moveTo(lax - 12, lay); ctx.lineTo(lax + 12, lay); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(lax, lay - 8); ctx.lineTo(lax, lay + 8); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(lax, lay, 7, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(234,106,10,0.85)'; ctx.lineWidth = 1.5; ctx.stroke();
+    }
+  }
+
+  // Scan line
+  scanY += 0.7; if (scanY > HDR_H + BEV_H) scanY = HDR_H;
+  const scanR = Math.round(lerp(234, 10, corr)), scanG = Math.round(lerp(106, 138, corr)), scanBv = Math.round(lerp(10, 92, corr));
+  const sg = ctx.createLinearGradient(0, scanY - 12, 0, scanY + 3);
+  sg.addColorStop(0, `rgba(${scanR},${scanG},${scanBv},0)`);
+  sg.addColorStop(0.5, `rgba(${scanR},${scanG},${scanBv},0.05)`);
+  sg.addColorStop(1, `rgba(${scanR},${scanG},${scanBv},0.16)`);
+  ctx.fillStyle = sg; ctx.fillRect(1, scanY - 12, BW - 2, 15);
+
+  // Ego vehicle (dark on light BEV)
+  const EW = 1.8 * SX, ED = 4.2 * SZ;
+  ctx.fillStyle = 'rgba(70,86,105,0.92)';
+  ctx.fillRect(EGO_CX - EW / 2, EGO_CY - ED, EW, ED);
+  const egoBdrR = Math.round(lerp(234, 0, corr)), egoBdrG = Math.round(lerp(106, 113, corr)), egoBdrB = Math.round(lerp(10, 227, corr));
+  ctx.strokeStyle = `rgb(${egoBdrR},${egoBdrG},${egoBdrB})`; ctx.lineWidth = 1.8;
+  ctx.strokeRect(EGO_CX - EW / 2, EGO_CY - ED, EW, ED);
+  ctx.fillStyle = `rgb(${egoBdrR},${egoBdrG},${egoBdrB})`;
+  ctx.fillRect(EGO_CX - EW / 2 + 1.5, EGO_CY - ED, EW - 3, 2.5);
+  const aY = EGO_CY - ED - 6;
+  ctx.fillStyle = `rgba(${egoBdrR},${egoBdrG},${egoBdrB},0.55)`;
+  ctx.beginPath(); ctx.moveTo(EGO_CX, aY - 4); ctx.lineTo(EGO_CX - 4, aY + 4); ctx.lineTo(EGO_CX + 4, aY + 4);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center';
+  ctx.fillText('EGO', EGO_CX, EGO_CY - ED / 2 + 3); ctx.textAlign = 'left';
+
+  ctx.restore();
+
+  // live status dot (top-right) — amber→green as the bias corrects
+  const dotA = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(timeSec * (corr > 0.95 ? 2.0 : 4.2)));
+  ctx.fillStyle = `rgba(${Math.round(lerp(234,10,corr))},${Math.round(lerp(106,138,corr))},${Math.round(lerp(10,92,corr))},${dotA})`;
+  ctx.beginPath(); ctx.arc(BW - 18, 20, 4, 0, Math.PI * 2); ctx.fill();
+}
+
+// ─── Animation ────────────────────────────────────────────────────────────
+const SPEED_MS = 60 / 3.6;
+let totalScroll = 0;
+let lastTime    = performance.now();
+let startTime   = null;
+
+function animate(now) {
+  requestAnimationFrame(animate);
+  if (!startTime) startTime = now;
+
+  const dt = Math.min((now - lastTime) / 1000, 0.05);
+  lastTime = now;
+  const timeSec = now / 1000;
+  const elapsed = (now - startTime) / 1000;
+
+  if (elapsed > 1.5 && !corrStarted) corrStarted = true;
+  if (corrStarted && liveC1 > 0) {
+    const rate = C1_BIAS / 5.0;
+    liveC1 = Math.max(0, liveC1 - rate * dt);
+    if (liveC1 === 0) corrComplete = true;
+  }
+
+  const corr = 1 - liveC1 / C1_BIAS;
+
+  ego.position.x = (liveC1 / C1_BIAS) * EGO_OFFSET;
+  ego.position.y = Math.sin(timeSec * 1.4) * 0.012;
+  updateFOV3D(ego.position.x);
+  updateLeader();
+
+  // Stripe colour: orange → blue
+  const sr = Math.round(lerp(0xff, 0x00, corr));
+  const sg2 = Math.round(lerp(0x6a, 0x71, corr));
+  const sb = Math.round(lerp(0x0a, 0xe3, corr));
+  ego.userData.stripeMat.color.setHex((sr << 16) | (sg2 << 8) | sb);
+
+  const wScale = liveC1 / C1_BIAS;
+  warnLineMat.opacity  = wScale * (0.55 + 0.45 * Math.abs(Math.sin(timeSec * 3.2)));
+  warnGlowMat.opacity  = wScale * (0.10 + 0.15 * Math.abs(Math.sin(timeSec * 3.2)));
+  violGlowMat.opacity  = wScale * (0.10 + 0.12 * Math.abs(Math.sin(timeSec * 2.8)));
+
+  totalScroll         += SPEED_MS * dt;
+  laneGroup.position.z = -(totalScroll % LANE_CYCLE);
+
+  const pct = Math.round(corr * 100);
+  const c1El = document.getElementById('hud-c1');
+  c1El.textContent = liveC1 < 0.002 ? '≈ 0° ✓' : `+${(liveC1 * 180 / Math.PI).toFixed(1)}°`;
+  c1El.style.color = liveC1 < 0.002 ? 'var(--green)' : 'var(--amber)';
+  const latEl = document.getElementById('hud-lat');
+  latEl.textContent = liveC1 < 0.002 ? '≈ 0.00 m ✓' : `+${((liveC1 / C1_BIAS) * 1.0).toFixed(2)} m`;
+  latEl.style.color = liveC1 < 0.002 ? 'var(--green)' : 'var(--amber)';
+
+  const compBadge = document.getElementById('badge-comp');
+  if (compBadge) compBadge.textContent = pct >= 100 ? '✓ 補償完成' : `補償中 ${pct}%`;
+
+  const laneBadge = document.getElementById('badge-lane');
+  if (laneBadge) {
+    const ok = liveC1 < 0.01;
+    laneBadge.textContent = ok ? '✓ 車道正常' : '⚠ 壓線';
+    laneBadge.className = ok ? 'badge green' : 'badge dim';
+  }
+
+  const subtitle = document.getElementById('hud-subtitle');
+  if (subtitle && liveC1 < 0.002) subtitle.textContent = '已補償 — 回歸車道中心 ✓';
+
+  const legSwatch = document.getElementById('leg-swatch-perceived');
+  if (legSwatch) {
+    const r = Math.round(lerp(234, 10, corr)), gv = Math.round(lerp(106, 138, corr)), bv = Math.round(lerp(10, 92, corr));
+    legSwatch.style.background = `rgb(${r},${gv},${bv})`;
+  }
+  const legText = document.getElementById('leg-text-perceived');
+  if (legText) legText.textContent = pct >= 100 ? '感知車道線（已修正）' : `感知車道線（修正中 ${pct}%）`;
+
+  drawBEV(totalScroll, timeSec);
+  controls.update();
+  renderer.render(scene, camera);
+}
+requestAnimationFrame(animate);
+
+// ─── Projection beam: EGO camera (left 3D) → BEV (right) ────────────────────
+let beamCx = 0, beamLy = 0, beamX0 = 0;   // fixed (frame) end of the leader
+const _camWorld = new THREE.Vector3();
+
+function layoutBeam() {
+  const svg = document.getElementById('proj-beam');
+  const lbl = document.getElementById('callout-label');
+  if (!svg) return;
+  const W = window.innerWidth, H = window.innerHeight, Xb = W / 2;
+  const m = FRAME_M, r = FRAME_R;
+  const x0 = Xb + m, y0 = m, x1 = W - m, y1 = H - m;  // BEV frame rect
+  const Cx = W * 0.43;                                 // elbow x (leader turns here)
+  const Ly = y0 + (y1 - y0) * 0.72;                    // leader lands on left edge, lower half
+  const Px = W * 0.29, Py = H * 0.60;                  // fallback origin until first projection
+  beamCx = Cx; beamLy = Ly; beamX0 = x0;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML =
+    `<rect x="${x0}" y="${y0}" width="${x1 - x0}" height="${y1 - y0}" rx="${r}" ry="${r}"
+        fill="none" stroke="#0a8a5c" stroke-width="1.2" stroke-opacity="0.5"/>
+     <polyline id="ld-line" points="${Px},${Py} ${Cx},${Ly} ${x0},${Ly}" fill="none"
+        stroke="#0a8a5c" stroke-width="1.3" stroke-opacity="0.85" stroke-linejoin="round" stroke-linecap="round"/>
+     <circle id="ld-halo" cx="${Px}" cy="${Py}" r="7" fill="#10b981" fill-opacity="0.16"/>
+     <circle id="ld-ring" cx="${Px}" cy="${Py}" r="3.4" fill="none" stroke="#0a8a5c" stroke-width="1.3"/>
+     <circle id="ld-dot" cx="${Px}" cy="${Py}" r="1.4" fill="#0a8a5c"/>
+     <circle cx="${x0}" cy="${Ly}" r="2.6" fill="#0a8a5c"/>`;
+  if (lbl) {
+    lbl.style.left = ((x0 + x1) / 2) + 'px';   // title centered on the frame's top edge
+    lbl.style.top  = (y0 - 11) + 'px';
+    lbl.style.transform = 'translateX(-50%)';
+  }
+}
+layoutBeam();
+
+// project the on-car camera lens to screen so the leader origin tracks the ego's lateral shift
+function updateLeader() {
+  const cam = ego.userData.camLens;
+  const line = document.getElementById('ld-line');
+  if (!cam || !line) return;
+  cam.getWorldPosition(_camWorld);
+  _camWorld.project(camera);
+  const px = (_camWorld.x * 0.5 + 0.5) * (window.innerWidth / 2);
+  const py = (-_camWorld.y * 0.5 + 0.5) * window.innerHeight;
+  line.setAttribute('points', `${px},${py} ${beamCx},${beamLy} ${beamX0},${beamLy}`);
+  for (const id of ['ld-halo', 'ld-ring', 'ld-dot']) {
+    const c = document.getElementById(id);
+    if (c) { c.setAttribute('cx', px); c.setAttribute('cy', py); }
+  }
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = (window.innerWidth / 2) / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth / 2, window.innerHeight);
+  resizeBEV();
+  layoutBeam();
+});
+</script>
+</body>
+</html>

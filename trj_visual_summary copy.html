@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TRJ 架構整合 · 視覺成果總覽</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;--bg-alt:#f5f5f7;--ink:#1d1d1f;--ink-2:#6e6e73;--ink-3:#86868b;
+  --line:#d2d2d7;--blue:#0071e3;--blue-d:#0066cc;
+  --red:#ef4444;--green:#10b981;
+  --grad:linear-gradient(118deg,#0a84ff 0%,#0071e3 42%,#28c6e8 100%);
+  --sans:"SF Pro TC","SF Pro Display",-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --shadow:0 4px 20px rgba(0,0,0,.06);--shadow-lg:0 18px 50px rgba(0,0,0,.12);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+
+/* ── progress bar ── */
+#progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--grad);z-index:200;transition:width .1s linear}
+
+/* ── layout ── */
+.wrap{max-width:900px;margin:0 auto;padding:0 24px}
+
+/* ── gradient text ── */
+.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+
+/* ── reveal ── */
+[data-rv]{opacity:0;transform:translateY(24px);transition:opacity .75s cubic-bezier(.2,.7,.3,1),transform .75s cubic-bezier(.2,.7,.3,1)}
+[data-rv].in{opacity:1;transform:none}
+[data-rv][data-d="1"]{transition-delay:.08s}[data-rv][data-d="2"]{transition-delay:.16s}[data-rv][data-d="3"]{transition-delay:.24s}
+
+/* ══════════════════════════════════════
+   HERO
+══════════════════════════════════════ */
+.hero{padding:88px 0 56px;text-align:left}
+.eyebrow{font-size:clamp(14px,1.8vw,17px);font-weight:600;color:var(--ink-3);letter-spacing:.01em;margin-bottom:12px}
+.hero h1{font-size:clamp(36px,6.5vw,76px);font-weight:700;letter-spacing:-.025em;line-height:1.06;margin-bottom:22px}
+.hero .lead{font-size:clamp(16px,1.9vw,21px);color:var(--ink-2);line-height:1.5;max-width:660px;margin-bottom:0}
+
+/* ── hero stats ── */
+.hero-stats{display:flex;flex-direction:row;align-items:stretch;gap:0;margin-top:48px;padding-top:40px;border-top:1px solid var(--line)}
+.hs{flex:1;padding-right:36px;margin-right:36px;border-right:1px solid var(--line)}
+.hs:last-child{padding-right:0;margin-right:0;border-right:none}
+.hs .pre{font-size:12px;font-weight:500;color:var(--ink-3);letter-spacing:.01em;margin-bottom:4px;font-family:var(--mono)}
+.hs .num{font-size:clamp(36px,5vw,64px);font-weight:700;letter-spacing:-.04em;line-height:.94}
+.hs .num .u{font-size:.38em;font-weight:600;margin-left:2px;letter-spacing:-.01em}
+.hs .cap{font-size:14px;color:var(--ink-2);margin-top:8px;font-weight:500;line-height:1.4}
+.hs .sub{font-size:11px;color:var(--ink-3);margin-top:3px;font-family:var(--mono)}
+
+/* ══════════════════════════════════════
+   SECTION COMMON
+══════════════════════════════════════ */
+section{padding:clamp(64px,10vw,112px) 0}
+.sec-head{max-width:680px;margin:0 auto 0;text-align:center}
+.sec-head .eyebrow{margin-bottom:6px}
+.sec-head h2{font-size:clamp(28px,4.5vw,50px);font-weight:700;letter-spacing:-.02em;line-height:1.1;margin-bottom:14px}
+.sec-head .sub{font-size:clamp(15px,1.7vw,18px);color:var(--ink-2);line-height:1.6}
+.band-alt{background:var(--bg-alt)}
+
+/* ══════════════════════════════════════
+   CARD SHELL (三個 widget 共用)
+══════════════════════════════════════ */
+.widget-card{
+  background:#fff;
+  border-radius:24px;
+  overflow:hidden;
+}
+.widget-bar{ display:none; }
+.widget-body{
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  min-height:180px;
+  background:#f8fafc;
+}
+
+/* ══════════════════════════════════════
+   SHARED · widget inner layout
+══════════════════════════════════════ */
+.compare-row{display:flex;align-items:center;justify-content:center;width:100%}
+.compare-col{
+  flex:1;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:10px;
+  padding:28px 16px;
+  min-width:0;
+}
+.vdivider{display:none}
+
+/* shared desc */
+.col-desc{text-align:center;max-width:110px}
+.col-desc-title{font-size:10px;font-weight:600;line-height:1.5;margin-bottom:2px}
+.col-desc-body{font-size:10px;color:var(--ink-2);line-height:1.6}
+
+/* ── People ── */
+.persons-row{display:flex;flex-direction:row;align-items:center;gap:1px}
+.person{display:flex;flex-direction:column;align-items:center;gap:2px;width:22px}
+.person-num{font-size:7px;font-weight:700;letter-spacing:.05em;color:var(--ink-3);text-align:center}
+.visual-block{display:flex;flex-direction:column;align-items:center;gap:0}
+
+/* ── Steering wheel ── */
+.wheel-wrap{position:relative;width:76px;height:76px;display:flex;align-items:center;justify-content:center}
+.wheel-ripple{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(0.475);
+  pointer-events:none;
+}
+.wheel-svg{position:relative;z-index:1}
+
+/* legacy aliases */
+.panels-row{display:flex;align-items:center;justify-content:center;width:100%;gap:0}
+.side,.sw-side,.chip-col{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:10px;padding:28px 16px;min-width:0;
+}
+.p-desc,.sw-desc,.chip-desc{text-align:center;max-width:110px}
+.p-desc-title,.sw-desc-title,.chip-desc-title{font-size:10px;font-weight:600;line-height:1.5;margin-bottom:2px}
+.p-desc-body,.sw-desc-body,.chip-desc-body{font-size:10px;color:var(--ink-2);line-height:1.6}
+.sw-container,.chip-row{display:flex;align-items:center;justify-content:center;width:100%;gap:0}
+
+/* ══════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════ */
+@media(max-width:640px){
+  .hero-stats{flex-direction:column}
+  .hs{border-right:none;border-bottom:1px solid var(--line);padding-right:0;padding-bottom:24px;margin-right:0;margin-bottom:24px}
+  .hs:last-child{border-bottom:none;padding-bottom:0;margin-bottom:0}
+  .panels-row,.sw-container,.chip-row{flex-direction:column}
+  .vdivider{width:100%;height:1px;margin:0}
+}
+
+/* ══════════════════════════════════════
+   HOURGLASS WIDGET
+══════════════════════════════════════ */
+.hg-col{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:10px;padding:28px 16px;
+}
+.hg-wrap{
+  position:relative;width:90px;height:90px;
+  display:flex;align-items:center;justify-content:center;
+}
+.hg-wrap canvas{ position:absolute;top:0;left:0; }
+.hg-overlay{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;
+  line-height:1;pointer-events:none;
+}
+.hg-num{ font-size:22px;font-weight:700;letter-spacing:-.04em;font-variant-numeric:tabular-nums; }
+.hg-num-before{ color:#cc2200; }
+.hg-num-after{  color:var(--green); }
+.hg-unit{ font-size:11px;font-weight:500;margin-top:2px; }
+.hg-unit-before{ color:#cc2200; }
+.hg-unit-after{  color:var(--green); }
+
+@keyframes dotPulse{
+  0%,80%,100%{ opacity:.2;transform:scale(.8); }
+  40%{ opacity:1;transform:scale(1.1); }
+}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<main>
+<div class="wrap">
+
+<!-- ════════════════ HERO ════════════════ -->
+<section class="hero">
+  <div class="eyebrow" data-rv>TRJ 共用軌跡規劃模組 · 架構整合成果</div>
+  <h1 data-rv data-d="1">從各自為政<br><span class="grad">一套規格，一次驗證</span></h1>
+  <p class="lead" data-rv data-d="2">主導建立 <b>TRJ 共用軌跡規劃模組</b>，讓原本各自實作、無法互通的功能，收斂到同一套方法論，大幅降低開發成本與運算資源佔用。</p>
+
+  <div class="hero-stats" data-rv data-d="3">
+    <div class="hs">
+      <div class="pre">測試驗證時間</div>
+      <div class="num grad">−92<span class="u">%</span></div>
+      <div class="cap">最快縮短至 1 週</div>
+      <div class="sub">原本 3 個月</div>
+    </div>
+    <div class="hs">
+      <div class="pre">新功能開發週期</div>
+      <div class="num grad">−98<span class="u">%</span></div>
+      <div class="cap">最快 2〜3 天可交付</div>
+      <div class="sub">原本 4 個月以上</div>
+    </div>
+    <div class="hs">
+      <div class="pre">TC277 運算資源</div>
+      <div class="num grad">37<span class="u">%</span></div>
+      <div class="cap">從超載回到安全範圍</div>
+      <div class="sub">&gt;100% 超載 → −63%</div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /wrap -->
+
+<!-- ════════════════ 01 · 工程師協作 ════════════════ -->
+<section class="band-alt">
+<div class="wrap">
+  <div class="sec-head no-gap" data-rv>
+    <h2>從 N 套方法<span class="grad">收斂到一套</span></h2>
+    <p class="sub">各功能原本各自實作軌跡邏輯，相互依賴關係複雜。引入 TRJ 後，所有工程師共用同一模組介面。</p>
+  </div>
+
+  <div class="widget-card" data-rv>
+    <div class="widget-bar">
+      <div class="dots"><span></span><span></span><span></span></div>
+      <span class="nm">before_after_people</span>
+    </div>
+    <div class="widget-body">
+
+      <!-- ── PEOPLE WIDGET (inline) ── -->
+      <div class="side">
+          <div class="visual-block">
+            <!-- persons row with chaos arcs overlaid via SVG -->
+            <svg width="84" height="68" viewBox="0 0 112 90">
+              <defs>
+                <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                  <polygon points="0 0,6 3,0 6" fill="#ef4444"/>
+                </marker>
+              </defs>
+              <!-- arc lines (above persons) -->
+              <path d="M 14,34 Q 28,10 42,34" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arr)" opacity="0.8"/>
+              <path d="M 42,34 Q 56,10 70,34" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arr)" opacity="0.8"/>
+              <path d="M 70,34 Q 84,10 98,34" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arr)" opacity="0.8"/>
+              <path d="M 14,32 Q 42,2 70,32"  fill="none" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arr)" opacity="0.55"/>
+              <path d="M 42,32 Q 70,2 98,32"  fill="none" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arr)" opacity="0.55"/>
+              <path d="M 14,30 Q 56,-4 98,30" fill="none" stroke="#ef4444" stroke-width="1.1" stroke-dasharray="3 4" marker-end="url(#arr)" opacity="0.35"/>
+              <path d="M 98,28 Q 70,12 42,28" fill="none" stroke="#ef4444" stroke-width="1.1" stroke-dasharray="3 4" marker-end="url(#arr)" opacity="0.3"/>
+              <!-- persons at y=42 -->
+              <g transform="translate(2,42)">
+                <g transform="translate(0,0)"><circle cx="12" cy="5" r="4" fill="none" stroke="#6b7280" stroke-width="2"/><rect x="7" y="11" width="10" height="13" rx="5" fill="none" stroke="#6b7280" stroke-width="2"/><line x1="7" y1="24" x2="5" y2="34" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="24" x2="19" y2="34" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="7" y1="16" x2="2" y2="21" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="16" x2="22" y2="21" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/></g>
+                <g transform="translate(27,0)"><circle cx="12" cy="5" r="4" fill="none" stroke="#6b7280" stroke-width="2"/><rect x="7" y="11" width="10" height="13" rx="5" fill="none" stroke="#6b7280" stroke-width="2"/><line x1="7" y1="24" x2="5" y2="34" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="24" x2="19" y2="34" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="7" y1="16" x2="2" y2="21" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="16" x2="22" y2="21" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/></g>
+                <g transform="translate(54,0)"><circle cx="12" cy="5" r="4" fill="none" stroke="#6b7280" stroke-width="2"/><rect x="7" y="11" width="10" height="13" rx="5" fill="none" stroke="#6b7280" stroke-width="2"/><line x1="7" y1="24" x2="5" y2="34" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="24" x2="19" y2="34" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="7" y1="16" x2="2" y2="21" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="16" x2="22" y2="21" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/></g>
+                <g transform="translate(81,0)"><circle cx="12" cy="5" r="4" fill="none" stroke="#6b7280" stroke-width="2"/><rect x="7" y="11" width="10" height="13" rx="5" fill="none" stroke="#6b7280" stroke-width="2"/><line x1="7" y1="24" x2="5" y2="34" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="24" x2="19" y2="34" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="7" y1="16" x2="2" y2="21" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="16" x2="22" y2="21" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/></g>
+              </g>
+            </svg>
+          </div>
+          <div class="p-desc">
+            <div class="p-desc-title" style="color:#ef4444">各功能各自實作邏輯</div>
+            <div class="p-desc-body">N 套方法、銜接跳變<br>逐案修補、協調成本高</div>
+          </div>
+        </div>
+
+        <div class="vdivider"></div>
+
+        <!-- RIGHT: converge to TP -->
+        <div class="side">
+          <div class="visual-block">
+            <svg width="84" height="68" viewBox="0 0 112 90">
+              <!-- persons at top -->
+              <g transform="translate(2,0)">
+                <g transform="translate(0,0)"><circle cx="12" cy="5" r="4" fill="none" stroke="#6b7280" stroke-width="2"/><rect x="7" y="11" width="10" height="13" rx="5" fill="none" stroke="#6b7280" stroke-width="2"/><line x1="7" y1="24" x2="5" y2="34" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="24" x2="19" y2="34" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="7" y1="16" x2="2" y2="21" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="16" x2="22" y2="21" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/></g>
+                <g transform="translate(27,0)"><circle cx="12" cy="5" r="4" fill="none" stroke="#6b7280" stroke-width="2"/><rect x="7" y="11" width="10" height="13" rx="5" fill="none" stroke="#6b7280" stroke-width="2"/><line x1="7" y1="24" x2="5" y2="34" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="24" x2="19" y2="34" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="7" y1="16" x2="2" y2="21" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="16" x2="22" y2="21" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/></g>
+                <g transform="translate(54,0)"><circle cx="12" cy="5" r="4" fill="none" stroke="#6b7280" stroke-width="2"/><rect x="7" y="11" width="10" height="13" rx="5" fill="none" stroke="#6b7280" stroke-width="2"/><line x1="7" y1="24" x2="5" y2="34" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="24" x2="19" y2="34" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="7" y1="16" x2="2" y2="21" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="16" x2="22" y2="21" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/></g>
+                <g transform="translate(81,0)"><circle cx="12" cy="5" r="4" fill="none" stroke="#6b7280" stroke-width="2"/><rect x="7" y="11" width="10" height="13" rx="5" fill="none" stroke="#6b7280" stroke-width="2"/><line x1="7" y1="24" x2="5" y2="34" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="24" x2="19" y2="34" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="7" y1="16" x2="2" y2="21" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/><line x1="17" y1="16" x2="22" y2="21" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/></g>
+              </g>
+              <!-- converging spokes -->
+              <line x1="14" y1="36" x2="55" y2="54" stroke="#10b981" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.7"/>
+              <line x1="41" y1="36" x2="56" y2="54" stroke="#10b981" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.7"/>
+              <line x1="68" y1="36" x2="57" y2="54" stroke="#10b981" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.7"/>
+              <line x1="95" y1="36" x2="58" y2="54" stroke="#10b981" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.7"/>
+              <!-- TP person -->
+              <g transform="translate(44,56)">
+                <circle cx="12" cy="5" r="4" fill="none" stroke="#10b981" stroke-width="2"/>
+                <rect x="7" y="11" width="10" height="13" rx="5" fill="none" stroke="#10b981" stroke-width="2"/>
+                <line x1="7" y1="24" x2="5" y2="34" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+                <line x1="17" y1="24" x2="19" y2="34" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+                <line x1="7" y1="16" x2="2" y2="21" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+                <line x1="17" y1="16" x2="22" y2="21" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+              </g>
+            </svg>
+          </div>
+          <div class="p-desc">
+            <div class="p-desc-title" style="color:#10b981">共用 TRJ 模組統一規格</div>
+            <div class="p-desc-body">一次驗證、銜接平順<br>行為一致、跨功能共用</div>
+          </div>
+        </div>
+
+      <!-- ── END PEOPLE WIDGET ── -->
+
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════ 02 · 方向盤 ════════════════ -->
+<section>
+<div class="wrap">
+  <div class="sec-head" data-rv>
+    <div class="eyebrow">方向盤控制品質</div>
+    <h2>銜接點<span class="grad">不再跳變</span></h2>
+    <p class="sub">舊架構各功能各自調教控制參數，功能切換時產生跳變。新架構共用 TRJ 模組，全程方向盤輸出平順，且參數跨系統共用。</p>
+  </div>
+
+  <div class="widget-card" data-rv>
+    <div class="widget-bar">
+      <div class="dots"><span></span><span></span><span></span></div>
+      <span class="nm">steering_wheel</span>
+    </div>
+    <div class="widget-body">
+
+      <!-- ── STEERING WHEEL WIDGET (inline) ── -->
+
+        <div class="sw-side">
+          <div class="wheel-wrap">
+            <canvas class="wheel-ripple" id="ripple-l" width="160" height="160"></canvas>
+            <svg class="wheel-svg" id="wheel-l" width="62" height="62" viewBox="0 0 100 100"
+                 fill="none" stroke="#ef4444" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="50" cy="50" r="40"/>
+              <circle cx="50" cy="50" r="8" fill="#ef4444" stroke="none"/>
+              <line x1="50" y1="42" x2="50" y2="12"/>
+              <line x1="43" y1="55" x2="16" y2="70"/>
+              <line x1="57" y1="55" x2="84" y2="70"/>
+            </svg>
+          </div>
+          <div class="sw-desc">
+            <div class="sw-desc-title" style="color:#ef4444">舊架構各自調教</div>
+            <div class="sw-desc-body">控制參數衝突，銜接點跳變</div>
+          </div>
+        </div>
+
+        <div class="sw-side">
+          <div class="wheel-wrap">
+            <svg class="wheel-svg" id="wheel-r" width="62" height="62" viewBox="0 0 100 100"
+                 fill="none" stroke="#10b981" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="50" cy="50" r="40"/>
+              <circle cx="50" cy="50" r="8" fill="#10b981" stroke="none"/>
+              <line x1="50" y1="42" x2="50" y2="12"/>
+              <line x1="43" y1="55" x2="16" y2="70"/>
+              <line x1="57" y1="55" x2="84" y2="70"/>
+            </svg>
+          </div>
+          <div class="sw-desc">
+            <div class="sw-desc-title" style="color:#10b981">新架構統一規格</div>
+            <div class="sw-desc-body">全程平順，參數可跨系統共用</div>
+          </div>
+        </div>
+
+      <!-- ── END STEERING WHEEL WIDGET ── -->
+
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════ 03 · CPU Chip ════════════════ -->
+<section class="band-alt">
+<div class="wrap">
+  <div class="sec-head" data-rv>
+    <div class="eyebrow">TC277 運算資源</div>
+    <h2>從超載<span class="grad">回到 37%</span></h2>
+    <p class="sub">消除重複計算，並以 O(1) 參數化查詢取代每幀積分，讓嵌入式平台從 &gt;100% 超載回到安全工作範圍。</p>
+  </div>
+
+  <div class="widget-card" data-rv>
+    <div class="widget-bar">
+      <div class="dots"><span></span><span></span><span></span></div>
+      <span class="nm">chip_duo_water</span>
+    </div>
+    <div class="widget-body">
+
+      <!-- ── CHIP WIDGET (inline) ── -->
+
+        <div class="chip-col">
+          <canvas id="c_left" width="160" height="160" style="border-radius:10px;width:70px;height:70px;display:block"></canvas>
+          <div class="chip-desc">
+            <div class="chip-desc-title" style="color:#ef4444">ADAS 功能越來越多</div>
+            <div class="chip-desc-body">導致 CPU 運算量爆掉</div>
+          </div>
+        </div>
+
+        <div class="vdivider"></div>
+
+        <div class="chip-col">
+          <canvas id="c_right" width="160" height="160" style="border-radius:10px;width:70px;height:70px;display:block"></canvas>
+          <div class="chip-desc">
+            <div class="chip-desc-title" style="color:#10b981">新架構整合一體化開發</div>
+            <div class="chip-desc-body">運算量降至 <strong style="font-weight:700;color:#10b981">37%</strong></div>
+          </div>
+        </div>
+
+      <!-- ── END CHIP WIDGET ── -->
+
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════ 04 · 開發週期 ════════════════ -->
+<section>
+<div class="wrap">
+  <div class="sec-head" data-rv>
+    <div class="eyebrow">開發與驗證週期</div>
+    <h2>從四個月<span class="grad">縮短到兩天</span></h2>
+    <p class="sub">舊架構每個功能都要從頭實作軌跡邏輯、從頭驗證。新架構只需定義偏移量與時機點，軌跡由 TRJ 統一生成，驗證大部分可直接復用，甚至在驗證前就能從數學上確認軌跡可行性。</p>
+  </div>
+
+  <div class="widget-card" data-rv>
+    <div class="widget-body">
+
+      <!-- BEFORE -->
+      <div class="hg-col">
+        <div class="hg-wrap">
+          <canvas id="hg-before" width="90" height="90"></canvas>
+          <div class="hg-overlay">
+            <span class="hg-num hg-num-before">4</span>
+            <span class="hg-unit hg-unit-before">個月</span>
+          </div>
+        </div>
+        <div class="p-desc">
+          <div class="p-desc-title" style="color:var(--red)">每次都從頭開始</div>
+          <div class="p-desc-body">各功能各自實作完整軌跡邏輯，控制參數無法共用。每個功能都需要獨立完整驗證，無法提前評估可行性。</div>
+        </div>
+      </div>
+
+      <!-- AFTER -->
+      <div class="hg-col">
+        <div class="hg-wrap">
+          <canvas id="hg-after" width="90" height="90"></canvas>
+          <div class="hg-overlay">
+            <span class="hg-num hg-num-after" id="cnt-after">0</span>
+            <span class="hg-unit hg-unit-after">天</span>
+          </div>
+        </div>
+        <div class="p-desc">
+          <div class="p-desc-title" style="color:var(--green)">只需定義差異，其餘復用</div>
+          <div class="p-desc-body">只需輸入偏移量與起訖時機點，軌跡由 TRJ 統一生成。驗證案例大部分可復用，未驗證前就能從數學確認可行性。</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</section>
+
+</main>
+
+<footer style="background:var(--bg-alt);padding:32px 0;text-align:center;font-size:12px;color:var(--ink-3);line-height:1.7">
+  <b style="color:var(--ink-2)">TRJ 共用軌跡規劃模組 · 架構整合成果</b><br>ADAS 橫向控制系統 · 2026
+</footer>
+
+<!-- ══════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════ -->
+<script>
+/* ── Reveal on scroll ── */
+const rvIO = new IntersectionObserver(es => es.forEach(e => {
+  if (e.isIntersecting) { e.target.classList.add('in'); rvIO.unobserve(e.target); }
+}), { threshold: .12, rootMargin: '0px 0px -6% 0px' });
+document.querySelectorAll('[data-rv]').forEach(el => rvIO.observe(el));
+
+/* ── Progress bar ── */
+const prog = document.getElementById('progress');
+function onScroll() { const h = document.documentElement.scrollHeight - window.innerHeight; prog.style.width = (h > 0 ? (scrollY / h * 100) : 0) + '%'; }
+addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+/* ── roundRect polyfill (iOS < 16) ── */
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    if (typeof r === 'object') r = r[0];
+    r = Math.min(r, w/2, h/2);
+    this.beginPath();
+    this.moveTo(x + r, y);
+    this.lineTo(x + w - r, y);
+    this.arcTo(x + w, y, x + w, y + r, r);
+    this.lineTo(x + w, y + h - r);
+    this.arcTo(x + w, y + h, x + w - r, y + h, r);
+    this.lineTo(x + r, y + h);
+    this.arcTo(x, y + h, x, y + h - r, r);
+    this.lineTo(x, y + r);
+    this.arcTo(x, y, x + r, y, r);
+    this.closePath();
+    return this;
+  };
+}
+
+/* ══════════════════════════════════════════════
+   STEERING WHEEL ANIMATION
+══════════════════════════════════════════════ */
+(function(){
+  function poly4Prime(s) { const s2=s*s; return 12*s2*s-24*s2+12*s; }
+  const D=3.8,D_LFCP=0.5,Z1=20,Z2=80,EGO_SPEED=60/3.6,STEER_SCALE=10;
+  const PHASES=[
+    {name:'NORMAL',dur:2.2},{name:'DETECT',dur:0.9},
+    {name:'MOVE',dur:Z2/EGO_SPEED},{name:'PASS',dur:2.0},
+    {name:'RETURN',dur:Z2/EGO_SPEED},{name:'IDLE',dur:1.5},
+    {name:'LFCP_NORMAL',dur:2.0},{name:'LFCP_DETECT',dur:Z1/EGO_SPEED},
+    {name:'LFCP_MOVE',dur:(Z2-Z1)/EGO_SPEED},{name:'LFCP_PASS',dur:1.5},
+    {name:'LFCP_RETURN',dur:(Z2-Z1)/EGO_SPEED},{name:'LFCP_IDLE',dur:1.5},
+  ];
+  const TOTAL=PHASES.reduce((a,p)=>a+p.dur,0);
+  const wheelL=document.getElementById('wheel-l');
+  const wheelR=document.getElementById('wheel-r');
+  const rippleL=document.getElementById('ripple-l');
+  const rCtx=rippleL.getContext('2d');
+  let disp=0,last=performance.now();
+
+  function drawRipple(now,active){
+    rCtx.clearRect(0,0,160,160);
+    if(!active)return;
+    for(let i=0;i<3;i++){
+      const ph=((now/900+i*0.28)%1);
+      rCtx.beginPath();rCtx.arc(80,80,44+ph*36,0,Math.PI*2);
+      rCtx.strokeStyle=`rgba(239,68,68,${(1-ph)*0.6})`;
+      rCtx.lineWidth=2;rCtx.stroke();
+    }
+  }
+  function heading(ph,elapsed){
+    const s=Math.min(1,Math.max(0,(elapsed*EGO_SPEED-Z1)/(Z2-Z1)));
+    if(ph==='MOVE'||ph==='RETURN') return Math.atan(D*poly4Prime(s)/(Z2-Z1));
+    if(ph==='LFCP_MOVE') return -Math.atan(D_LFCP*poly4Prime(s)/(Z2-Z1));
+    if(ph==='LFCP_RETURN') return Math.atan(D_LFCP*poly4Prime(s)/(Z2-Z1));
+    return 0;
+  }
+  function isActive(ph){return['MOVE','RETURN','LFCP_MOVE','LFCP_RETURN'].includes(ph);}
+
+  function animate(now){
+    requestAnimationFrame(animate);
+    const dt=Math.min((now-last)/1000,0.05); last=now;
+    let t=(now/1000)%TOTAL,pIdx=0,el=t;
+    for(let i=0;i<PHASES.length;i++){if(el<PHASES[i].dur){pIdx=i;break;}el-=PHASES[i].dur;}
+    const ph=PHASES[pIdx].name;
+    const tgt=heading(ph,el)*(180/Math.PI)*STEER_SCALE;
+    disp+=( tgt-disp)*Math.min(1,dt*8);
+    let judder=0,judderAmt=0;
+    if(ph==='MOVE'||ph==='RETURN'){
+      const s=Math.min(1,Math.max(0,(el*EGO_SPEED-Z1)/(Z2-Z1)));
+      const env=Math.sin(s*Math.PI); judderAmt=env*9;
+      judder=Math.sin(now*.031)*judderAmt*.55+Math.sin(now*.053)*judderAmt*.30+Math.sin(now*.079)*judderAmt*.15;
+    }
+    const sx=judderAmt>2?(Math.random()-.5)*judderAmt*.45:0;
+    const sy=judderAmt>2?(Math.random()-.5)*judderAmt*.20:0;
+    wheelL.style.transform=`translate(${sx.toFixed(1)}px,${sy.toFixed(1)}px) rotate(${(disp+judder).toFixed(2)}deg)`;
+    wheelR.style.transform=`rotate(${disp.toFixed(2)}deg)`;
+    drawRipple(now,isActive(ph));
+  }
+  requestAnimationFrame(animate);
+})();
+
+/* ══════════════════════════════════════════════
+   CHIP ANIMATION
+══════════════════════════════════════════════ */
+(function(){
+  function drawShell(ctx,flash){
+    ctx.fillStyle='#ffffff';ctx.beginPath();ctx.roundRect(0,0,160,160,16);ctx.fill();
+    ctx.strokeStyle='#c8d0dc';ctx.lineWidth=2.5;ctx.lineCap='round';
+    [30,46,62,80,98,114,130].forEach(p=>{
+      ctx.beginPath();ctx.moveTo(p,6);ctx.lineTo(p,22);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(p,138);ctx.lineTo(p,154);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(6,p);ctx.lineTo(22,p);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(138,p);ctx.lineTo(154,p);ctx.stroke();
+    });
+    ctx.fillStyle='#f8fafc';
+    ctx.strokeStyle=flash?`rgba(239,68,68,${flash})`:'#dde3ec';
+    ctx.lineWidth=flash?3:1.5;
+    ctx.beginPath();ctx.roundRect(22,22,116,116,8);ctx.fill();ctx.stroke();
+  }
+  function drawWater(ctx,pct,wc,wlc,wo){
+    const bot=136,h=112,topY=bot-Math.min(pct,1)*h,amp=pct>.95?1.5:4;
+    ctx.save();ctx.beginPath();ctx.roundRect(23,23,114,114,7);ctx.clip();
+    ctx.beginPath();ctx.moveTo(22,topY);
+    for(let x=22;x<=138;x+=2)ctx.lineTo(x,topY+Math.sin(x*.08+wo)*amp+Math.sin(x*.05-wo*1.3)*(amp*.6));
+    ctx.lineTo(138,bot);ctx.lineTo(22,bot);ctx.closePath();ctx.fillStyle=wc;ctx.fill();
+    ctx.beginPath();ctx.moveTo(22,topY);
+    for(let x=22;x<=138;x+=2)ctx.lineTo(x,topY+Math.sin(x*.07+wo*1.4+1.2)*(amp*.7)+Math.sin(x*.12-wo*.9)*(amp*.4));
+    ctx.lineTo(138,topY+12);ctx.lineTo(22,topY+12);ctx.closePath();ctx.fillStyle=wlc;ctx.fill();
+    ctx.restore();
+  }
+  function drawTicks(ctx){
+    const bot=136,h=112;
+    [.25,.5,.75,1].forEach(l=>{
+      const ty=bot-l*h;
+      ctx.strokeStyle='rgba(0,0,0,0.1)';ctx.lineWidth=.5;
+      ctx.beginPath();ctx.moveTo(130,ty);ctx.lineTo(136,ty);ctx.stroke();
+      ctx.fillStyle='rgba(0,0,0,0.35)';ctx.font='7px monospace';ctx.textAlign='right';
+      ctx.fillText(Math.round(l*100)+'%',128,ty+3);ctx.textAlign='left';
+    });
+  }
+  function drawLabel(ctx,str,sub,col){
+    ctx.font='bold 26px monospace';ctx.fillStyle=col;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(str,80,72);ctx.font='500 10px monospace';ctx.fillStyle='rgba(0,0,0,0.4)';
+    ctx.fillText(sub,80,92);ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  }
+
+  const cL=document.getElementById('c_left').getContext('2d');
+  let tL=0,wL=0;
+  const bubbles=Array.from({length:12},()=>({x:28+Math.random()*100,y:136-Math.random()*60,r:1.5+Math.random()*2.5,speed:.4+Math.random()*.5,wobble:Math.random()*Math.PI*2}));
+  function animL(){
+    wL+=.045;tL++;
+    const fa=(Math.sin(tL*.35)*.5+.5)*.85;
+    cL.clearRect(0,0,160,160);drawShell(cL,fa);drawWater(cL,1.05,'rgba(239,68,68,0.85)','rgba(252,165,165,0.45)',wL);
+    cL.save();cL.beginPath();cL.roundRect(23,23,114,114,7);cL.clip();
+    bubbles.forEach(b=>{b.y-=b.speed;b.wobble+=.04;b.x+=Math.sin(b.wobble)*.4;if(b.y<24){b.y=136;b.x=28+Math.random()*100;}
+      cL.beginPath();cL.arc(b.x,b.y,b.r,0,Math.PI*2);cL.strokeStyle='rgba(255,255,255,0.55)';cL.lineWidth=.8;cL.stroke();cL.fillStyle='rgba(255,255,255,0.12)';cL.fill();});
+    cL.restore();
+    const sp=(tL%25)/25;
+    for(let i=0;i<8;i++){const a=i/8*Math.PI*2,r=8+sp*22,fade=1-sp,px=80+Math.cos(a)*r,py=24+Math.sin(a)*r*.35;cL.beginPath();cL.arc(px,py,2.5*fade+.3,0,Math.PI*2);cL.fillStyle=`rgba(239,68,68,${fade*.85})`;cL.fill();}
+    drawTicks(cL);drawLabel(cL,'110%','CPU LOAD','#dc2626');
+    requestAnimationFrame(animL);
+  }
+  const cR=document.getElementById('c_right').getContext('2d');
+  let tR=0,wR=0;
+  function animR(){
+    wR+=.038;tR++;const drift=.37+Math.sin(tR*.008)*.03;
+    cR.clearRect(0,0,160,160);drawShell(cR,0);drawWater(cR,drift,'rgba(16,185,129,0.75)','rgba(52,211,153,0.45)',wR);
+    drawTicks(cR);drawLabel(cR,Math.round(drift*100)+'%','CPU LOAD','#059669');
+    requestAnimationFrame(animR);
+  }
+  setTimeout(()=>{animL();animR();},80);
+})();
+
+/* ══════════════════════════════════════════════
+   HOURGLASS ANIMATION
+══════════════════════════════════════════════ */
+(function(){
+  const AFTER_DAYS   = 2;
+  const AFTER_MS     = 500;
+  const HOLD_MS      = 1600;
+  const RESET_MS     = 400;
+
+  function easeInQuad(t){ return t*t; }
+
+  function drawHourglass(canvas, progress, isBefore){
+    const ctx=canvas.getContext('2d');
+    const W=canvas.width, H=canvas.height;
+    ctx.clearRect(0,0,W,H);
+    const cx=W/2, top=6, bot=H-6;
+    const hw=W*0.34, nw=W*0.08, neckY=H/2;
+
+    const glassFill  = isBefore ? '#ebebeb' : '#f5f5f5';
+    const sandColor  = isBefore ? '#b0b0b0' : '#10b981';
+    const sandHigh   = isBefore ? '#c8c8c8' : '#34d399';
+    const outlineCol = isBefore ? '#cccccc' : '#d2d2d7';
+    const streamCol  = isBefore ? '160,160,160' : '16,185,129';
+
+    function shape(){
+      ctx.beginPath();
+      ctx.moveTo(cx-hw,top);
+      ctx.bezierCurveTo(cx-hw,top+H*.20,cx-nw,neckY-H*.14,cx-nw,neckY);
+      ctx.bezierCurveTo(cx-nw,neckY+H*.14,cx-hw,bot-H*.20,cx-hw,bot);
+      ctx.lineTo(cx+hw,bot);
+      ctx.bezierCurveTo(cx+hw,bot-H*.20,cx+nw,neckY+H*.14,cx+nw,neckY);
+      ctx.bezierCurveTo(cx+nw,neckY-H*.14,cx+hw,top+H*.20,cx+hw,top);
+      ctx.closePath();
+    }
+    function topShape(){
+      ctx.beginPath();
+      ctx.moveTo(cx-hw,top);
+      ctx.bezierCurveTo(cx-hw,top+H*.20,cx-nw,neckY-H*.14,cx-nw,neckY);
+      ctx.lineTo(cx+nw,neckY);
+      ctx.bezierCurveTo(cx+nw,neckY-H*.14,cx+hw,top+H*.20,cx+hw,top);
+      ctx.closePath();
+    }
+    function botShape(){
+      ctx.beginPath();
+      ctx.moveTo(cx-nw,neckY);
+      ctx.bezierCurveTo(cx-nw,neckY+H*.14,cx-hw,bot-H*.20,cx-hw,bot);
+      ctx.lineTo(cx+hw,bot);
+      ctx.bezierCurveTo(cx+hw,bot-H*.20,cx+nw,neckY+H*.14,cx+nw,neckY);
+      ctx.closePath();
+    }
+
+    ctx.save(); ctx.shadowColor='rgba(0,0,0,0.06)'; ctx.shadowBlur=8; ctx.shadowOffsetY=3;
+    shape(); ctx.fillStyle=glassFill; ctx.fill(); ctx.restore();
+    shape(); ctx.fillStyle=glassFill; ctx.fill();
+
+    // top sand
+    const topH=neckY-top-1;
+    ctx.save(); topShape(); ctx.clip();
+    const sg1=ctx.createLinearGradient(cx-hw,0,cx+hw,0);
+    sg1.addColorStop(0,sandColor); sg1.addColorStop(.5,sandHigh); sg1.addColorStop(1,sandColor);
+    ctx.fillStyle=sg1;
+    ctx.fillRect(0,neckY-topH*(1-progress),W,topH*(1-progress)+4);
+    ctx.restore();
+
+    // bottom sand
+    const botH=bot-neckY-1;
+    ctx.save(); botShape(); ctx.clip();
+    const sg2=ctx.createLinearGradient(cx-hw,0,cx+hw,0);
+    sg2.addColorStop(0,sandColor); sg2.addColorStop(.5,sandHigh); sg2.addColorStop(1,sandColor);
+    ctx.fillStyle=sg2; ctx.fillRect(0,bot-botH*progress,W,botH*progress+3); ctx.restore();
+
+    // stream
+    if(progress<0.97){
+      const a=progress<.91?1:(0.97-progress)/0.06;
+      ctx.save(); shape(); ctx.clip();
+      const gr=ctx.createLinearGradient(cx,neckY,cx,neckY+9);
+      gr.addColorStop(0,`rgba(${streamCol},${a})`); gr.addColorStop(1,`rgba(${streamCol},0)`);
+      ctx.strokeStyle=gr; ctx.lineWidth=2; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(cx,neckY); ctx.lineTo(cx,neckY+9); ctx.stroke();
+      ctx.restore();
+    }
+
+    // sheen
+    shape();
+    const wg=ctx.createLinearGradient(cx-hw,0,cx+hw,0);
+    wg.addColorStop(0,'rgba(255,255,255,.55)'); wg.addColorStop(.14,'rgba(255,255,255,0)');
+    wg.addColorStop(.86,'rgba(255,255,255,0)'); wg.addColorStop(1,'rgba(255,255,255,.40)');
+    ctx.fillStyle=wg; ctx.fill();
+
+    shape(); ctx.strokeStyle=outlineCol; ctx.lineWidth=1; ctx.stroke();
+
+    ctx.fillStyle=isBefore?'#d0d0d0':'#dde1e7';
+    ctx.fillRect(cx-hw,top-2,hw*2,3.5);
+    ctx.fillRect(cx-hw,bot-1.5,hw*2,3.5);
+  }
+
+  const cvB=document.getElementById('hg-before');
+  const cvA=document.getElementById('hg-after');
+  const cntA=document.getElementById('cnt-after');
+
+  // Before: static, fully filled
+  drawHourglass(cvB,1,true);
+
+  let startTime=null, phase='running', holdStart=null, resetStart=null;
+
+  function loop(now){
+    if(!startTime) startTime=now;
+    const el=now-startTime;
+    const pA=Math.min(1,el/AFTER_MS);
+
+    if(pA>=1 && phase==='running'){ phase='hold'; holdStart=now; }
+    if(phase==='hold' && now-holdStart>HOLD_MS){ phase='reset'; resetStart=now; }
+    if(phase==='reset'){
+      if(now-resetStart>=RESET_MS){ startTime=now; phase='running'; }
+      requestAnimationFrame(loop); return;
+    }
+
+    drawHourglass(cvA,easeInQuad(pA),false);
+    cntA.textContent=Math.round(easeInQuad(pA)*AFTER_DAYS);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

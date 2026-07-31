@@ -1,0 +1,46 @@
+/* ============================================================
+   共用設計 token
+   ------------------------------------------------------------
+   這裡只放「三頁數值完全相同」的變數。改這個檔會同時影響
+   履歷頁與所有專案頁 —— 這正是它存在的目的(例如換品牌色)。
+
+   ★ 版面 CSS 不放這裡。
+     每頁的 section / .wrap / .lead 等排版規則一律留在該頁
+     自己的 <style> 裡,所以改某一頁的版面永遠不會波及別頁。
+
+   ★ 頁面專屬 token 也不放這裡,留在各頁自己的 :root:
+       resume_v31.html  --green(#0a6b4d 系,較深)
+       lfs01.html       --green(#0a8a5c 系,較亮)← 與履歷不同,勿合併
+       01_trj_page.html --grad-warm / --red
+
+   引用方式(三頁都在同一層目錄深度):
+       <link rel="stylesheet" href="../assets/tokens.css">
+   ============================================================ */
+
+:root{
+  /* 底色與文字 */
+  --bg:#ffffff;
+  --bg-alt:#f5f5f7;
+  --ink:#1d1d1f;
+  --ink-2:#6e6e73;
+  --ink-3:#86868b;
+  --line:#d2d2d7;
+
+  /* 品牌藍 */
+  --blue:#0071e3;
+  --blue-d:#0066cc;
+  --grad:linear-gradient(118deg,#0a84ff 0%,#0071e3 42%,#28c6e8 100%);
+
+  /* 警示琥珀 */
+  --amber:#b45309;
+  --amber-bg:#fff7ed;
+  --amber-line:#fde3c8;
+
+  /* 字體 */
+  --sans:"SF Pro TC","SF Pro Display",-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+
+  /* 陰影 */
+  --shadow:0 4px 20px rgba(0,0,0,.06);
+  --shadow-lg:0 18px 50px rgba(0,0,0,.12);
+}

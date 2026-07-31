@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>跟車情境 — 前車距離 10 m（淺色）</title>
+  <style>
+    :root{
+      --ink:#1d1d1f;--ink-2:#6e6e73;--ink-3:#86868b;--line:#d2d2d7;
+      --blue:#0071e3;--green:#0a8a5c;--amber:#c2760b;
+      --sans:"SF Pro TC",-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+      --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #ffffff; overflow: hidden; font-family: var(--sans); color: var(--ink); }
+    #canvas-container { position: absolute; top: 0; left: 0; width: 50vw; height: 100vh; }
+
+    #hud { position: absolute; top: 20px; left: 20px; color: var(--ink-2); font-size: 13px; line-height: 1.85; pointer-events: none; }
+    #hud .title { font-size: 19px; font-weight: 700; color: var(--ink); letter-spacing: 0.02em; margin-bottom: 2px; }
+    #hud .subtitle { font-size: 11px; color: var(--blue); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; font-family: var(--mono); }
+    .badge { display: inline-block; border-radius: 6px; padding: 2px 9px; font-size: 11px; margin-right: 5px; font-weight: 600; }
+    .badge.green  { background: rgba(10,138,92,0.1);  border: 1px solid rgba(10,138,92,0.4);  color: var(--green); }
+    .badge.blue   { background: rgba(0,113,227,0.1);   border: 1px solid rgba(0,113,227,0.4);   color: var(--blue); }
+    .badge.dim    { background: rgba(0,0,0,0.05);      border: 1px solid rgba(0,0,0,0.12);      color: var(--ink-3); }
+    #hud .hval { font-family: var(--mono); }
+
+    #bev-panel { position: absolute; top: 0; left: 50vw; width: 50vw; height: 100vh; pointer-events: none; }
+    #bev { display: block; width: 100%; height: 100%; }
+
+    /* technical callout leader — EGO camera → BEV */
+    #proj-beam { position: absolute; inset: 0; width: 100vw; height: 100vh; pointer-events: none; }
+    #callout-label {
+      position: absolute; pointer-events: none; white-space: nowrap;
+      display: flex; align-items: center; gap: 7px;
+      padding: 3px 9px; border-radius: 7px;
+      background: rgba(255,255,255,0.8);
+      font-family: var(--sans); font-size: 12px; font-weight: 700; color: var(--ink);
+    }
+    #callout-label .co-dot { width: 8px; height: 8px; border-radius: 2px; background: var(--green); flex-shrink: 0; }
+    #callout-label .co-sub { font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--ink-3); }
+
+    #legend { position: absolute; bottom: 24px; left: 20px; color: var(--ink-2); font-size: 12px; line-height: 2.2; pointer-events: none; }
+    .legend-row { display: flex; align-items: center; gap: 8px; }
+    .legend-swatch { width: 28px; height: 3px; border-radius: 2px; }
+  </style>
+</head>
+<body>
+<div id="canvas-container"></div>
+
+<!-- BEV Panel -->
+<div id="bev-panel">
+  <canvas id="bev"></canvas>
+</div>
+<!-- overlay above the BEV so the frame + leader share one coordinate system -->
+<svg id="proj-beam" aria-hidden="true" preserveAspectRatio="none"></svg>
+
+<!-- callout title, positioned by layoutBeam() to sit at the leader end -->
+<div id="callout-label" aria-hidden="true">
+  <span class="co-dot"></span>
+  <span>EGO 感知</span>
+  <span class="co-sub">· 前車 · BEV</span>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ─── Scenario parameters ────────────────────────────────────────────────────
+const LANE_HALF   = 1.9;          // half lane width (m)
+const CAR_LEN     = 4.2;          // vehicle length (m)
+const FOLLOW_GAP  = 3;            // bumper-to-bumper gap to lead vehicle (m)
+const SPEED_KMH   = 60;
+// ego centred at z=0; lead sits one car-half + gap + one car-half ahead
+const LEAD_Z      = CAR_LEN / 2 + FOLLOW_GAP + CAR_LEN / 2;   // = 14.2
+const GAP_ZA      = CAR_LEN / 2;            // ego front  (z = 2.1)
+const GAP_ZB      = LEAD_Z - CAR_LEN / 2;   // lead rear  (z = 12.1)
+const GAP_MID     = (GAP_ZA + GAP_ZB) / 2;  // z = 7.1
+
+// ─── Scene (light) ──────────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xffffff);
+scene.fog = new THREE.Fog(0xffffff, 70, 130);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(window.innerWidth / 2, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+const camera = new THREE.PerspectiveCamera(55, (window.innerWidth / 2) / window.innerHeight, 0.1, 200);
+camera.position.set(-1.6, 7, -12);
+camera.lookAt(0, 0.5, 3.5);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.target.set(0, 0.5, 3.5);
+controls.maxPolarAngle = Math.PI / 2.1;
+controls.minDistance = 4;
+controls.maxDistance = 70;
+controls.update();
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.15);
+dirLight.position.set(8, 20, -8);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(2048, 2048);
+Object.assign(dirLight.shadow.camera, { near:0.1, far:100, left:-30, right:30, top:30, bottom:-30 });
+dirLight.shadow.bias = -0.0004;
+scene.add(dirLight);
+const rimLight = new THREE.DirectionalLight(0xcfe1ff, 0.35);
+rimLight.position.set(-8, 5, 4);
+scene.add(rimLight);
+
+// ─── Ground (plain light) ────────────────────────────────────────────────────
+const ROAD_LEN   = 90;
+const LANE_CYCLE = 4.0;
+
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(200, 200),
+  new THREE.MeshBasicMaterial({ color: 0xffffff })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.02;
+scene.add(ground);
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+function straightPts(x, zFrom, zTo, n = 80) {
+  const pts = [];
+  for (let i = 0; i <= n; i++)
+    pts.push(new THREE.Vector3(x, 0.02, zFrom + (zTo - zFrom) * (i / n)));
+  return pts;
+}
+function line3(points, mat) {
+  return new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), mat);
+}
+function makeDashedLine(points, color, dashLen = 2.5, gapLen = 1.5, opacity = 0.75) {
+  const group = new THREE.Group();
+  const mat   = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
+  let acc = 0, drawing = true, buf = [];
+  const flush = () => {
+    if (buf.length >= 2) group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(buf), mat));
+    buf = [];
+  };
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i], b = points[i + 1];
+    const segLen = a.distanceTo(b);
+    const dir = b.clone().sub(a).normalize();
+    let t = 0;
+    while (t < segLen) {
+      const limit = drawing ? dashLen : gapLen;
+      const step  = Math.min(limit - acc, segLen - t);
+      if (drawing) buf.push(a.clone().addScaledVector(dir, t));
+      t += step; acc += step;
+      if (acc >= limit - 1e-6) {
+        if (drawing) { buf.push(a.clone().addScaledVector(dir, t)); flush(); }
+        drawing = !drawing; acc = 0;
+      }
+    }
+  }
+  if (drawing && buf.length >= 2) flush();
+  return group;
+}
+
+// ─── World / lanes (scroll to convey motion) ────────────────────────────────
+const laneGroup = new THREE.Group();
+scene.add(laneGroup);
+
+laneGroup.add(makeDashedLine(straightPts(-LANE_HALF, -14, ROAD_LEN), 0x8a8a90, 2.5, 1.5, 0.7));
+laneGroup.add(makeDashedLine(straightPts( LANE_HALF, -14, ROAD_LEN), 0x8a8a90, 2.5, 1.5, 0.7));
+laneGroup.add(makeDashedLine(straightPts( 0,         -14, ROAD_LEN, 120), 0x0a8a5c, 1.6, 2.4, 0.55));
+
+const solidMat = new THREE.LineBasicMaterial({ color: 0xb4b4bc, transparent: true, opacity: 0.5 });
+for (const x of [-LANE_HALF * 3, LANE_HALF * 3])
+  laneGroup.add(line3(straightPts(x, -14, ROAD_LEN), solidMat));
+
+// ─── Perceived lane lines (red) — EGO's detected lane boundaries ─────────────
+// forward-only (within the FOV range), symmetric about the lane centre
+const PERC_HEX = 0xff2d2d;
+// start where the ±1.9 m lane edge enters the FOV cone (~7 m); cap at 10 m
+const PERC_ZA = 7, PERC_ZB = 10, PERC_Y = 0.035;
+const percMat     = new THREE.LineBasicMaterial({ color: PERC_HEX, transparent: true, opacity: 0.92 });
+const percGlowMat = new THREE.LineBasicMaterial({ color: PERC_HEX, transparent: true, opacity: 0.16 });
+for (const x of [-LANE_HALF, LANE_HALF]) {
+  scene.add(line3([new THREE.Vector3(x, PERC_Y, PERC_ZA), new THREE.Vector3(x, PERC_Y, PERC_ZB)], percMat));
+  for (const dx of [-0.13, 0.13])
+    scene.add(line3([new THREE.Vector3(x + dx, PERC_Y, PERC_ZA), new THREE.Vector3(x + dx, PERC_Y, PERC_ZB)], percGlowMat));
+}
+
+// ─── Vehicle builder ─────────────────────────────────────────────────────────
+function buildCar({ bodyColor, isEgo }) {
+  const g = new THREE.Group();
+
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(1.8, 0.6, CAR_LEN),
+    new THREE.MeshPhysicalMaterial({ color: bodyColor, metalness: 0.35, roughness: 0.32, clearcoat: 0.8, clearcoatRoughness: 0.1 })
+  );
+  body.position.y = 0.55; body.castShadow = true; g.add(body);
+
+  const cabin = new THREE.Mesh(
+    new THREE.BoxGeometry(1.5, 0.5, 2.2),
+    new THREE.MeshPhysicalMaterial({ color: 0x33465a, metalness: 0.2, roughness: 0.3, transparent: true, opacity: 0.82 })
+  );
+  cabin.position.set(0, 1.05, -0.3); cabin.castShadow = true; g.add(cabin);
+
+  if (isEgo) {
+    // windshield camera — sensor that produces the BEV (green lens ties to FOV/beam)
+    const camBody = new THREE.Mesh(
+      new THREE.BoxGeometry(0.36, 0.16, 0.24),
+      new THREE.MeshPhysicalMaterial({ color: 0x1d1d1f, metalness: 0.5, roughness: 0.35 })
+    );
+    camBody.position.set(0, 1.30, 0.72); camBody.castShadow = true; g.add(camBody);
+    const camLens = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.055, 0.07, 0.07, 18),
+      new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x0a8a5c, emissiveIntensity: 0.7 })
+    );
+    camLens.rotation.x = Math.PI / 2; camLens.position.set(0, 1.30, 0.86); g.add(camLens);
+    g.userData.camLens = camLens;
+  }
+
+  const wGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.22, 24);
+  const wMat = new THREE.MeshLambertMaterial({ color: 0x222228 });
+  for (const [wx, wy, wz] of [[-0.95,0.32,-1.35],[0.95,0.32,-1.35],[-0.95,0.32,1.35],[0.95,0.32,1.35]]) {
+    const w = new THREE.Mesh(wGeo, wMat); w.rotation.z = Math.PI / 2;
+    w.position.set(wx, wy, wz); w.castShadow = true; g.add(w);
+  }
+  for (const hx of [-0.65, 0.65]) {
+    const hl = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.12, 0.06), new THREE.MeshBasicMaterial({ color: 0xfff1b8 }));
+    hl.position.set(hx, 0.58, 2.12); g.add(hl);
+    // taillights (brighter on lead — it's the rear we're staring at)
+    const tl = new THREE.Mesh(
+      new THREE.BoxGeometry(0.34, 0.14, 0.06),
+      new THREE.MeshBasicMaterial({ color: isEgo ? 0xdd2222 : 0xff3b30 })
+    );
+    tl.position.set(hx, 0.58, -2.12); g.add(tl);
+  }
+  return g;
+}
+
+const ego = buildCar({ bodyColor: 0xccd2da, isEgo: true });
+ego.position.set(0, 0, 0);
+scene.add(ego);
+
+const lead = buildCar({ bodyColor: 0xc4b7a6, isEgo: false });
+lead.position.set(0, 0, LEAD_Z);
+scene.add(lead);
+
+// green 3D detection box locked on the lead vehicle
+const detBoxMat = new THREE.LineBasicMaterial({ color: 0x10b981, transparent: true, opacity: 0.85 });
+const detBox = new THREE.LineSegments(
+  new THREE.EdgesGeometry(new THREE.BoxGeometry(2.05, 1.55, CAR_LEN + 0.35)),
+  detBoxMat
+);
+detBox.position.set(0, 0.78, LEAD_Z);
+scene.add(detBox);
+
+// ─── Camera FOV cone (green, forward) ────────────────────────────────────────
+const _FOV_TILT  = 0;                          // symmetric: point straight ahead
+const _FOV_HFOV  = Math.tan(Math.PI * 22 / 180);
+const _FOV_NEAR  = 4.5, _FOV_FAR = 42, _FOV_CZ = 2.3;
+const _sT = Math.sin(_FOV_TILT), _cT = Math.cos(_FOV_TILT);
+
+function _fovPt3D(cx, fwd, lat) {
+  return [cx + _sT*fwd + _cT*lat, 0.018, _FOV_CZ + _cT*fwd - _sT*lat];
+}
+
+const _fovFillPos  = new Float32Array(6 * 3);
+const _fovEdgeLPos = new Float32Array(2 * 3);
+const _fovEdgeRPos = new Float32Array(2 * 3);
+const _fovMntLPos  = new Float32Array(2 * 3);
+const _fovMntRPos  = new Float32Array(2 * 3);
+
+const _fovFillGeo  = new THREE.BufferGeometry();
+const _fovEdgeLGeo = new THREE.BufferGeometry();
+const _fovEdgeRGeo = new THREE.BufferGeometry();
+const _fovMntLGeo  = new THREE.BufferGeometry();
+const _fovMntRGeo  = new THREE.BufferGeometry();
+
+_fovFillGeo .setAttribute('position', new THREE.BufferAttribute(_fovFillPos,  3));
+_fovEdgeLGeo.setAttribute('position', new THREE.BufferAttribute(_fovEdgeLPos, 3));
+_fovEdgeRGeo.setAttribute('position', new THREE.BufferAttribute(_fovEdgeRPos, 3));
+_fovMntLGeo .setAttribute('position', new THREE.BufferAttribute(_fovMntLPos,  3));
+_fovMntRGeo .setAttribute('position', new THREE.BufferAttribute(_fovMntRPos,  3));
+
+scene.add(new THREE.Mesh(_fovFillGeo, new THREE.MeshBasicMaterial({
+  color: 0x10b981, transparent: true, opacity: 0.09, side: THREE.DoubleSide, depthWrite: false,
+})));
+const _fovEdgeMat = new THREE.LineBasicMaterial({ color: 0x10b981, transparent: true, opacity: 0.5 });
+scene.add(new THREE.Line(_fovEdgeLGeo, _fovEdgeMat));
+scene.add(new THREE.Line(_fovEdgeRGeo, _fovEdgeMat));
+const _fovMntMat = new THREE.LineBasicMaterial({ color: 0x10b981, transparent: true, opacity: 0.28 });
+scene.add(new THREE.Line(_fovMntLGeo, _fovMntMat));
+scene.add(new THREE.Line(_fovMntRGeo, _fovMntMat));
+
+function updateFOV3D(cx) {
+  const [NLx,NLy,NLz] = _fovPt3D(cx, _FOV_NEAR, -_FOV_NEAR * _FOV_HFOV);
+  const [NRx,NRy,NRz] = _fovPt3D(cx, _FOV_NEAR,  _FOV_NEAR * _FOV_HFOV);
+  const [FRx,FRy,FRz] = _fovPt3D(cx, _FOV_FAR,   _FOV_FAR  * _FOV_HFOV);
+  const [FLx,FLy,FLz] = _fovPt3D(cx, _FOV_FAR,  -_FOV_FAR  * _FOV_HFOV);
+  _fovFillPos .set([NLx,NLy,NLz, NRx,NRy,NRz, FRx,FRy,FRz, NLx,NLy,NLz, FRx,FRy,FRz, FLx,FLy,FLz]);
+  _fovEdgeLPos.set([NLx,NLy,NLz, FLx,FLy,FLz]);
+  _fovEdgeRPos.set([NRx,NRy,NRz, FRx,FRy,FRz]);
+  _fovMntLPos .set([cx, 1.30, 1.0, NLx,NLy,NLz]);
+  _fovMntRPos .set([cx, 1.30, 1.0, NRx,NRy,NRz]);
+  _fovFillGeo .attributes.position.needsUpdate = true;
+  _fovEdgeLGeo.attributes.position.needsUpdate = true;
+  _fovEdgeRGeo.attributes.position.needsUpdate = true;
+  _fovMntLGeo .attributes.position.needsUpdate = true;
+  _fovMntRGeo .attributes.position.needsUpdate = true;
+}
+updateFOV3D(0);
+
+// ─── BEV Canvas (light, full-bleed right half) ──────────────────────────────
+const bevCanvas = document.getElementById('bev');
+const bctx      = bevCanvas.getContext('2d');
+
+const VIEW_BCK      = 4;                 // metres shown behind ego
+const FORWARD_TARGET = 20;               // metres shown ahead → sets zoom
+const FRAME_M = 14, FRAME_R = 10;        // BEV frame inset & corner radius (shared with layoutBeam)
+
+let BW, BH, SX, SZ, EGO_CX, EGO_CY, VIEW_LAT, VIEW_FWD;
+
+function resizeBEV() {
+  const r = bevCanvas.parentElement.getBoundingClientRect();
+  BW = Math.max(2, Math.round(r.width));
+  BH = Math.max(2, Math.round(r.height));
+  bevCanvas.width  = BW;
+  bevCanvas.height = BH;
+  SZ = BH / (FORWARD_TARGET + VIEW_BCK);   // undistorted (square) top-down
+  SX = SZ;
+  VIEW_LAT = BW / (2 * SX);
+  VIEW_FWD = BH / SZ - VIEW_BCK;
+  EGO_CX = BW / 2;
+  EGO_CY = BH - VIEW_BCK * SZ;              // canvas-y of world z = 0
+}
+resizeBEV();
+
+function w2c(wx, wz) { return [EGO_CX + wx * SX, EGO_CY - wz * SZ]; }
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+// fitted C2/C3 of the left line, mirrored to the HUD readout (set in animate)
+let liveC2 = 0, liveC3 = 0;
+
+// perceived detection points on both lane lines — lateral (y) jittered ±0.03 m
+const PT_ZS = [7.0, 8.0, 9.0, 10.0];        // forward positions, between 7 and 10 m
+const PT_BASE_XS = [-LANE_HALF, LANE_HALF]; // left & right lane lines (±1.9 m)
+let ptOffsets = [[0, 0, 0, 0], [0, 0, 0, 0]];
+let ptLastUpdate = -1;
+
+// per-line cubic fitted through the 4 points: [C0, C1, C2, C3]
+let fitCoefs = [[0, 0, 0, 0], [0, 0, 0, 0]];
+const polyX = (C, z) => C[0] + C[1] * z + C[2] * z * z + C[3] * z * z * z;
+
+// per-line linear fit through the first & last point only: [C0, C1]
+let fitLin = [[0, 0], [0, 0]];
+
+// solve A·x = b (Gaussian elimination, partial pivoting) — small n
+function solveLinear(A, b) {
+  const n = b.length;
+  const M = A.map((row, i) => row.concat(b[i]));
+  for (let col = 0; col < n; col++) {
+    let piv = col;
+    for (let r = col + 1; r < n; r++) if (Math.abs(M[r][col]) > Math.abs(M[piv][col])) piv = r;
+    [M[col], M[piv]] = [M[piv], M[col]];
+    const d = M[col][col];
+    for (let c = col; c <= n; c++) M[col][c] /= d;
+    for (let r = 0; r < n; r++) {
+      if (r === col) continue;
+      const f = M[r][col];
+      for (let c = col; c <= n; c++) M[r][c] -= f * M[col][c];
+    }
+  }
+  return M.map(row => row[n]);
+}
+// exact cubic through 4 points (distinct z) → [C0, C1, C2, C3]
+function fitCubic(zs, xs) {
+  return solveLinear(zs.map(z => [1, z, z * z, z * z * z]), xs);
+}
+
+function drawBEV(totalScroll, t) {
+  const ctx = bctx;
+
+  ctx.clearRect(0, 0, BW, BH);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, BW, BH);
+
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(FRAME_M, FRAME_M, BW - 2 * FRAME_M, BH - 2 * FRAME_M, FRAME_R); ctx.clip();
+
+  // Grid
+  ctx.strokeStyle = 'rgba(0,0,0,0.06)'; ctx.lineWidth = 0.5;
+  for (let z = 0; z <= VIEW_FWD; z += 10) {
+    const [, cy] = w2c(0, z);
+    ctx.beginPath(); ctx.moveTo(1, cy); ctx.lineTo(BW - 1, cy); ctx.stroke();
+  }
+  const gx = Math.ceil(VIEW_LAT / 4) * 4;
+  for (let x = -gx; x <= gx; x += 4) {
+    const [cx] = w2c(x, 0);
+    ctx.beginPath(); ctx.moveTo(cx, 1); ctx.lineTo(cx, BH - 1); ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(0,0,0,0.32)'; ctx.font = '9px monospace';
+  for (const zm of [10, 20, 30]) {
+    if (zm > VIEW_FWD) continue;
+    const [, cy] = w2c(0, zm); ctx.fillText(`${zm}m`, BW - 26, cy - 3);
+  }
+
+  // Forward radar/camera cone (green)
+  {
+    const coneZ = 30, half = Math.tan(20 * Math.PI / 180) * coneZ;
+    const [ax, ay] = w2c(0, GAP_ZA - 0.3);
+    const [lx, ly] = w2c(-half, coneZ);
+    const [rx, ry] = w2c( half, coneZ);
+    ctx.fillStyle = 'rgba(16,185,129,0.06)';
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(lx, ly); ctx.lineTo(rx, ry); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(16,185,129,0.28)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(lx, ly); ctx.moveTo(ax, ay); ctx.lineTo(rx, ry); ctx.stroke();
+  }
+
+  // Lane lines (dashed, scrolling)
+  const dashScroll = -(totalScroll * SZ) % 1000;
+  ctx.strokeStyle = 'rgba(0,0,0,0.28)'; ctx.lineWidth = 1.4;
+  ctx.setLineDash([6, 10]); ctx.lineDashOffset = dashScroll;
+  for (const bx of [-LANE_HALF, LANE_HALF]) {
+    const [cx0, cy0] = w2c(bx, -VIEW_BCK), [cx1, cy1] = w2c(bx, VIEW_FWD);
+    ctx.beginPath(); ctx.moveTo(cx0, cy0); ctx.lineTo(cx1, cy1); ctx.stroke();
+  }
+  // Lane centre line (green, scrolling)
+  ctx.strokeStyle = 'rgba(10,138,92,0.55)'; ctx.lineWidth = 1.2;
+  ctx.setLineDash([4, 6]); ctx.lineDashOffset = dashScroll;
+  {
+    const [cx0, cy0] = w2c(0, -VIEW_BCK), [cx1, cy1] = w2c(0, VIEW_FWD);
+    ctx.beginPath(); ctx.moveTo(cx0, cy0); ctx.lineTo(cx1, cy1); ctx.stroke();
+  }
+  ctx.setLineDash([]); ctx.lineDashOffset = 0;
+  ctx.fillStyle = 'rgba(10,138,92,0.8)'; ctx.font = '8px monospace';
+  ctx.fillText('車道中心', w2c(0, 4)[0] + 4, w2c(0, 4)[1]);
+
+  // Perceived lane lines (red, solid) — cubic fitted through each line's 4 points (7→10 m)
+  {
+    const percZ0 = 7, percZ1 = 10;
+    for (const C of fitCoefs) {
+      const pts = [];
+      for (let z = percZ0; z <= percZ1 + 1e-6; z += 0.25) pts.push(w2c(polyX(C, z), z));
+      const stroke = (style, w) => {
+        ctx.strokeStyle = style; ctx.lineWidth = w;
+        ctx.beginPath();
+        pts.forEach(([cx, cy], i) => (i ? ctx.lineTo(cx, cy) : ctx.moveTo(cx, cy)));
+        ctx.stroke();
+      };
+      stroke('rgba(255,45,45,0.16)', 6);
+      stroke('rgba(255,45,45,0.92)', 2.4);
+    }
+    const [lcx, lcy] = w2c(polyX(fitCoefs[1], percZ1), percZ1);
+    ctx.fillStyle = 'rgba(255,45,45,0.9)'; ctx.font = '8px monospace';
+    ctx.fillText('感知車道線', lcx + 4, lcy + 10);
+  }
+
+  // Perceived lane MODEL extended to 60 m (dashed) — same cubic fit, extrapolated
+  {
+    ctx.strokeStyle = 'rgba(255,45,45,0.72)'; ctx.lineWidth = 1.8;
+    ctx.setLineDash([7, 6]); ctx.lineDashOffset = 0;
+    for (const C of fitCoefs) {
+      ctx.beginPath();
+      for (let z = 10; z <= 60; z += 1) {
+        const [cx, cy] = w2c(polyX(C, z), z);
+        z === 10 ? ctx.moveTo(cx, cy) : ctx.lineTo(cx, cy);
+      }
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+  }
+
+  // Linear lane model (green dashed) — C0 + C1 fit through the first & last point
+  {
+    ctx.strokeStyle = 'rgba(5,150,105,0.9)'; ctx.lineWidth = 1.8;
+    ctx.setLineDash([6, 5]); ctx.lineDashOffset = 0;
+    for (const L of fitLin) {
+      ctx.beginPath();
+      for (let z = 7; z <= 60; z += 1) {
+        const [cx, cy] = w2c(L[0] + L[1] * z, z);
+        z === 7 ? ctx.moveTo(cx, cy) : ctx.lineTo(cx, cy);
+      }
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+  }
+
+  // Lead vehicle
+  {
+    const LW = 1.8 * SX, LD = CAR_LEN * SZ;
+    const [cx, cy] = w2c(0, LEAD_Z);
+    ctx.fillStyle = 'rgba(150,140,120,0.9)';
+    ctx.fillRect(cx - LW / 2, cy - LD / 2, LW, LD);
+    // green detection bracket (pulsing)
+    const pa = 0.6 + 0.35 * Math.abs(Math.sin(t * 2.5));
+    ctx.strokeStyle = `rgba(16,185,129,${pa})`; ctx.lineWidth = 2;
+    const bx0 = cx - LW / 2 - 3, bx1 = cx + LW / 2 + 3, by0 = cy - LD / 2 - 3, by1 = cy + LD / 2 + 3;
+    const cl = 9;
+    ctx.beginPath();
+    ctx.moveTo(bx0, by0 + cl); ctx.lineTo(bx0, by0); ctx.lineTo(bx0 + cl, by0);
+    ctx.moveTo(bx1 - cl, by0); ctx.lineTo(bx1, by0); ctx.lineTo(bx1, by0 + cl);
+    ctx.moveTo(bx1, by1 - cl); ctx.lineTo(bx1, by1); ctx.lineTo(bx1 - cl, by1);
+    ctx.moveTo(bx0 + cl, by1); ctx.lineTo(bx0, by1); ctx.lineTo(bx0, by1 - cl);
+    ctx.stroke();
+    ctx.fillStyle = '#0a8a5c'; ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('前車', cx, cy + 3);
+    ctx.textAlign = 'left';
+  }
+
+  // Ego vehicle (centred at z = 0)
+  {
+    const EW = 1.8 * SX, ED = CAR_LEN * SZ;
+    const [cx, cy] = w2c(0, 0);
+    ctx.fillStyle = 'rgba(70,86,105,0.92)';
+    ctx.fillRect(cx - EW / 2, cy - ED / 2, EW, ED);
+    ctx.strokeStyle = '#0071e3'; ctx.lineWidth = 1.8;
+    ctx.strokeRect(cx - EW / 2, cy - ED / 2, EW, ED);
+    ctx.fillStyle = '#0071e3'; ctx.fillRect(cx - EW / 2 + 1.5, cy - ED / 2, EW - 3, 2.5);
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('EGO', cx, cy + 3); ctx.textAlign = 'left';
+  }
+
+  ctx.restore();
+
+  // live status dot (top-right)
+  const dotA = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(t * 2.4));
+  ctx.fillStyle = `rgba(0,113,227,${dotA})`;
+  ctx.beginPath(); ctx.arc(BW - 18, 20, 4, 0, Math.PI * 2); ctx.fill();
+}
+
+// ─── Animation ──────────────────────────────────────────────────────────────
+const SPEED_MS = SPEED_KMH / 3.6;
+let totalScroll = 0;
+let lastTime    = performance.now();
+
+function animate(now) {
+  requestAnimationFrame(animate);
+  const dt = Math.min((now - lastTime) / 1000, 0.05);
+  lastTime = now;
+  const t = now / 1000;
+
+  totalScroll += SPEED_MS * dt;
+  laneGroup.position.z = -(totalScroll % LANE_CYCLE);
+
+  // subtle idle bob so the scene feels alive; gap held at 10 m
+  ego.position.y  = Math.sin(t * 1.4) * 0.010;
+  lead.position.y = Math.sin(t * 1.2 + 1.0) * 0.010;
+  detBox.position.y = 0.78 + lead.position.y;
+  detBoxMat.opacity = 0.55 + 0.35 * Math.abs(Math.sin(t * 2.5));
+
+  updateFOV3D(0);
+  updateLeader();
+
+  // re-roll each line's 4 detection points (lateral y: −0.03 ~ +0.03 m) ~5×/sec,
+  // then fit a cubic C0-C3 through them; HUD shows the left line's C2/C3
+  if (t - ptLastUpdate > 0.2) {
+    for (let l = 0; l < PT_BASE_XS.length; l++) {
+      for (let i = 0; i < PT_ZS.length; i++) ptOffsets[l][i] = (Math.random() * 2 - 1) * 0.03;
+      fitCoefs[l] = fitCubic(PT_ZS, PT_ZS.map((z, i) => PT_BASE_XS[l] + ptOffsets[l][i]));
+      // linear fit (C0 + C1) through the first & last point only
+      const zA = PT_ZS[0], zB = PT_ZS[PT_ZS.length - 1];
+      const xA = PT_BASE_XS[l] + ptOffsets[l][0];
+      const xB = PT_BASE_XS[l] + ptOffsets[l][PT_ZS.length - 1];
+      const c1 = (xB - xA) / (zB - zA);
+      fitLin[l] = [xA - c1 * zA, c1];
+    }
+    ptLastUpdate = t;
+    liveC2 = fitCoefs[0][2];
+    liveC3 = fitCoefs[0][3];
+    const c2El = document.getElementById('hud-c2');
+    const c3El = document.getElementById('hud-c3');
+    if (c2El) c2El.textContent = (liveC2 >= 0 ? '+' : '') + liveC2.toExponential(1);
+    if (c3El) c3El.textContent = (liveC3 >= 0 ? '+' : '') + liveC3.toExponential(1);
+  }
+
+  drawBEV(totalScroll, t);
+  controls.update();
+  renderer.render(scene, camera);
+}
+requestAnimationFrame(animate);
+
+// ─── Projection beam: EGO camera (left 3D) → BEV (right) ────────────────────
+let beamCx = 0, beamLy = 0, beamX0 = 0;
+const _camWorld = new THREE.Vector3();
+
+function layoutBeam() {
+  const svg = document.getElementById('proj-beam');
+  const lbl = document.getElementById('callout-label');
+  if (!svg) return;
+  const W = window.innerWidth, H = window.innerHeight, Xb = W / 2;
+  const m = FRAME_M, r = FRAME_R;
+  const x0 = Xb + m, y0 = m, x1 = W - m, y1 = H - m;   // BEV frame rect
+  const Cx = W * 0.43;                                  // elbow x
+  const Ly = y0 + (y1 - y0) * 0.72;                     // land on left edge, lower half
+  const Px = W * 0.29, Py = H * 0.60;                   // fallback origin
+  beamCx = Cx; beamLy = Ly; beamX0 = x0;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML =
+    `<rect x="${x0}" y="${y0}" width="${x1 - x0}" height="${y1 - y0}" rx="${r}" ry="${r}"
+        fill="none" stroke="#0a8a5c" stroke-width="1.2" stroke-opacity="0.5"/>
+     <polyline id="ld-line" points="${Px},${Py} ${Cx},${Ly} ${x0},${Ly}" fill="none"
+        stroke="#0a8a5c" stroke-width="1.3" stroke-opacity="0.85" stroke-linejoin="round" stroke-linecap="round"/>
+     <circle id="ld-halo" cx="${Px}" cy="${Py}" r="7" fill="#10b981" fill-opacity="0.16"/>
+     <circle id="ld-ring" cx="${Px}" cy="${Py}" r="3.4" fill="none" stroke="#0a8a5c" stroke-width="1.3"/>
+     <circle id="ld-dot" cx="${Px}" cy="${Py}" r="1.4" fill="#0a8a5c"/>
+     <circle cx="${x0}" cy="${Ly}" r="2.6" fill="#0a8a5c"/>`;
+  if (lbl) {
+    lbl.style.left = ((x0 + x1) / 2) + 'px';
+    lbl.style.top  = (y0 - 11) + 'px';
+    lbl.style.transform = 'translateX(-50%)';
+  }
+}
+layoutBeam();
+
+function updateLeader() {
+  const cam = ego.userData.camLens;
+  const line = document.getElementById('ld-line');
+  if (!cam || !line) return;
+  cam.getWorldPosition(_camWorld);
+  _camWorld.project(camera);
+  const px = (_camWorld.x * 0.5 + 0.5) * (window.innerWidth / 2);
+  const py = (-_camWorld.y * 0.5 + 0.5) * window.innerHeight;
+  line.setAttribute('points', `${px},${py} ${beamCx},${beamLy} ${beamX0},${beamLy}`);
+  for (const id of ['ld-halo', 'ld-ring', 'ld-dot']) {
+    const c = document.getElementById(id);
+    if (c) { c.setAttribute('cx', px); c.setAttribute('cy', py); }
+  }
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = (window.innerWidth / 2) / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth / 2, window.innerHeight);
+  resizeBEV();
+  layoutBeam();
+});
+</script>
+</body>
+</html>

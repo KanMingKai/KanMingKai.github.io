@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>雙軌 B4 · 飽和對比</title>
+<style>
+:root{--ink:#1d1d1f;--ink2:#6e6e73;--blue:#0071e3;--sans:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif;--mono:ui-monospace,"JetBrains Mono",monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:#e8e8ee;min-height:100vh;padding:40px 24px;-webkit-font-smoothing:antialiased}
+.vb{display:flex;align-items:center;gap:12px;max-width:880px;margin:0 auto 40px}
+.vt{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;background:#1d1d1f;color:#fff;padding:4px 12px;border-radius:6px}
+.vn{font-size:16px;font-weight:700;color:var(--ink)}
+.vc{font-size:12px;color:var(--ink2);font-style:italic}
+.vh{font-size:11px;color:var(--ink2);margin-left:auto;font-family:var(--mono);background:rgba(0,0,0,.06);padding:4px 10px;border-radius:6px}
+.wrap{max-width:880px;margin:0 auto}
+.intro{text-align:center;margin-bottom:40px}
+.intro .ey{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:10px}
+.intro h2{font-size:clamp(26px,3.8vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1.1;margin-bottom:12px;background:linear-gradient(118deg,#0a84ff,#0071e3,#28c6e8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.intro p{font-size:14px;color:var(--ink2)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.track{border-radius:24px;padding:30px 28px 32px;display:flex;flex-direction:column}
+.hr{background:linear-gradient(155deg,#fffcf5,#fef9ec);border:1px solid rgba(245,166,35,.28)}
+.tc{background:linear-gradient(155deg,#f5f8ff,#eef4ff);border:1px solid rgba(0,113,227,.2)}
+.lbl{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:20px;display:flex;align-items:center;gap:7px}
+.lbl::before,.lbl::after{content:'';display:block;height:1px;flex:1}
+.hr .lbl{color:#b45309}.hr .lbl::before,.hr .lbl::after{background:rgba(180,83,9,.25)}
+.tc .lbl{color:#0058c4}.tc .lbl::before,.tc .lbl::after{background:rgba(0,88,196,.22)}
+.items{display:grid;gap:10px;margin-bottom:22px;flex:1}
+.it{display:grid;grid-template-columns:76px 1fr;gap:12px;align-items:center;background:rgba(255,255,255,.72);border-radius:14px;padding:14px 16px}
+.num{font-size:clamp(24px,3vw,34px);font-weight:900;letter-spacing:-.04em;line-height:1;text-align:right}
+.hr .num{color:#d97706}.tc .num{color:var(--blue)}
+.inf .tit{font-size:13px;font-weight:600;color:var(--ink)}
+.inf .det{font-size:11.5px;color:var(--ink2);margin-top:2px}
+.decs{display:grid;gap:10px;margin-bottom:22px;flex:1}
+.dc{background:rgba(255,255,255,.75);border-radius:14px;padding:14px 16px}
+.dc .dn{font-size:10px;font-weight:700;letter-spacing:.06em;color:#0058c4;margin-bottom:4px;font-family:var(--mono)}
+.dc .dt{font-size:13px;color:var(--ink);font-weight:600;margin-bottom:3px}
+.dc .ef{font-size:12px;color:var(--ink2);line-height:1.5}
+.cta{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;text-decoration:none;padding:9px 20px;border-radius:980px;margin-top:auto;align-self:flex-start;transition:.18s}
+.hr .cta{color:#b45309;background:rgba(180,83,9,.09)}.hr .cta:hover{background:rgba(180,83,9,.15)}
+.tc .cta{color:#0058c4;background:rgba(0,88,196,.09)}.tc .cta:hover{background:rgba(0,88,196,.15)}
+
+/* ── B4: 飽和對比 ────────────────────── */
+/* 最戲劇性的版本
+   非 hover 狀態下已接近灰度 + 輕微模糊
+   Hover：全飽和 + 放大 1.02 + 上升
+   對比最強烈，「我在這裡」的訊息最清晰 */
+.track{
+  transition:transform .36s cubic-bezier(.2,.7,.3,1),
+             filter .36s,
+             box-shadow .36s;
+}
+.grid:hover .track{
+  filter:saturate(.1) blur(1px);
+  transform:scale(.982);
+}
+.grid:hover .track:hover{
+  filter:saturate(1.1) blur(0);
+  transform:scale(1.024) translateY(-6px);
+  box-shadow:0 22px 52px rgba(0,0,0,.13);
+  position:relative;
+  z-index:1;
+}
+</style>
+</head>
+<body>
+<div class="vb">
+  <div class="vt">B4</div>
+  <div class="vn">飽和對比</div>
+  <div class="vc">— 非 hover 時近乎灰度，hover 時全色彩 + 放大：對比最強烈</div>
+  <div class="vh">← hover 看效果</div>
+</div>
+<div class="wrap">
+  <div class="intro">
+    <div class="ey">兩種閱讀路徑</div>
+    <h2>找到對你重要的那條線。</h2>
+    <p>左欄說業務影響，右欄說架構決策。兩條路都通向同一個結果。</p>
+  </div>
+  <div class="grid">
+    <div class="track hr">
+      <div class="lbl">業務影響</div>
+      <div class="items">
+        <div class="it"><div class="num">−98%</div><div class="inf"><div class="tit">新功能開發週期</div><div class="det">4 個月以上 → 2~3 天</div></div></div>
+        <div class="it"><div class="num">−92%</div><div class="inf"><div class="tit">測試驗證時間</div><div class="det">3 個月 → 1 週</div></div></div>
+        <div class="it"><div class="num">−63%</div><div class="inf"><div class="tit">嵌入式平台資源佔用</div><div class="det">&gt;100% 超載 → 37%</div></div></div>
+      </div>
+      <a href="#" class="cta">看四個實際功能場景 →</a>
+    </div>
+    <div class="track tc">
+      <div class="lbl">架構決策</div>
+      <div class="decs">
+        <div class="dc"><div class="dn">決策 01 · 共用介面</div><div class="dt">統一 trj 輸出格式（egoX）</div><div class="ef">各功能不需知道對方內部邏輯，只需對齊介面規格</div></div>
+        <div class="dc"><div class="dn">決策 02 · poly4(s) = 3s⁴ − 8s³ + 6s²</div><div class="dt">C0 + C1 連續，最低複雜度滿足邊界條件</div><div class="ef">銜接點自動平順，不再逐案調校</div></div>
+        <div class="dc"><div class="dn">決策 03 · s ∈ [0,1] 距離參數化</div><div class="dt">O(1) 單點查詢，取代每幀積分</div><div class="ef">TC277 從 &gt;100% 超載降至 37% 的關鍵</div></div>
+      </div>
+      <a href="#" class="cta">完整決策推導 →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

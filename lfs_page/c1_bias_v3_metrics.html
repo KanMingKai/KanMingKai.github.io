@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>C1 Bias 閉迴路補償 — 柱子一 · 治偏差</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;--bg-alt:#f5f5f7;--ink:#1d1d1f;--ink-2:#6e6e73;--ink-3:#86868b;
+  --line:#d2d2d7;--blue:#0071e3;
+  --grad:linear-gradient(118deg,#0a84ff 0%,#0071e3 42%,#28c6e8 100%);
+  --amber:#b45309;--green:#0a8a5c;
+  --sans:"SF Pro TC",-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --shadow:0 4px 20px rgba(0,0,0,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:940px;margin:0 auto;padding:0 22px}
+.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+/* formal page nav */
+.pnav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.8);backdrop-filter:saturate(180%) blur(18px);-webkit-backdrop-filter:saturate(180%) blur(18px);border-bottom:1px solid rgba(0,0,0,.07)}
+.pnav .in{max-width:940px;margin:0 auto;height:50px;padding:0 22px;display:flex;align-items:center;justify-content:space-between}
+.pnav .back{font-size:13px;font-weight:600;color:var(--ink-2);text-decoration:none}
+.pnav .back:hover{color:var(--blue)}
+.pnav .crumb{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--ink-3)}
+
+/* before/after anchor bars */
+.ba{max-width:430px;margin:26px auto 0;display:grid;gap:8px;text-align:left}
+.ba-row{display:grid;grid-template-columns:82px 1fr 72px;align-items:center;gap:10px}
+.ba-k{font-size:11px;color:var(--ink-2);text-align:right;font-weight:600}
+.ba-track{height:10px;border-radius:5px;background:var(--bg-alt);overflow:hidden;border:1px solid var(--line)}
+.ba-fill{height:100%;border-radius:5px}
+.ba-fill.warn{background:#f0b26b}
+.ba-fill.ok{background:var(--blue)}
+.ba-v{font-family:var(--mono);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.ba-note{font-size:10.5px;color:var(--ink-3);text-align:center;margin-top:2px}
+.whynot{display:inline-block;margin-top:18px;font-size:12.5px;font-weight:600;color:var(--ink-3);text-decoration:none;border-bottom:1px dashed var(--ink-3);padding-bottom:1px}
+.whynot:hover{color:var(--amber);border-color:var(--amber)}
+
+/* honest disclosure card (visible, not folded) */
+.honest{max-width:660px;margin:28px auto 0;border-left:3px solid var(--amber);background:#fff7ed;padding:16px 20px;border-radius:0 12px 12px 0;scroll-margin-top:70px}
+.honest-k{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.1em;color:var(--amber);text-transform:uppercase;margin-bottom:7px}
+.honest p{font-size:13px;color:var(--ink);line-height:1.8}
+.honest p b{font-weight:700}
+
+/* exit nav */
+.exit{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;padding:0 22px 76px}
+.exit a{display:inline-block;padding:12px 26px;border-radius:980px;font-size:14px;font-weight:600;text-decoration:none;transition:background .15s,color .15s,border-color .15s}
+.exit .p{background:var(--ink);color:#fff}
+.exit .p:hover{background:var(--blue)}
+.exit .s{border:1px solid var(--line);color:var(--ink)}
+.exit .s:hover{border-color:var(--blue);color:var(--blue)}
+
+/* print */
+.print-note{display:none;font-size:12px;color:var(--ink-2);border:1px dashed var(--line);border-radius:10px;padding:12px 16px;max-width:600px;margin:16px auto 0;text-align:center}
+@media print{
+  .pnav,.exit,.whynot,.ldemo,.ldemo-cap{display:none}
+  .print-note{display:block}
+  body,.sixty{background:#fff}
+  .deep details,.step,.honest{page-break-inside:avoid}
+}
+
+/* hero: number first */
+.hero{text-align:center;padding:clamp(52px,8vw,88px) 0 10px}
+.hero .tag{font-size:12px;font-weight:700;color:var(--blue);letter-spacing:.06em;margin-bottom:16px}
+.big{font-family:var(--mono);font-size:clamp(64px,13vw,128px);font-weight:700;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.big-l{font-size:clamp(14px,2vw,17px);font-weight:600;color:var(--ink-2);margin-top:10px}
+.hero .one-liner{font-size:clamp(15px,2.2vw,19px);font-weight:600;line-height:1.65;max-width:640px;margin:26px auto 0}
+
+/* stat row */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:760px;margin:38px auto 0}
+.stat{border:1px solid var(--line);border-radius:16px;padding:18px 14px;text-align:center;background:#fff;box-shadow:var(--shadow)}
+.stat .v{font-family:var(--mono);font-size:clamp(20px,3vw,28px);font-weight:700;font-variant-numeric:tabular-nums}
+.stat .v.warn{color:var(--amber)}
+.stat .v.ok{color:var(--green)}
+.stat .l{font-size:11.5px;color:var(--ink-2);margin-top:6px;line-height:1.55}
+@media(max-width:640px){.stats{grid-template-columns:1fr}}
+
+.ldemo{max-width:920px;margin:40px auto 0;border-radius:16px;overflow:hidden;line-height:0}
+.ldemo iframe{width:100%;height:420px;border:0;display:block}
+.ldemo-cap{font-size:12px;color:var(--ink-3);text-align:center;margin:12px auto 0;line-height:1.65;max-width:600px}
+@media(max-width:680px){.ldemo iframe{height:360px}}
+
+/* 60-second story */
+.sixty{background:var(--bg-alt);margin-top:clamp(48px,7vw,72px);padding:clamp(44px,6vw,64px) 0}
+.eb{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--blue);text-align:center;text-transform:uppercase;margin:0 0 22px}
+.steps{max-width:660px;margin:0 auto;display:grid;gap:10px}
+.step{display:grid;grid-template-columns:44px 1fr;gap:14px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;align-items:start}
+.step-n{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--blue);padding-top:2px}
+.step-t{font-size:14px;font-weight:700;margin-bottom:4px}
+.step-d{font-size:13px;color:var(--ink-2);line-height:1.7}
+.step-d b{color:var(--ink)}
+
+/* deep-dive expanders */
+.deep{max-width:660px;margin:26px auto 0}
+.deep details{border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:10px;background:#fff}
+.deep summary{cursor:pointer;font-size:13.5px;font-weight:600;list-style:none;color:var(--ink)}
+.deep summary::-webkit-details-marker{display:none}
+.deep summary::before{content:'+ ';color:var(--blue);font-family:var(--mono)}
+.deep details[open] summary::before{content:'− '}
+.deep .a{font-size:13px;color:var(--ink-2);line-height:1.75;margin-top:10px}
+.deep svg{width:100%;height:auto;display:block;margin-top:12px}
+
+.rmap{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:8px;align-items:stretch;margin:14px 0 4px}
+.rmap-n{border:1px solid var(--line);border-radius:12px;padding:11px 8px;text-align:center;background:#fff}
+.rmap-n.arch{background:#eef4ff;border-color:#cfe1ff}
+.rmap-n .k{font-family:var(--mono);font-size:9.5px;font-weight:700;color:var(--blue);margin-bottom:4px}
+.rmap-n .t{font-size:12px;font-weight:700}
+.rmap-n .d{font-size:10px;color:var(--ink-3);margin-top:3px;line-height:1.45}
+.rmap-a{display:flex;align-items:center;color:#c0c4cb;font-size:14px}
+@media(max-width:640px){.rmap{grid-template-columns:1fr}.rmap-a{justify-content:center;transform:rotate(90deg);min-height:16px}}
+
+.close-line{font-size:15px;color:var(--ink-2);line-height:1.8;max-width:600px;margin:clamp(40px,6vw,60px) auto;text-align:center;font-style:italic;padding:0 22px}
+</style>
+</head>
+<body>
+
+<nav class="pnav">
+  <div class="in">
+    <a class="back" href="lfs.html">← LFS 車道融合系統</a>
+    <span class="crumb">柱子一 · 治偏差 · C1 BIAS</span>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="tag">柱子一 · 治偏差 · C1 BIAS 閉迴路補償</div>
+    <div class="big grad">86.81%</div>
+    <div class="big-l">CIL 5cm 偏移修正率 — 產線校正解不掉的殘留偏差，行駛中自動消化</div>
+
+    <div class="ba">
+      <div class="ba-row"><span class="ba-k">補償前偏移</span><div class="ba-track"><div class="ba-fill warn" style="width:100%"></div></div><span class="ba-v">5.00 cm</span></div>
+      <div class="ba-row"><span class="ba-k">補償後殘留</span><div class="ba-track"><div class="ba-fill ok" style="width:13.2%"></div></div><span class="ba-v">0.66 cm</span></div>
+      <div class="ba-note">依 CIL 5cm 偏左案例修正率推算</div>
+    </div>
+
+    <a class="whynot" href="#honest">為什麼不是 100%？誠實揭露 ↓</a>
+
+    <p class="one-liner">量產前發現「校正合格」的車仍系統性帶著殘留偏移出廠。我沒有回頭改產線，而是<span class="grad">用融合層的即時閉環補償，讓每台車自己修正自己</span>——如期三階段量產。</p>
+
+    <div class="stats">
+      <div class="stat"><div class="v warn">0.77°</div><div class="l">EOL 校正後殘留角度<br>產線工藝的結構性極限</div></div>
+      <div class="stat"><div class="v grad">≈ 0</div><div class="l">解法成本——純軟體邏輯<br>不修硬體、不動產線</div></div>
+      <div class="stat"><div class="v ok">3 階段</div><div class="l">如期量產落地<br>成為每台車的出廠標配</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="ldemo">
+    <iframe src="c1_bias_corrected_light.html" title="C1 Bias 閉迴路補償實測動畫" loading="lazy"></iframe>
+  </div>
+  <p class="ldemo-cap"><b>實測</b>：相機裝歪造成的橫向偏移，被閉環補償拉回車道中心。<span style="white-space:nowrap">圖例：<b style="color:#b45309">橘</b>＝感知歪掉的車道線，<b style="color:#0071e3">藍</b>＝補償後</span></p>
+  <p class="print-note">〔列印版省略互動動畫〕動畫內容：相機感知的車道線（橘）因裝配偏差持續歪斜，C1 Bias 閉迴路補償啟動後逐步將其拉回與真實車道線（藍）重合，最終橫向偏移由 5cm 收斂至 0.66cm。</p>
+</div>
+
+<section class="sixty">
+  <div class="wrap">
+    <div class="eb">60 秒版本 · 這件事怎麼發生的</div>
+    <div class="steps">
+      <div class="step"><span class="step-n">01</span><div><div class="step-t">發現</div><div class="step-d">Pre-Production 下線覆核：通過 EOL 標準校正的車，橫向控制仍有些微飄移——理論上最平靜的階段，出現了不該存在的訊號。</div></div></div>
+      <div class="step"><span class="step-n">02</span><div><div class="step-t">根因</div><div class="step-d">把當週下線車輛數據全部攤開：不是單一工站出錯，是 <b>EOL 殘餘誤差 0.77° 疊加 ONL 刷寫失敗率</b>——校正流程本身有結構性極限，加嚴產線也解不乾淨。</div></div></div>
+      <div class="step"><span class="step-n">03</span><div><div class="step-t">抉擇</div><div class="step-d">往回推產線（時程保不住）或往前推軟體（讓車自己修）。<b>我選後者，並承擔時程風險</b>——問題的根不在校得準不準，而在校正本身有極限。</div></div></div>
+      <div class="step"><span class="step-n">04</span><div><div class="step-t">機制</div><div class="step-d">C1 Bias 閉迴路補償：<b>六道門檻</b>只在理想條件學習 → <b>Rate Limit</b> 不暴衝 → <b>積分</b>平滑收斂 → <b>Fault Diagnosis</b> 確認無異常才輸出。</div></div></div>
+    </div>
+
+    <div class="deep">
+      <details>
+        <summary>深入：為什麼不加嚴產線？——三個選項的成本與時程比較</summary>
+        <div class="a">加嚴 EOL 校正＝產線改造、人力設備追加、SOP 時程不可控，而且殘餘誤差是流程結構性極限，只能壓低、不能歸零。供應商重新校正＝高成本、數月週期。融合層閉環補償＝純軟體、成本近零，且把「出廠品質」從一次性抽獎變成持續收斂的過程。
+          <svg viewBox="0 0 620 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="決策岔路圖">
+            <defs><linearGradient id="forkg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a84ff"/><stop offset=".5" stop-color="#0071e3"/><stop offset="1" stop-color="#28c6e8"/></linearGradient></defs>
+            <path d="M126,105 C170,105 175,40 220,40" fill="none" stroke="#8a8a8f" stroke-width="2" opacity=".5"/>
+            <path d="M126,105 C170,105 175,170 220,170" fill="none" stroke="#0071e3" stroke-width="2.4" opacity=".7"/>
+            <rect x="16" y="79" width="110" height="52" rx="14" fill="url(#forkg)"/>
+            <text x="71" y="101" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">抉擇點</text>
+            <text x="71" y="118" text-anchor="middle" font-size="9" fill="#fff" opacity=".85">系統性殘留偏移</text>
+            <rect x="220" y="12" width="384" height="56" rx="14" fill="#f5f5f7" stroke="#d2d2d7" stroke-width="1.2"/>
+            <circle cx="246" cy="40" r="11" fill="#8a8a8f"/><text x="246" y="44.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">✕</text>
+            <text x="268" y="34" font-size="13" font-weight="700" fill="#6e6e73">加嚴產線校正／供應商重新校正</text>
+            <text x="268" y="52" font-size="10.5" fill="#8a8a8f">產線改造・時程延誤・SOP 保不住</text>
+            <rect x="220" y="142" width="384" height="56" rx="14" fill="#eef4ff" stroke="#0071e3" stroke-width="1.6"/>
+            <circle cx="246" cy="170" r="11" fill="#0a8a5c"/><text x="246" y="174.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">✓</text>
+            <text x="268" y="164" font-size="13" font-weight="700" fill="#0071e3">軟體即時閉環修正（我的選擇）</text>
+            <text x="268" y="182" font-size="10.5" fill="#0071e3" opacity=".8">不修硬體・車輛行駛中自我修正</text>
+          </svg>
+        </div>
+      </details>
+      <details>
+        <summary>深入：怎麼確保不學錯？——四道關卡＋六門檻明細</summary>
+        <div class="a">閉環補償最怕「學錯了還敢輸出」。四道串聯關卡：
+          <div class="rmap">
+            <div class="rmap-n"><div class="k">關卡 1</div><div class="t">六道門檻</div><div class="d">理想直線＋穩定車速<br>才允許學習</div></div>
+            <div class="rmap-a">→</div>
+            <div class="rmap-n"><div class="k">關卡 2</div><div class="t">Rate Limit</div><div class="d">限制修正速率</div></div>
+            <div class="rmap-a">→</div>
+            <div class="rmap-n"><div class="k">關卡 3</div><div class="t">積分</div><div class="d">平滑收斂</div></div>
+            <div class="rmap-a">→</div>
+            <div class="rmap-n arch"><div class="k">關卡 4</div><div class="t">Fault Diagnosis</div><div class="d">無異常才輸出</div></div>
+          </div>
+          六道門檻明細：Vx=0 初始化確認、感測器 OK、車速 &gt;60kph、車道半徑 &gt;2500m、View Range &gt;40m、Yaw &lt;0.5°——全滿足才更新。
+        </div>
+      </details>
+    </div>
+
+    <div class="honest" id="honest">
+      <div class="honest-k">誠實揭露 · 為什麼不是 100%？</div>
+      <p>偏右 2.5cm 小偏移案例的修正率是 <b>43%</b>：偏移量小、訊號對比不明顯，估算器在 50 樣本內尚未完全收斂。收斂速度與樣本策略仍在優化中——<b>我不假裝它已完美，所以這個數字也一併放在這裡，而不是藏起來。</b></p>
+    </div>
+  </div>
+</section>
+
+<p class="close-line">量產品質不該靠產線一次性校準賭運氣——<br>該讓每一台車，自己把自己修好。</p>
+
+<nav class="exit">
+  <a class="s" href="lfs.html#architecture">← 回 LFS 總覽</a>
+  <a class="p" href="lfs.html#decision-1">看下一個關鍵決策：Lane Degrade →</a>
+</nav>
+
+<script>
+window.addEventListener('beforeprint',function(){
+  document.querySelectorAll('.deep details').forEach(function(d){
+    if(!d.open){d.dataset.autoopen='1';d.open=true;}
+  });
+});
+window.addEventListener('afterprint',function(){
+  document.querySelectorAll('.deep details[data-autoopen]').forEach(function(d){
+    d.open=false;delete d.dataset.autoopen;
+  });
+});
+</script>
+</body>
+</html>

@@ -1,18 +1,990 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="Content-Security-Policy" content="img-src 'self' data: https://*.github.io;">
-    
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kan Ming Kai — Robotics Engineer</title>
-    <meta name="description" content="Kan Ming Kai — Robotics Engineer in Taiwan. Building tools for autonomous mobile robot (AMR) development with ROS 2." />
-    <script type="module" crossorigin src="/assets/index-DqoJziQz.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CbnY3Vsv.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>甘銘凱 · 履歷 — ADAS 路徑感知與軌跡規劃</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/nav.css">
+<style>
+
+/* 本頁專屬 token(履歷用的深綠,與 LFS 頁的亮綠不同,勿合併) */
+:root{--green:#0a6b4d;--green-bg:#e8f7f0;--green-line:#c3e8d8}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.wrap{max-width:980px;margin:0 auto;padding:0 22px}
+.eyebrow{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px}
+h1{font-size:clamp(26px,3.8vw,38px);font-weight:700;letter-spacing:-.015em;line-height:1.2}
+h1 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.belief{margin-top:16px;font-size:15px;color:var(--ink);font-weight:600;border-left:3px solid var(--blue);padding-left:14px;line-height:1.6}
+
+/* reveal */
+.reveal{opacity:1;transform:none}
+
+/* stat chips */
+.stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.chip{border:1px solid var(--line);border-radius:11px;padding:11px 15px;background:#fff}
+.chip .v{font-size:16px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
+.chip .v.m{font-family:var(--mono)}
+.chip .l{font-size:11.5px;color:var(--ink-3);margin-top:2px}
+
+/* company block */
+.co{max-width:900px;margin:0 auto}
+.co+.co{margin-top:clamp(40px,6vw,60px)}
+.co-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;padding-bottom:6px}
+.co-name{font-size:clamp(19px,2.6vw,24px);font-weight:700;letter-spacing:-.01em}
+.co-period{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--blue)}
+.co-title{font-size:13.5px;color:var(--ink-2)}
+.co-scope{font-size:14.5px;color:var(--ink-2);line-height:1.7;margin:10px 0 6px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.co-scope b{color:var(--ink);font-weight:600}
+
+/* achievement rows */
+.xp{display:grid;grid-template-columns:154px 1fr;gap:24px;padding:20px 0;border-bottom:1px solid #ededf0}
+.xp:last-child{border-bottom:none}
+.xp-m{align-self:start}
+.xp-m .big{font-family:var(--mono);font-size:21px;font-weight:700;color:var(--blue);letter-spacing:-.02em;line-height:1.15}
+.xp-m .big.sm{font-size:16px}
+.xp-m .unit{font-size:11.5px;color:var(--ink-3);margin-top:2px;font-weight:600;letter-spacing:.03em}
+.xp-c h4{font-size:15.5px;font-weight:700;color:var(--ink);line-height:1.4}
+.xp-c .xp-sum{font-size:13.5px;color:var(--ink);font-weight:600;line-height:1.6;margin-top:6px}
+.xp-c .xp-sum .hl{color:var(--blue-d)}
+.xp-c .xp-detail{margin-top:9px;padding-left:11px;border-left:2px solid #e6e6ea}
+.xp-c p{font-size:13px;color:var(--ink-2);line-height:1.7;margin-top:7px}
+.xp-c code{font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);border:1px solid #e8e8ec;border-radius:4px;padding:1px 5px;color:var(--ink)}
+.xp-c .out{color:var(--ink);font-weight:600}
+.xp-c ul{margin-top:0;padding:0;list-style:none}
+.xp-c ul li{font-size:13px;color:var(--ink-2);line-height:1.7;padding-left:14px;position:relative}
+.xp-c ul li+li{margin-top:5px}
+.xp-c ul li::before{content:"–";position:absolute;left:0;color:var(--ink-3)}
+.xp-c ul li b{color:var(--ink);font-weight:600}
+
+@media(max-width:680px){
+  .xp{grid-template-columns:1fr;gap:8px;padding:18px 0}
+  .xp-m{display:inline-flex;align-items:baseline;gap:8px}
+  .xp-m .unit{margin-top:0}
+}
+
+/* patent note */
+.pnote{max-width:900px;margin:clamp(36px,5vw,52px) auto 0;background:var(--bg-alt);border:1px solid var(--line);border-radius:14px;padding:18px 22px}
+.pnote .k{font-size:11.5px;font-weight:700;letter-spacing:.05em;color:var(--ink-3);text-transform:uppercase;margin-bottom:7px}
+.pnote p{font-size:13.5px;color:var(--ink-2);line-height:1.7}
+.pnote .m{font-family:var(--mono);font-size:12.5px;color:var(--blue)}
+.pnote .st{display:inline-block;font-size:11px;font-weight:700;border-radius:5px;padding:1px 7px;margin-left:6px}
+.pnote .st.g{color:var(--green);background:var(--green-bg);border:1px solid var(--green-line)}
+.pnote .st.p{color:#8a6d1f;background:#fff8e8;border:1px solid #f2e2b8}
+
+/* resume header */
+.rez{border-bottom:1px solid var(--line);padding-bottom:24px}
+.rez-name{font-size:clamp(30px,5vw,46px);font-weight:900;letter-spacing:-.02em;line-height:1.05}
+.rez-name .en{font-weight:600;color:var(--ink-3);font-size:.5em;letter-spacing:0;margin-left:10px;vertical-align:.28em}
+.rez-role{font-size:clamp(15px,2vw,18px);color:var(--ink-2);margin-top:10px;font-weight:600}
+.rez-contact{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}
+.rc{font-size:12.5px;color:var(--ink-2);border:1px solid var(--line);border-radius:9px;padding:6px 12px;background:#fff}
+.rc.ph{color:#b0b0b5;border-style:dashed}
+.todo{display:inline-block;margin-left:8px;font-size:11px;color:#8a6d1f;background:#fff8e8;border:1px solid #f2e2b8;border-radius:5px;padding:1px 7px}
+.jump{color:var(--blue);text-decoration:none;font-weight:600;margin-left:6px}
+.jump:hover{text-decoration:underline}
+
+/* 以下為第二段樣式。原本重複的 :root / reset / .wrap / .eyebrow 已移除,
+   section 與 .lead 保留這一份(它們本來就覆蓋掉前面那份,是實際生效的值) */
+section{padding:clamp(56px,9vw,104px) 0}
+.sec-head{max-width:900px;margin:0 auto clamp(28px,5vw,40px)}
+h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;line-height:1.22}
+h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.lead{font-size:clamp(15px,1.9vw,17px);color:var(--ink-2);line-height:1.7;margin-top:16px;max-width:680px}
+
+/* ===== reveal ===== */
+.reveal{opacity:1;transform:none}
+
+/* ===== desktop ridgeline ===== */
+.ridge-wrap{max-width:900px;margin:0 auto}
+.ridge-svg{width:100%;height:auto;display:block}
+.ridge-svg .rt{font-family:var(--sans)}
+.ridge-svg .rm{font-family:var(--mono)}
+
+/* ===== desktop/mobile toggle ===== */
+.dt-mobile-only{display:none!important}
+@media(max-width:680px){
+  .dt-desktop-only{display:none!important}
+  .dt-mobile-only{display:block!important}
+}
+
+/* ===== mobile vertical timeline ===== */
+.tl{max-width:380px;margin:0 auto;padding-left:4px}
+.tl-zone{font-size:11.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-3);text-transform:uppercase;margin:4px 0 14px 30px}
+.tl-zone:not(:first-child){margin-top:8px}
+.tl-item{position:relative;padding:0 0 26px 34px;border-left:2px solid var(--line);margin-left:8px}
+.tl-item:last-child{border-left-color:transparent}
+.tl-dot{position:absolute;left:-9px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--blue);box-sizing:border-box}
+.tl-dot.peak{background:var(--blue);border-color:var(--blue)}
+.tl-dot.now{width:18px;height:18px;left:-10px;background:#0a84ff;border:3px solid #fff;box-shadow:0 0 0 2px #0a84ff}
+.tl-dot.zero{background:#fff;border-color:#a1a1a6;width:14px;height:14px;top:3px;left:-8px}
+.tl-t.zero-t{color:#86868b;font-weight:600;font-size:14.5px}
+.tl-y{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--blue);letter-spacing:.02em}
+.tl-t{font-size:16px;font-weight:700;color:var(--ink);margin-top:2px}
+.tl-t.am{color:var(--amber)}
+.tl-d{font-size:13px;color:var(--ink-2);margin-top:2px;line-height:1.5}
+.tl-item.pivot{border-left-style:dashed;border-left-color:var(--line)}
+
+/* ===== evidence ===== */
+.ev{max-width:900px;margin:clamp(48px,7vw,72px) auto 0}
+.ev-head{margin-bottom:26px}
+.ev-h{font-size:clamp(19px,2.6vw,24px);font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+.ev-lead{font-size:14.5px;color:var(--ink-2);line-height:1.7;margin-top:10px;max-width:600px}
+
+.pt-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+@media(max-width:900px){.pt-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.pt-grid{grid-template-columns:1fr}}
+
+.pt-card{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff;display:flex;flex-direction:column;transition:box-shadow .3s,border-color .3s}
+.pt-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.07);border-color:#c2d9f5}
+.pt-fig{background:var(--bg-alt);border-bottom:1px solid var(--line);padding:14px;display:flex;align-items:center;justify-content:center;min-height:150px}
+.pt-fig img{width:100%;height:auto;display:block;mix-blend-mode:multiply}
+.pt-fig-empty{color:#c9c9ce;font-size:12.5px;letter-spacing:.08em;background:repeating-linear-gradient(45deg,#fafafa,#fafafa 8px,#f2f2f4 8px,#f2f2f4 16px)}
+.pt-body{padding:16px 17px 18px}
+.pt-no{font-family:var(--mono);font-size:15.5px;font-weight:700;color:var(--blue);letter-spacing:.01em}
+.pt-no-empty{color:#c9c9ce;font-size:14px}
+.pt-t{font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.5;margin-top:7px}
+.pt-t-empty{color:#a1a1a6}
+.pt-en{font-size:10.5px;color:var(--ink-3);line-height:1.5;margin-top:5px}
+.pt-meta{margin-top:13px;border-top:1px solid #ededf0;padding-top:11px;display:grid;gap:7px}
+.pt-meta>div{display:grid;grid-template-columns:52px 1fr;gap:8px;align-items:baseline}
+.pt-meta dt{font-size:11px;color:var(--ink-3);font-weight:600}
+.pt-meta dd{font-size:12px;color:var(--ink);line-height:1.5}
+.pt-meta dd.m{font-family:var(--mono);font-size:11.5px;letter-spacing:-.01em}
+.pt-meta dd.ph{color:#c9c9ce}
+.pt-meta dd b{font-weight:700}
+.pt-role{display:block;font-size:11px;color:var(--ink-3);margin-top:2px}
+.pt-todo{border-style:dashed;background:#fcfcfd}
+
+.pt-badge{display:inline-block;margin-left:9px;font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.04em;border-radius:5px;padding:2px 7px;vertical-align:2px}
+.pt-badge.granted{color:#0a6b4d;background:#e8f7f0;border:1px solid #c3e8d8}
+.pt-badge.pub{color:#6e6e73;background:#f2f2f4;border:1px solid #e2e2e6}
+
+.pt-stat{display:flex;gap:16px;margin-top:12px;padding-top:11px;border-top:1px solid #ededf0;font-size:11.5px;color:var(--ink-3)}
+.pt-stat b{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--ink)}
+
+.pt-fig-flow{background:var(--bg-alt)}
+.flow{width:100%;text-align:center}
+.fl-row{display:flex;gap:8px;justify-content:center}
+.fl-box{display:block;font-size:11.5px;font-weight:600;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 10px;line-height:1.3}
+.fl-arrow{font-size:13px;color:#a1a1a6;margin:5px 0}
+.fl-out{display:inline-block;color:var(--blue);border-color:#c2d9f5;background:#f4f9ff;font-weight:700}
+.fl-cap{font-size:10.5px;color:var(--ink-3);margin-top:9px;letter-spacing:.03em}
+
+.ev-list{list-style:none;margin-top:18px;display:grid;gap:10px}
+.ev-list li{display:flex;gap:14px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:15px 18px;background:#fff}
+.ev-tag{flex:none;font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--blue);background:#eef5ff;border:1px solid #d9e8fb;border-radius:6px;padding:3px 9px;margin-top:1px}
+.ev-t{font-size:14.5px;font-weight:700;color:var(--ink)}
+.ev-d{font-size:12.5px;color:var(--ink-2);margin-top:3px}
+.ev-todo{display:inline-block;margin-left:8px;font-size:11px;color:#a1750f;background:#fff8e8;border:1px solid #f2e2b8;border-radius:5px;padding:1px 7px}
+
+/* ===== pivot callout ===== */
+.callout{max-width:720px;margin:clamp(30px,5vw,44px) auto 0;background:#f4f9ff;border:1px solid #d6e6fb;border-radius:16px;padding:22px 24px;display:flex;gap:16px;align-items:flex-start}
+.callout .ic{flex:none;width:36px;height:36px;border-radius:10px;background:#fff;border:1px solid #cfe2fb;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;font-family:var(--mono);color:#0071e3}
+.callout .k{font-size:12px;font-weight:700;letter-spacing:.03em;color:#0071e3;margin-bottom:6px}
+.callout p{font-size:14.5px;color:#3d4a5c;line-height:1.72}
+.callout p b{font-weight:700;color:#1d1d1f}
+
+/* skills */
+.sk-head{max-width:900px;margin:0 auto clamp(24px,4vw,32px)}
+.sk-wall{max-width:900px;margin:0 auto}
+.sk-legend{display:flex;gap:10px;margin-bottom:22px}
+.sk-group{display:grid;grid-template-columns:132px 1fr;gap:18px;padding:16px 0;border-top:1px solid #ededf0}
+.sk-group:first-of-type{border-top:none;padding-top:0}
+.sk-cat{font-size:12px;font-weight:700;letter-spacing:.05em;color:var(--ink-3);text-transform:uppercase;padding-top:6px}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px}
+.sk{font-size:13px;border-radius:8px;padding:7px 13px;border:1px solid;font-weight:500;line-height:1.2;cursor:default}
+.sk.core{color:#0b4a8f;background:#eef5ff;border-color:#cfe2fb;font-weight:600}
+.sk.fam{color:var(--ink-2);background:#fff;border-color:var(--line)}
+.sk-legend .sk{cursor:default;font-size:11.5px;padding:4px 10px}
+@media(max-width:640px){.sk-group{grid-template-columns:1fr;gap:9px}.sk-cat{padding-top:0}}
+
+/* toolchain */
+.chain{max-width:900px;margin:clamp(30px,5vw,44px) auto 0;border:1px solid var(--line);border-radius:16px;background:#fff;padding:20px 22px}
+.chain-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:16px}
+.chain-flow{display:flex;align-items:stretch;gap:6px;overflow-x:auto;padding-bottom:4px}
+.cstep{flex:none;min-width:104px;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--bg-alt);text-align:center}
+.cstep b{display:block;font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.35}
+.cstep span{display:block;font-size:11px;color:var(--ink-3);margin-top:3px}
+.cstep.hl{background:#f4f9ff;border-color:#c2d9f5}
+.cstep.hl b{color:var(--blue)}
+.carrow{flex:none;align-self:center;color:#b4b4ba;font-size:15px}
+
+/* seek + keywords */
+.rez-seek{margin-top:8px;font-size:13.5px;color:var(--blue);font-weight:600}
+.rez-kw{margin-top:18px;display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
+.kw-lab{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-3);text-transform:uppercase;border:1px solid var(--line);border-radius:5px;padding:2px 7px}
+.kw-list{font-size:12px;color:var(--ink-3);line-height:1.7;max-width:760px}
+
+/* education */
+.edu-wrap{max-width:900px;margin:0 auto}
+.edu-list{margin-top:8px}
+.edu{display:grid;grid-template-columns:150px 1fr;gap:22px;padding:16px 0;border-top:1px solid #ededf0}
+.edu:first-child{border-top:none}
+.edu-yr{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--blue);padding-top:2px}
+.edu-sch{font-size:15.5px;font-weight:700;color:var(--ink)}
+.edu-deg{font-size:13px;color:var(--ink-2);margin-top:3px;line-height:1.6}
+.edu-deg .hi{color:var(--blue);font-weight:600}
+.ph{color:#b0b0b5}
+.pt-link{color:inherit;text-decoration:none;border-bottom:1px dashed #a8c8ef;transition:border-color .2s,color .2s}
+.pt-link:hover{color:var(--blue-d);border-bottom-color:var(--blue-d)}
+.pt-link::after{content:"↗";font-size:.62em;vertical-align:.45em;margin-left:3px;opacity:.6}
+@media(max-width:640px){.edu{grid-template-columns:1fr;gap:6px}}
+</style>
+</head>
+<body>
+
+<!-- 固定導覽列(三頁共用元件,樣式見 assets/nav.css)
+     本頁是「履歷」,所以履歷這格帶 .cur;另兩格連到另外兩頁。 -->
+<nav class="pnav">
+  <div class="in">
+    <a href="index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
+    <div class="tabs">
+      <span class="tab-l cur">履歷</span>
+      <a class="tab-l" href="trj_page/01_trj_page.html">TRJ 軌跡規劃</a>
+      <a class="tab-l" href="lfs_page/lfs01.html">LFS 車道融合</a>
+    </div>
+  </div>
+</nav>
+
+<!-- 章節快速跳轉。data-sec 必須等於對應 <section> 的 id,捲動高亮才會生效。 -->
+<nav class="chnav" aria-label="章節導覽">
+  <div class="in">
+    <a href="#experience" data-sec="experience">工作經歷</a>
+    <a href="#skills"     data-sec="skills">技能</a>
+    <a href="#learning"   data-sec="learning">學習能力</a>
+    <a href="#education"  data-sec="education">學歷</a>
+    <a href="#patents"    data-sec="patents">發明專利</a>
+  </div>
+</nav>
+
+<section style="padding-bottom:clamp(24px,3.5vw,36px)">
+<div class="wrap">
+  <div class="rez reveal">
+    <h1 class="rez-name">甘銘凱<span class="en">Ming-Kai Kan</span></h1>
+    <div class="rez-role">自主系統工程師 · 量產 ADAS → 工廠 AMR</div>
+    <div class="rez-seek">Seeking Robotics / Autonomous Systems roles · 可配合 3 個月內短期海外出差</div>
+    <div class="rez-contact">
+      <a class="rc" href="mailto:tkps50803@gmail.com" style="text-decoration:none">✉ tkps50803@gmail.com</a>
+      <span class="rc ph">in LinkedIn 待填</span>
+      <span class="rc ph">GitHub 待填</span>
+      <span class="rc">台灣</span>
+    </div>
+    <div class="rez-kw" aria-label="關鍵字">
+      <span class="kw-lab">Keywords</span>
+      <span class="kw-list">AMR · Isaac Sim · ROS 2 / Nav2 · SLAM · Sim-to-Real · GitLab CI/CD · pytest/gtest · 系統設計規格 SDS · Motion Planning · ADAS · TJA · L2/L2+ · 感測融合 · 軌跡規劃 · Kalman Filter · MPC · ISO 26262 · ASPICE · Polarion · INCA · MIL/SIL/HIL · MATLAB/Simulink · Python · C++ · TC277 · 功能安全 · 量產交付</span>
+    </div>
+
+  </div>
+</div>
+</section>
+
+<section id="experience" style="padding-top:clamp(28px,4vw,44px)">
+<div class="wrap">
+  <div class="sec-head reveal">
+    <div class="eyebrow">工作經歷 · Experience</div>
+    <h2 class="h">量產 ADAS 與工廠機器人,<span class="grad">兩邊都真的出過貨</span></h2>
+    <p class="lead">在自主系統的兩端都做過、也都上線:量產 ADAS(高速公路 L2.9)與工廠 AMR。最自豪的一件事——發現每個功能團隊都在各做一套軌跡邏輯,於是退一步看人到底怎麼開車,把整套橫向規劃收斂成一個共用模組(TRJ):新功能只需定義參考線與偏移量,開發時間從 4 個月縮到 2~3 天。同一套「找結構性根因、以簡馭繁」的做法,現在正搬到工廠機器人上。</p>
+    <p class="belief">穩定的路徑感知,才能支撐無震盪的軌跡決策。</p>
+
+    <div class="stats">
+      <div class="chip"><div class="v">ADAS → AMR</div><div class="l">量產與工廠機器人</div></div>
+      <div class="chip"><div class="v m">5 款</div><div class="l">量產車 · L2.9 上路</div></div>
+      <div class="chip"><div class="v m">2~3 天</div><div class="l">新功能開發(原 4 個月+)</div></div>
+      <div class="chip"><div class="v m">4 項</div><div class="l">發明專利 · 3 已獲證</div></div>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<section style="background:var(--bg-alt)">
+<div class="wrap">
+  <div class="co reveal">
+    <div class="co-head">
+      <span class="co-name">富智康 FIH · Robotics</span>
+      <span class="co-period">2025.05 – 現職</span>
+      <span class="co-title">資深工程師 · 工廠 AMR</span>
+    </div>
+    <p class="co-scope">主導工廠 AMR 的<b>評估與規劃架構</b>,跨 3 組協作,從系統規格、運動規劃到 Sim-to-Real 驗證;目標 2026 年 <b>20 台</b>上線。<code>Python</code> · <code>ROS 2 / Nav2</code> · <code>Isaac Sim</code>。</p>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big">40→~100<span style="font-size:12px">%</span></div><div class="unit">場景成功率</div></div>
+      <div class="xp-c">
+        <h4>Isaac Sim 無人值守導航壓力測試框架</h4>
+        <p class="xp-sum">把<span class="hl">偶發、難重現的導航失效</span>變成可重跑、可統計的資料;每晚自動跑 <span class="hl">300 個場景</span>,場景成功率自 <span class="hl">40% 提升至 ~100%</span></p>
+        <div class="xp-detail">
+        <ul>
+          <li>導航卡住多為偶發且難以重現,改以<b>自 SLAM 地圖自動採樣可通行目標</b>的方式量產測試場景,單批 300 個站點與任意座標任務,並可固定隨機種子重跑同一批做前後比較</li>
+          <li>讓測試<b>整夜無人值守</b>:系統自行判定任務完成、卡住或逾時,卡住先嘗試退避脫困,仍失敗則遠端重啟模擬器與整個導航堆疊後自動重試,不需工程師守在旁邊</li>
+          <li>每批結束<b>自動分類失敗原因並產出成功率報表</b>,使導航品質從「工程師的印象」變成<span class="out">可追蹤的趨勢</span>;同一批 300 場景基準下,場景成功率自 40% 提升至 ~100%</li>
+        </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big sm">3 台</div><div class="unit">實機部署運行</div></div>
+      <div class="xp-c">
+        <h4>Sim-to-Real · 整套導航堆疊部署上實機</h4>
+        <p class="xp-sum">將於模擬完成驗證的<span class="hl">整套導航堆疊部署至實機</span>,目前 <span class="hl">3 台</span>於廠區運行,並逐項定位模擬與實機的行為落差</p>
+        <div class="xp-detail">
+        <ul>
+          <li>把在 Isaac Sim 完成壓力測試的整套導航堆疊部署到實體機器人,形成<span class="out">模擬驗證 → 實機部署 → 落差回饋</span>的閉環</li>
+          <li>識別出關鍵的 sim-to-real 落差:<b>RS485 通訊不具即時性</b>——模擬中速度命令即時生效,實機上命令經序列匯流排下發存在延遲與週期抖動,<span class="out">相同命令下實機實際行走距離大於模擬</span>,須從控制時序與命令下發端修正</li>
+          <li>另處理定位漂移與輪速響應差異,使模擬結果對實機具備參考價值,而非只是模擬裡好看</li>
+        </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big sm">規格先行</div><div class="unit">車用 V 型開發流程</div></div>
+      <div class="xp-c">
+        <h4>自研全域導航規劃模組 · 以車用 V 型流程開發</h4>
+        <p class="xp-sum">用<span class="hl">系統設計規格</span>驅動演算法開發,並把 <span class="hl">Simulink 模型化設計</span>的分層方法移植到 Python 物件導向</p>
+        <div class="xp-detail">
+        <ul>
+          <li>依車用 <b>V 型開發流程</b>:先以系統設計規格定義模組行為與輸入輸出,再實作、再回頭對規格驗證;取代原本靠補丁堆疊、模組間<span class="out">循環相依</span>的程式碼</li>
+          <li>將 <b>Simulink 模型化設計</b>的子系統分層概念移植至 <code>Python</code> 物件導向:<code>MapGraph</code> / <code>MissionManager</code> / <code>RouteFSM</code> / <code>NodeGraphPlanner</code> 各自對應單一職責的類別,使<span class="out">架構圖與程式碼一一對應</span>、可逐層審查</li>
+          <li>針對廠區路網拓撲與站點任務語意自研全域規劃,而非直接沿用 <code>Nav2</code> 原生規劃器;於非結構化工廠環境中可<b>避障、繞路</b>,不受限於預設固定路線</li>
+        </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big sm">L1–L3</div><div class="unit">分層自動化驗證</div></div>
+      <div class="xp-c">
+        <h4>GitLab CI/CD 分層驗證管線 · Runner 佈在 Jetson 目標硬體</h4>
+        <p class="xp-sum">把車用的 <span class="hl">L1–L3 分層驗證</span>導入 ROS 2 開發流程,CI 直接在 <span class="hl">ARM 目標硬體</span>上執行</p>
+        <div class="xp-detail">
+        <ul>
+          <li>測試分級為 <b>L1 單元測試</b>(pytest / gtest)、<b>L2 子系統整合</b>(如定位 + 控制閉環)、<b>L3 端到端場景測試</b>,對應車用 MIL / SIL / HIL 的分層邏輯</li>
+          <li>於公司自架 GitLab 建置 <b>Project Runner</b> 並佈署於 <b>Jetson</b> 裝置,使 CI 在<span class="out">實際 ARM 目標硬體</span>上執行,而非僅在 x86 開發機驗證</li>
+          <li>管線自動觸發回歸測試並產出測試報告,讓團隊從「能動就好」轉為<span class="out">可論證的穩定</span></li>
+        </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big sm">架構即代碼</div><div class="unit">介面合約版控</div></div>
+      <div class="xp-c">
+        <h4>ROS 2 系統設計規格與架構圖版本控管</h4>
+        <p class="xp-sum">以 <span class="hl">SDS</span> 凍結模組介面合約,<span class="hl">Mermaid 架構圖</span>納入版控與 Merge Request 審查</p>
+        <div class="xp-detail">
+        <ul>
+          <li>編寫 <code>ROS 2</code> 系統設計規格(SDS),定義感知 / 定位 / 導航 / 控制之間的 <b>topic / service / action</b> 命名規則、資料型態、QoS 設定與節點生命週期</li>
+          <li>以 <b>Mermaid</b> 維護 topic / node 架構圖並納入版本控管:介面變更須同步更新架構圖並於 Merge Request 中審查,<span class="out">避免文件過時與幽靈介面</span></li>
+          <li>主導介面設計審查、帶團隊做演算法審查;此為將量產 ADAS 的<span class="out">工程紀律移植至機器人團隊</span>的一環</li>
+        </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<div class="wrap">
+  <div class="co reveal">
+    <div class="co-head">
+      <span class="co-name">富智捷 MobileDrive</span>
+      <span class="co-period">2021.06 – 2025.06</span>
+      <span class="co-title">資深工程師 · ADAS · TJA 系統技術負責人</span>
+    </div>
+    <p class="co-scope">量產 ADAS 橫向控制框架;技術交付 <b>6+ 整車客戶</b>(BYD 比亞迪、Windrose 葦渡、CMC 中華汽車),成果上 <b>5 款量產車 · L2.9</b> 高速公路自駕。</p>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big">2~3 天</div><div class="unit">原 4 個月+</div></div>
+      <div class="xp-c">
+        <h4>TRJ 通用型軌跡規劃架構<a class="jump" href="trj_page/01_trj_page.html">看完整專案 →</a></h4>
+        <p class="xp-sum">主導架構收斂:開發週期 <span class="hl">4 個月+ → 2~3 天</span>、運算量降至原 <span class="hl">37%</span>|專利 <a class="pt-link" href="https://patents.google.com/patent/TW202426860A/zh" target="_blank" rel="noopener"><span class="hl">TW202426860A</span></a></p>
+        <div class="xp-detail">
+        <ul>
+          <li>各橫向功能長期各自實作一套軌跡邏輯,是開發成本與驗證負擔的結構性來源;由<b>人類駕駛行為回推</b>,歸納出橫向操作僅有兩種原型——沿參考線行駛、或相對參考線偏移——據此將所有橫向功能收斂為單一共用規劃模組</li>
+          <li>主導架構設計與跨功能導入,<span class="out">新增功能僅需定義參考線與偏移量,無須重寫軌跡邏輯</span>;驗證週期亦由 1 年縮短至 1 個月</li>
+          <li>已於該架構上實現自動變道、取消變道、上/下匝道、緊急逃生車道、人機共駕、大車偏移等 <b>9 項橫向功能</b>;其中 <b>5 項由我獨立落地</b>,另 <b>4 項由同事各以約 2 天接入</b>——<span class="out">別人能在兩天內接上,才證明它真的是共用模組</span></li>
+        </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big">5 款車</div><div class="unit">台 3 · 中 2 · L2.9</div></div>
+      <div class="xp-c">
+        <h4>L2.9 高速公路自駕量產 · 中國現場技術整合與展示</h4>
+        <p class="xp-sum">與<span class="hl">覺非科技</span>合作導入地圖資訊實現<span class="hl">自動上下匝道</span>達 <span class="hl">L2.9</span>,向 <span class="hl">6 家</span>一線車廠與 Tier 1 現場展示</p>
+        <div class="xp-detail">
+        <ul>
+          <li>赴中國與地圖廠商<b>覺非科技</b>合作,<b>HD map 與 ADAS/SD map 兩種規格皆完成導入</b>,實現<b>自動上下匝道</b>,將系統能力提升至 <b>L2.9</b>(高速公路點到點);匝道軌跡由自研 TRJ 架構規劃</li>
+          <li>導入 <b>Free Space</b>(可行駛區域)資訊,擴充<b>市區</b>自動駕駛能力</li>
+          <li>於<b>深圳、南京、上海、蘇州 4 地</b>進行現場整合;向<b>一汽、BYD、合眾、CMC 中華汽車、Lexgen 納智捷</b>等整車廠與 <b>BOSCH</b> 等 Tier 1 共 <b>6 家</b>現場展示系統能力(台灣、中國兩地);<span class="out">成果上 5 款量產車(台灣 3、中國 2)</span></li>
+        </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big sm">4 家供應商</div><div class="unit">感知品質橫向評測</div></div>
+      <div class="xp-c">
+        <h4>Mini-FOT 車道感知驗證框架<a class="jump" href="lfs_page/lfs01.html#influence">看完整專案 →</a></h4>
+        <p class="xp-sum">建立<span class="hl">自動失敗擷取</span>與<span class="hl">場景重播</span>機制,執行深圳 → 上海 <span class="hl">1,600 km</span> 長途實車驗證</p>
+        <div class="xp-detail">
+        <ul>
+          <li>執行深圳至上海 1,600 km <b>Mini-FOT</b>(Field Operational Test),開發<b>自動失敗擷取工具</b>,自長里程 log 中自動篩出車道偵測失效案例,取代人工逐段檢視</li>
+          <li>建立<b>場景重播機制</b>,重建失效當下之環境條件以執行變道與橫向控制回歸測試,用於驗證 TRJ 通用型軌跡規劃架構的系統穩定性</li>
+          <li>以<span class="out">同一套框架與判準</span>對 Mobileye、StradVision、Horizon Robotics、PCT(FIH) 進行橫向評測,建立跨供應商的品質比較基準;並將評測方法與失效案例回饋新創供應商,支援其車道偵測演算法研發</li>
+        </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big sm">120 小時</div><div class="unit">ISO 26262 + ASPICE 訓練</div></div>
+      <div class="xp-c">
+        <h4>功能安全與流程合規 · 訓練、導入與供應商稽核</h4>
+        <p class="xp-sum">完成 <span class="hl">80h ISO 26262 + 40h ASPICE</span> 正式訓練,參與公司取得 <span class="hl">DEKRA ISO 26262 ASIL-D</span> 認證</p>
+        <div class="xp-detail">
+        <ul>
+          <li>完成 <b>80 小時 ISO 26262</b> 與 <b>40 小時 ASPICE</b> 正式訓練,並將流程實際導入 <b>LFS 車道融合</b>與 <b>TRJ 軌跡規劃</b>兩個量產模組的開發流程</li>
+          <li>擔任 <b>ASPICE 供應商稽核</b>,以流程能力視角檢核供應商之需求追溯、設計與驗證產出</li>
+          <li>建立並維護需求 / 架構設計 / 系統測試規劃之<span class="out">雙向追溯</span>文件,參與公司通過 <b>DEKRA ISO 26262 ASIL-D</b> 認證(ISO 26262 最高等級),並配合 OEM 交付</li>
+        </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section style="background:var(--bg-alt)">
+<div class="wrap">
+  <div class="co reveal">
+    <div class="co-head">
+      <span class="co-name">富智康 FIH · ADAS</span>
+      <span class="co-period">2020.05 – 2021.06</span>
+      <span class="co-title">工程師 · ADAS · 車道融合系統(LFS)</span>
+    </div>
+    <p class="co-scope">專責 ADAS 橫向控制的<b>車道融合系統(LFS)</b>:與 Siemens 依 <b>ISO 26262</b> 流程共同開發,並在同一期間解決 LFS 上游三項<b>感知品質根因問題</b>。<code>MATLAB / Simulink</code> · <code>Polarion</code> · <code>INCA</code>。</p>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big sm">12 個月</div><div class="unit">Siemens 共同開發</div></div>
+      <div class="xp-c">
+        <h4>車道融合模組(Lane Fusion)功能安全與實車標定<a class="jump" href="lfs_page/lfs01.html">看完整專案 →</a></h4>
+        <p class="xp-sum">我方技術主責,依 <span class="hl">ISO 26262</span> 推進自開發至量產,導入 <span class="hl">2 款量產車型</span></p>
+        <div class="xp-detail">
+        <ul>
+          <li><b>與團隊 PM 共同擔任我方負責人</b>,與 Siemens ADAS 團隊以英文協作,共同推進車道融合模組(Kalman filter 融合車道線偵測與本車動態,狀態為車道多項式係數 C0–C3)自開發至量產</li>
+          <li>依 <b>ISO 26262</b> 完成安全需求定義、<b>FMEA / DFA</b>、驗證證據產出與設計審查,並以 <b>Polarion</b> 進行需求與追溯管理</li>
+          <li>於實車以 <b>INCA</b> 標定 Kalman filter 之 Q / R 雜訊協方差,在追隨性與輸出平順度間取得平衡,確保單幀漏檢或偵測品質下降時輸出連續,避免橫向控制輸入跳變</li>
+        </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big sm">3 款車型</div><div class="unit">客訴為零</div></div>
+      <div class="xp-c">
+        <h4>C1 Bias 估測器(攝影機光軸偏航偵測)<a class="jump" href="lfs_page/lfs01.html#architecture">看完整專案 →</a></h4>
+        <p class="xp-sum">自建驗證工具,偏差補償率 <span class="hl">86.81%</span>;後續產品化為量產功能,獲 <span class="hl">2025 量產計畫</span>採用</p>
+        <div class="xp-detail">
+        <ul>
+          <li>針對相機校正不完全導致車道線係數系統性偏差,自建工具以<b>車輛已行駛過的車道軌跡為參考基準</b>反推當下偏差,無需額外量測設備即可即時判定校正結果</li>
+          <li>供驗證團隊(VV Team)即時檢核相機校正結果,並協助其自我檢視 <b>EOL</b>(產線)與 <b>ONL</b>(行車中)校正流程</li>
+          <li>工具於本期間建立,補償率達 <span class="out">86.81%</span>;<b>後續經穩定性與可靠性驗證後產品化</b>為具即時修正能力之量產功能,獲 2025 量產計畫採用、導入 3 款量產車型,<span class="out">上線後未再發生車道線校正不完全之客訴</span></li>
+        </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big sm">$470–625K</div><div class="unit">替代供應商開發案</div></div>
+      <div class="xp-c">
+        <h4>車道線後處理演算法<a class="jump" href="lfs_page/lfs01.html#decision-1">看完整專案 →</a></h4>
+        <p class="xp-sum">以自研軟體後處理取代感知供應商重新開發,零硬體成本,沿用至 <span class="hl">4 款量產車型</span></p>
+        <div class="xp-detail">
+        <ul>
+          <li>追查根因為<b>模型複雜度超出有效偵測距離所能支撐</b>,短距下高階項外推被放大,造成遠端車道線甩動;原規劃由供應商重新開發感知(報價 USD 470–625K)</li>
+          <li>設計依有效距離動態調整多項式階數的演算法(區間內重新 least-square 擬合、階數間加權內插),消除模型切換造成的不連續,並以進彎前曲率預判維持彎道性能</li>
+          <li>不動感知韌體、不加硬體,<span class="out">單幀運算開銷可忽略</span>,獲採納為標準做法</li>
+        </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big sm">4 款量產車</div><div class="unit">彎道誤報零回報</div></div>
+      <div class="xp-c">
+        <h4>道路曲率估算公式根因修正<a class="jump" href="lfs_page/lfs01.html#decision-2">看完整專案 →</a></h4>
+        <p class="xp-sum">修正跨系統長期沿用的曲率公式,消除 LKA <span class="hl">彎道誤報</span>,同步導入 <span class="hl">4 款量產車型</span></p>
+        <div class="xp-detail">
+        <ul>
+          <li>開發 LKA 期間發現大夾角情境下曲率估算異常,追查確認長期沿用的簡化式 <code>R = 1/(2|C2|)</code> 隱含小夾角假設,夾角變大時系統性高估曲率,導致彎道誤報</li>
+          <li>以三點圓幾何解作為<span class="out">獨立驗證視角</span>交叉比對,以大量實車資料證明偏差為系統性而非個案,修正為完整式 <code>R = (1+C1²)^(3/2)/(2|C2|)</code></li>
+          <li>跨多個系統與各模組負責人溝通取得共識並同步修正;<span class="out">LKA 彎道誤報問題自此未再回報</span></li>
+        </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section>
+<div class="wrap">
+  <div class="co reveal">
+    <div class="co-head">
+      <span class="co-name">國家中山科學研究院</span>
+      <span class="co-period">2019.01 – 2020.10</span>
+      <span class="co-title">主導工程師 · 機車 ABS · 碩士期間產學合作</span>
+    </div>
+    <p class="co-scope">碩士最後一年進中科院。<b>中科院具備比例閥油壓硬體、指導教授具備控制理論,我以控制專業擔任兩者之間的技術轉化角色</b>,從零建立機車 ABS 控制系統;帶 4 人跨領域團隊。</p>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big">短 20<span style="font-size:12px">%</span></div><div class="unit">煞停距離</div></div>
+      <div class="xp-c">
+        <h4>機車 ABS · 把控制理論落到既有油壓硬體上</h4>
+        <p class="xp-sum">以 dSPACE 快速原型串起 <span class="hl">控制演算法 → 硬體控制電路 → 比例閥油壓</span>,煞停距離較傳統短 <span class="hl">20%</span>,逼近理論最短</p>
+        <div class="xp-detail">
+        <ul>
+          <li>中科院已具備比例閥油壓硬體、指導教授提出控制構想,我負責兩者之間的<b>技術轉化</b>:以 <code>MATLAB / Simulink</code> 開發油壓控制演算法並產生硬體控制電路,透過 <code>dSPACE</code> 快速原型在實車上驗證</li>
+          <li>內容涵蓋輪速信號處理、滑差率鎖死判斷,以及<b>依當下路面條件的閉迴路煞車控制</b></li>
+          <li><span class="out">煞停距離較傳統短 20%,已接近理論最短</span></li>
+        </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big sm">2 估測器</div><div class="unit">專利 TWI719598B</div></div>
+      <div class="xp-c">
+        <h4>車速與最大路面摩擦係數估測器設計</h4>
+        <p class="xp-sum">設計 ABS 的兩個<span class="hl">不可直接量測量</span>;摩擦係數估測方法取得專利 <span class="hl">TWI719598B</span>,掛第一發明人</p>
+        <div class="xp-detail">
+        <ul>
+          <li>煞車時車輪打滑,<b>輪速不等於車速</b> → 設計車速估測器,提供滑差率計算的分母</li>
+          <li><b>最佳滑差率隨路面摩擦係數而變</b> → 設計最大路面摩擦係數估測器,使控制器能依當下路面調整目標滑差</li>
+          <li>兩個估測器到位,控制器才能將滑差穩定在最佳點附近——這是逼近理論最短煞停的前提;<span class="out">摩擦係數估測方法取得專利 <a class="pt-link" href="https://patents.google.com/patent/TWI719598B/zh" target="_blank" rel="noopener"><code>TWI719598B</code></a>,於 6 人發明團隊中掛第一發明人</span></li>
+        </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section style="background:var(--bg-alt)">
+<div class="wrap">
+  <div class="co reveal">
+    <div class="co-head">
+      <span class="co-name">華創車電技術中心 HAITEC</span>
+      <span class="co-period">2018.07 – 2018.08</span>
+      <span class="co-title">暑期實習</span>
+    </div>
+    <p class="co-scope">大學暑期實習,第一次接觸<b>量產級車用演算法開發、功能安全與整車測試</b>。</p>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big sm">4 情境全勝</div><div class="unit">ARTC · VBOX 基準</div></div>
+      <div class="xp-c">
+        <h4>車速估測演算法 · MAAB 模型化開發</h4>
+        <p>用滑差率對多顆輪速感測器與加速規動態加權,專治碎石急加速、過彎、下坡邊緣狀況;ARTC 場地 4 種真實情境以 VBOX 高精度 GPS 為基準,<span class="out">四種情境全勝過輪速平均與純加速規</span>。實戰用到 ISO 26262 與 dSPACE HIL。專利 TWI655435B。</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section id="skills" style="background:var(--bg-alt)">
+<div class="wrap">
+  <div class="sk-head sec-head reveal">
+    <div class="eyebrow">技能 · Skills</div>
+    <h2 class="h">工具與方法,<span class="grad">都對得上成果</span></h2>
+    <p class="lead">每一項核心技能,都能在上面的工作經歷或專利裡找到對應產出——不是宣稱會用,是用它做出過東西(游標停在標籤上可看對應成果)。</p>
+  </div>
+
+  <div class="sk-wall reveal">
+    <div class="sk-legend">
+      <span class="sk core">核心 · 能獨立交付</span>
+      <span class="sk fam">熟悉 · 用過</span>
+    </div>
+
+    <div class="sk-group">
+      <div class="sk-cat">語言與建模</div>
+      <div class="chip-row">
+        <span class="sk core" title="LFS 融合建模、降階方程式">MATLAB / Simulink</span>
+        <span class="sk core" title="資料分析、驗證框架">Python</span>
+        <span class="sk fam">C++</span>
+      </div>
+    </div>
+
+    <div class="sk-group">
+      <div class="sk-cat">框架與工具</div>
+      <div class="chip-row">
+        <span class="sk core" title="AMR 機器人系統">ROS 2</span>
+        <span class="sk core" title="CAN 匯流排訊號分析">Vector CANalyzer</span>
+        <span class="sk core" title="HIL 硬體在環測試">dSPACE</span>
+        <span class="sk core" title="AMR L1–L3 分層驗證管線;Project Runner 佈署於 Jetson">GitLab CI/CD</span>
+        <span class="sk core" title="ROS 2 topic/node 架構圖版控與 MR 審查">Mermaid</span>
+        <span class="sk core" title="實車 Kalman filter Q/R 雜訊協方差標定">INCA</span>
+        <span class="sk core" title="ISO 26262 需求與追溯管理(與 Siemens 共同開發)">Polarion</span>
+      </div>
+    </div>
+
+    <div class="sk-group">
+      <div class="sk-cat">機器人與模擬</div>
+      <div class="chip-row">
+        <span class="sk core" title="AMR 夜間回歸:場景成功率 40%→~100%">Isaac Sim</span>
+        <span class="sk core" title="工廠 AMR 全域導航">Nav2</span>
+        <span class="sk core" title="工廠 AMR 定位與建圖">SLAM</span>
+        <span class="sk core" title="整套導航堆疊自 Isaac Sim 部署上實機,3 台廠區運行">Sim-to-Real</span>
+        <span class="sk core" title="ADAS TRJ 架構與 AMR 路徑規劃">Motion Planning</span>
+      </div>
+    </div>
+
+    <div class="sk-group">
+      <div class="sk-cat">演算法</div>
+      <div class="chip-row">
+        <span class="sk core" title="LFS 車道／物件融合">Kalman Filter</span>
+        <span class="sk core" title="機車 ABS 專利 TWI722875B">模糊控制</span>
+        <span class="sk core" title="多模態軌跡專利 · &lt;1ms 解析封閉解">解析幾何軌跡</span>
+      </div>
+    </div>
+
+    <div class="sk-group">
+      <div class="sk-cat">車規開發流程</div>
+      <div class="chip-row">
+        <span class="sk core" title="1,600km 實車路測前的完整 V 流程">MIL → SIL → CIL → HIL → FOT</span>
+        <span class="sk core" title="80h ISO 26262 + 40h ASPICE 訓練;與 Siemens 聯合開發">ISO 26262 · ASPICE</span>
+      </div>
+    </div>
+
+    <div class="sk-group">
+      <div class="sk-cat">平台與硬體</div>
+      <div class="chip-row">
+        <span class="sk fam">TC277 / TC397</span>
+        <span class="sk core" title="工廠 AMR 運算平台部署">Thor / Orin</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="chain reveal">
+    <div class="chain-title">一個 ADAS 功能,從建模到量產路測的工具鏈</div>
+    <div class="chain-flow">
+      <div class="cstep"><b>MATLAB / Simulink</b><span>建模</span></div>
+      <div class="carrow">→</div>
+      <div class="cstep"><b>C++</b><span>實作</span></div>
+      <div class="carrow">→</div>
+      <div class="cstep"><b>MIL / SIL / CIL</b><span>模型級驗證</span></div>
+      <div class="carrow">→</div>
+      <div class="cstep"><b>dSPACE HIL</b><span>硬體在環</span></div>
+      <div class="carrow">→</div>
+      <div class="cstep hl"><b>TC277</b><span>車規部署</span></div>
+      <div class="carrow">→</div>
+      <div class="cstep hl"><b>1,600km FOT</b><span>實車路測</span></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section id="learning">
+<div class="wrap">
+
+  <div class="sec-head reveal">
+    <div class="eyebrow">學習能力 · Learning Ability</div>
+    <h2 class="h">求學經歷</h2>
+    <p class="lead">桌球、汽車、車輛工程、控制——這四個領域幾乎不相干,但每一次進去,我都在最短時間內做到頂尖:全國第四、第一志願、提早一年進研究所。領域一直在變,不變的是同一種能力——進入任何陌生領域,都能快速學會、快速登頂。</p>
+  </div>
+
+  <!-- ============ DESKTOP : ridgeline timeline ============ -->
+  <div class="ridge-wrap dt-desktop-only reveal">
+    <svg class="ridge-svg" viewBox="0 0 960 460" role="img" aria-label="學習能力學習曲線:2010 職業桌球全國第四,轉入車輛領域從零起步後,台南高工第一志願、北科車輛工程、大三自動駕駛專題第一名、大三下華創車電實習並申請專利、大四提早入研究所、碩二在中科院開發 ABS 系統、2019 機電控制組,能力沿指數曲線持續加速成長。">
+      <defs>
+        <linearGradient id="ridgeStroke" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#0a84ff"/>
+          <stop offset="42%" stop-color="#0071e3"/>
+          <stop offset="100%" stop-color="#28c6e8"/>
+        </linearGradient>
+        <linearGradient id="ridgeFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#0a84ff" stop-opacity="0.16"/>
+          <stop offset="100%" stop-color="#28c6e8" stop-opacity="0.03"/>
+        </linearGradient>
+      </defs>
+
+      <!-- zone bands -->
+      <rect x="90" y="72" width="85" height="288" fill="#eef4ff" opacity="0.55"/>
+      <rect x="175" y="72" width="725" height="288" fill="#e6f7fb" opacity="0.5"/>
+      <text class="rt" x="132" y="54" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1.5" fill="#0071e3">運動</text>
+      <text class="rt" x="537" y="54" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1.5" fill="#0e8ea3">車輛工程 · 學術 · 研究</text>
+
+      <!-- ridge fill + stroke -->
+      <path d="M90,292 L95,285.5 L102,275.1 L108,261.9 L114,245.1 L121,223.9 L128,197.0 L134,162.8 L140,119.5 L142,108 L148,113.9 L155,131.8 L161,157.9 L168,188.2 L174,218.9 L181,246.2 L188,266.1 L194,274.9 L195,275 L206,273.9 L222,272.2 L238,270.5 L254,268.7 L270,266.8 L286,264.8 L302,262.7 L318,260.6 L334,258.3 L350,255.9 L366,253.5 L382,250.9 L398,248.2 L414,245.3 L430,242.4 L446,239.3 L462,236.1 L478,232.7 L494,229.1 L510,225.4 L526,221.6 L542,217.5 L558,213.3 L574,208.9 L590,204.3 L606,199.4 L622,194.4 L638,189.1 L654,183.6 L670,177.8 L686,171.8 L702,165.5 L718,158.9 L734,152.0 L750,144.8 L766,137.3 L782,129.4 L798,121.2 L814,112.5 L830,103.5 L846,94.1 L862,84.3 L878,74 L878,360 L90,360 Z" fill="url(#ridgeFill)"/>
+      <path d="M90,292 L95,285.5 L102,275.1 L108,261.9 L114,245.1 L121,223.9 L128,197.0 L134,162.8 L140,119.5 L142,108 L148,113.9 L155,131.8 L161,157.9 L168,188.2 L174,218.9 L181,246.2 L188,266.1 L194,274.9 L195,275 L206,273.9 L222,272.2 L238,270.5 L254,268.7 L270,266.8 L286,264.8 L302,262.7 L318,260.6 L334,258.3 L350,255.9 L366,253.5 L382,250.9 L398,248.2 L414,245.3 L430,242.4 L446,239.3 L462,236.1 L478,232.7 L494,229.1 L510,225.4 L526,221.6 L542,217.5 L558,213.3 L574,208.9 L590,204.3 L606,199.4 L622,194.4 L638,189.1 L654,183.6 L670,177.8 L686,171.8 L702,165.5 L718,158.9 L734,152.0 L750,144.8 L766,137.3 L782,129.4 L798,121.2 L814,112.5 L830,103.5 L846,94.1 L862,84.3 L878,74" fill="none" stroke="url(#ridgeStroke)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+
+      <!-- axis -->
+      <line x1="90" y1="360" x2="900" y2="360" stroke="#86868b" stroke-width="1"/>
+      <g stroke="#c9c9ce" stroke-width="1">
+        <line x1="142" y1="360" x2="142" y2="367"/>
+        <line x1="260" y1="360" x2="260" y2="367"/>
+        <line x1="363" y1="360" x2="363" y2="367"/>
+        <line x1="672" y1="360" x2="672" y2="367"/>
+        <line x1="878" y1="360" x2="878" y2="367"/>
+      </g>
+
+      <!-- valley annotation : neutral, start-from-zero (learning starts here) -->
+      <text class="rt" x="195" y="156" text-anchor="middle" font-size="12.5" font-weight="600" fill="#86868b">從零起步</text>
+      <line x1="195" y1="166" x2="195" y2="268" stroke="#c9c9ce" stroke-width="1" stroke-dasharray="3 3"/>
+
+      <!-- nodes : structural = hollow dots (labelled below axis) -->
+      <circle cx="142" cy="108" r="6" fill="#0071e3"/>
+      <circle cx="195" cy="275" r="5" fill="#fff" stroke="#a1a1a6" stroke-width="2"/>
+      <circle cx="260" cy="268" r="5" fill="#fff" stroke="#0071e3" stroke-width="2.5"/>
+      <circle cx="363" cy="254" r="5" fill="#fff" stroke="#0071e3" stroke-width="2.5"/>
+      <circle cx="672" cy="177" r="5" fill="#fff" stroke="#0071e3" stroke-width="2.5"/>
+      <circle cx="878" cy="74" r="7.5" fill="#0a84ff"/>
+      <circle cx="878" cy="74" r="12" fill="none" stroke="#0a84ff" stroke-width="1.5" opacity="0.35"/>
+
+      <!-- achievement callouts : blue dots ON the curve, labels floating above -->
+      <g text-anchor="middle">
+        <line x1="466" y1="216" x2="466" y2="230" stroke="#0071e3" stroke-width="1" stroke-dasharray="2 2"/>
+        <circle cx="466" cy="235" r="4.5" fill="#0071e3"/>
+        <text class="rm" x="466" y="196" font-size="10.5" fill="#86868b">大三上</text>
+        <text class="rt" x="466" y="211" font-size="12.5" font-weight="700" fill="#1d1d1f">自駕專題 · <tspan fill="#0071e3">第一名</tspan></text>
+
+        <line x1="569" y1="188" x2="569" y2="204" stroke="#0071e3" stroke-width="1" stroke-dasharray="2 2"/>
+        <circle cx="569" cy="210" r="4.5" fill="#0071e3"/>
+        <text class="rm" x="569" y="168" font-size="10.5" fill="#86868b">大三下</text>
+        <text class="rt" x="569" y="183" font-size="12.5" font-weight="700" fill="#1d1d1f">華創車電 · <tspan fill="#0071e3">申請專利</tspan></text>
+
+        <line x1="775" y1="114" x2="775" y2="127" stroke="#0071e3" stroke-width="1" stroke-dasharray="2 2"/>
+        <circle cx="775" cy="133" r="4.5" fill="#0071e3"/>
+        <text class="rm" x="775" y="94" font-size="10.5" fill="#86868b">碩二</text>
+        <text class="rt" x="775" y="109" font-size="12.5" font-weight="700" fill="#1d1d1f">中科院 · <tspan fill="#0071e3">ABS 開發</tspan></text>
+      </g>
+
+      <!-- ping-pong label (above-left of peak) -->
+      <text class="rt" x="133" y="100" text-anchor="end" font-size="15" font-weight="700" fill="#1d1d1f">職業桌球</text>
+      <text class="rt" x="133" y="119" text-anchor="end" font-size="12.5" fill="#6e6e73">全國個人第四</text>
+
+      <!-- below-axis captions -->
+      <g text-anchor="middle">
+        <text class="rm" x="142" y="386" font-size="12.5" font-weight="700" fill="#0071e3">2010</text>
+
+        <text class="rm" x="260" y="386" font-size="12.5" font-weight="700" fill="#0071e3">2011</text>
+        <text class="rt" x="260" y="406" font-size="13" font-weight="700" fill="#1d1d1f">台南高工</text>
+        <text class="rt" x="260" y="424" font-size="11.5" fill="#6e6e73">高中 · 第一志願</text>
+
+        <text class="rm" x="363" y="386" font-size="12.5" font-weight="700" fill="#0071e3">2014</text>
+        <text class="rt" x="363" y="406" font-size="13" font-weight="700" fill="#1d1d1f">北科大</text>
+        <text class="rt" x="363" y="424" font-size="11.5" fill="#6e6e73">大學 · 車輛工程</text>
+
+        <text class="rm" x="672" y="386" font-size="12.5" font-weight="700" fill="#0071e3">2016</text>
+        <text class="rt" x="672" y="406" font-size="13" font-weight="700" fill="#1d1d1f">提早入研究所</text>
+        <text class="rt" x="672" y="424" font-size="11.5" fill="#6e6e73">研究所 · 大四</text>
+
+        <text class="rm" x="878" y="386" font-size="12.5" font-weight="700" fill="#0a84ff">2019</text>
+        <text class="rt" x="878" y="406" font-size="13" font-weight="700" fill="#1d1d1f">機電控制組</text>
+        <text class="rt" x="878" y="424" font-size="11.5" fill="#6e6e73">研究所 · 至今</text>
+      </g>
+
+      <!-- y-axis hint -->
+      <text class="rt" x="90" y="450" font-size="11.5" fill="#a1a1a6">縱軸 = 能力累積 · 學習曲線(從零複利成長)</text>
+    </svg>
+  </div>
+
+  <!-- ============ MOBILE : vertical timeline ============ -->
+  <div class="dt-mobile-only reveal">
+    <div class="tl">
+      <div class="tl-zone">運動</div>
+
+      <div class="tl-item">
+        <span class="tl-dot peak"></span>
+        <div class="tl-y">2010</div>
+        <div class="tl-t">職業桌球</div>
+        <div class="tl-d">全國個人第四</div>
+      </div>
+
+      <div class="tl-item pivot">
+        <span class="tl-dot zero"></span>
+        <div class="tl-t zero-t">從零起步</div>
+        <div class="tl-d">進入全新領域,一切從頭學起</div>
+      </div>
+
+      <div class="tl-zone">車輛工程 · 學術 · 研究</div>
+
+      <div class="tl-item">
+        <span class="tl-dot"></span>
+        <div class="tl-y">2011</div>
+        <div class="tl-t">台南高工汽車科</div>
+        <div class="tl-d">第一志願考取</div>
+      </div>
+
+      <div class="tl-item">
+        <span class="tl-dot"></span>
+        <div class="tl-y">2014</div>
+        <div class="tl-t">臺北科技大學</div>
+        <div class="tl-d">車輛工程</div>
+      </div>
+
+      <div class="tl-item">
+        <span class="tl-dot"></span>
+        <div class="tl-y">大三上</div>
+        <div class="tl-t">自動駕駛專題</div>
+        <div class="tl-d"><b style="color:#0071e3">第一名</b></div>
+      </div>
+
+      <div class="tl-item">
+        <span class="tl-dot"></span>
+        <div class="tl-y">大三下</div>
+        <div class="tl-t">華創車電實習</div>
+        <div class="tl-d"><b style="color:#0071e3">成功申請專利</b></div>
+      </div>
+
+      <div class="tl-item">
+        <span class="tl-dot"></span>
+        <div class="tl-y">2016</div>
+        <div class="tl-t">提早入研究所</div>
+        <div class="tl-d">大四領先一年進入</div>
+      </div>
+
+      <div class="tl-item">
+        <span class="tl-dot"></span>
+        <div class="tl-y">碩二</div>
+        <div class="tl-t">中科院</div>
+        <div class="tl-d"><b style="color:#0071e3">開發 ABS 系統</b></div>
+      </div>
+
+      <div class="tl-item now">
+        <span class="tl-dot now"></span>
+        <div class="tl-y">2019</div>
+        <div class="tl-t">機電學院控制組</div>
+        <div class="tl-d">至今 · 現在的技術主線</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<section id="education">
+<div class="wrap">
+  <div class="edu-wrap reveal">
+    <div class="eyebrow">學歷 · Education</div>
+    <h2 class="h">學歷</h2>
+    <div class="edu-list">
+
+      <div class="edu">
+        <div class="edu-yr">2014 – <span class="ph">待補</span></div>
+        <div class="edu-c">
+          <div class="edu-sch">國立臺北科技大學</div>
+          <div class="edu-deg">機電科技研究所 · 碩士 · 大四提早入學</div>
+        </div>
+      </div>
+
+      <div class="edu">
+        <div class="edu-yr">2014 – <span class="ph">待補</span></div>
+        <div class="edu-c">
+          <div class="edu-sch">國立臺北科技大學</div>
+          <div class="edu-deg">車輛工程系 · 學士</div>
+        </div>
+      </div>
+
+      <div class="edu">
+        <div class="edu-yr">2011 – 2014</div>
+        <div class="edu-c">
+          <div class="edu-sch">國立臺南高級工業職業學校</div>
+          <div class="edu-deg">汽車科 · 高級職業 · <span class="hi">第一志願</span></div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+</section>
+
+<section id="patents" style="background:var(--bg-alt)">
+<div class="wrap">
+  <div class="co reveal">
+    <div class="co-head">
+      <span class="co-name">發明專利</span>
+      <span class="co-period">4 項 · 3 已獲證</span>
+      <span class="co-title">1 項台/中雙邊獲證 · 1 項掛第一發明人</span>
+    </div>
+    <p class="co-scope">專利號均為<b>公開資料</b>,<b>點擊專利號即可開啟 Google Patents 查證</b>——不需要相信我的說法。第一項(行車路線規劃)即前述 <b>TRJ 通用型軌跡規劃架構</b>,目前審查中;其餘三項為求學與研究階段成果,全數已獲證。</p>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big sm"><a class="pt-link" href="https://patents.google.com/patent/TW202426860A/zh" target="_blank" rel="noopener">TW202426860A</a></div><div class="unit">審查中 · 尚未獲證</div></div>
+      <div class="xp-c">
+        <h4>行車路線規劃方法、車載裝置及儲存介質</h4>
+        <p class="xp-sum">即前述 <span class="hl">TRJ 通用型軌跡規劃架構</span>|申請人 富智捷 MobileDrive</p>
+        <div class="xp-detail">
+        <ul>
+          <li>申請日 <code>2022/12/15</code>;台灣 <code>TW202426860A</code>(公開 2024/07/01)、中國 <code>CN118209120A</code>(公開 2024/06/18)</li>
+          <li>Driving Route Planning Method, Vehicle-mounted Device and Storage Medium</li>
+          <li>發明人 <span class="ph">待補</span></li>
+        </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big sm"><a class="pt-link" href="https://patents.google.com/patent/TWI722875B/zh" target="_blank" rel="noopener">TWI722875B</a></div><div class="unit">已獲證</div></div>
+      <div class="xp-c">
+        <h4>機車防鎖死煞車系統之控制方法及控制器、電腦可讀取的記錄媒體及特殊應用積體電路晶片</h4>
+        <p class="xp-sum">機車 ABS <span class="hl">演算法到 ASIC 晶片</span>|申請人 國立臺北科技大學</p>
+        <div class="xp-detail">
+        <ul>
+          <li>申請日 <code>2020/04/20</code>;台灣 <code>TWI722875B</code>(公告 2021/03/21)、公開號 <code>TW202141042A</code></li>
+          <li>發明人 陳柏全、<b>甘銘凱</b>(共 2 位)|IPC <code>G01P 3/64</code>|請求項 14、圖式 14</li>
+          <li>Control Method of Anti-lock Braking System for Motorcycle and Controller, Computer Readable Recording Medium and Application-specific Integrated Circuit Chip</li>
+        </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big sm"><a class="pt-link" href="https://patents.google.com/patent/TWI719598B/zh" target="_blank" rel="noopener">TWI719598B</a></div><div class="unit">已獲證 · 第一發明人</div></div>
+      <div class="xp-c">
+        <h4>車輛路面摩擦係數估測方法</h4>
+        <p class="xp-sum">中科院 6 人發明團隊中<span class="hl">掛第一發明人</span>|申請人 國家中山科學研究院</p>
+        <div class="xp-detail">
+        <ul>
+          <li>申請日 <code>2019/08/20</code>;台灣 <code>TWI719598B</code>(公告 2021/02/21)、公開號 <code>TW202108420A</code></li>
+          <li>發明人 <b>甘銘凱</b>(第一發明人,共 6 位)|IPC <code>B60W 40/068</code>|請求項 6、圖式 9、共 31 頁</li>
+          <li>Method of estimating the pavement friction coefficient of a vehicle</li>
+        </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="xp">
+      <div class="xp-m"><div class="big sm"><a class="pt-link" href="https://patents.google.com/patent/TWI655435B/zh" target="_blank" rel="noopener">TWI655435B</a></div><div class="unit">台 · 中 雙邊獲證</div></div>
+      <div class="xp-c">
+        <h4>車速估算裝置、車速估算方法、及其電腦程式產品</h4>
+        <p class="xp-sum">台灣、中國<span class="hl">雙邊獲證</span>|申請人 華創車電技術中心</p>
+        <div class="xp-detail">
+        <ul>
+          <li>申請日 <code>2017/07/28</code>;台灣 <code>TWI655435B</code>(公告 2019/04/01)、中國 <code>CN109307782B</code>(公告 2020/10/27)</li>
+          <li>發明人 林曄、<b>甘銘凱</b>(共 2 位)|IPC <code>G01P 3/00</code></li>
+          <li>Velocity Estimating Device, Velocity Estimating Method, and Computer Program Product Thereof</li>
+        </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</section>
+
+<script src="assets/nav.js"></script>
+
+</body>
 </html>
