@@ -46,7 +46,7 @@ const rnd = s => { const x = Math.sin(s * 127.1) * 43758.5453; return x - Math.f
 
 /* ---------- 版面 ---------- */
 const META = [
-  { n: '1', t: '相機模型', s: 'Mini-FOT 取 100 km 統計偵測特性' },
+  { n: '1', t: '相機模型', s: 'Mini-FOT 統計:車速 → 有效視野距離' },
   { n: '2', t: '道路模型', s: '1,600 km 全程偵測點統計成路型' },
   { n: '3', t: '場景合成', s: '加入合成車流,產生沒發生過的情境' },
 ];
@@ -146,18 +146,30 @@ function arrow(x1, y1, x2, y2, alpha) {
   ctx.restore();
 }
 
-/* ---------- 第 1 幕:相機模型 ---------- */
-// 縱向距離越遠,車道線參數的離散度越大 —— 這條特性就是相機模型
-const spreadAt = fx => 0.06 + fx * fx * 0.42;
+/* ---------- 第 1 幕:相機模型 ----------
+   統計出來的特性是「車速 → 有效視野距離」:
+   低速時穩定在一個定值,超過約 40 kph 之後隨車速線性成長,
+   而且有上下界。這條分段折線就是餵給模擬環境的相機模型。   */
+const VMAX = 110, RMAX = 120, KNEE = 40;          // kph / m / 轉折車速
+
+// 上下界(m):轉折前為定值,轉折後線性成長
+function rangeAt(v, hi) {
+  const flat = hi ? 42 : 30;
+  if (v <= KNEE) return flat;
+  const t = (v - KNEE) / (VMAX - KNEE);
+  return flat + t * (hi ? 70 : 55);
+}
 
 function drawCamera(p, k) {
-  const r = plotOf(p), cy = r.y + r.h * 0.5;
+  const r = plotOf(p);
+  const px = v => r.x + (v / VMAX) * r.w;            // 車速 → 畫布 x
+  const py = m => r.y + r.h - (m / RMAX) * r.h;      // 距離 → 畫布 y
 
+  // 格線與座標軸
   ctx.save();
   ctx.strokeStyle = C('--grid'); ctx.lineWidth = 1;
-  for (let i = 1; i < 4; i++) {
-    const gy = r.y + r.h * i / 4;
-    ctx.beginPath(); ctx.moveTo(r.x, gy); ctx.lineTo(r.x + r.w, gy); ctx.stroke();
+  for (const m of [40, 80, 120]) {
+    ctx.beginPath(); ctx.moveTo(r.x, py(m)); ctx.lineTo(r.x + r.w, py(m)); ctx.stroke();
   }
   ctx.strokeStyle = C('--line'); ctx.lineWidth = 1.2;
   ctx.beginPath();
@@ -165,50 +177,67 @@ function drawCamera(p, k) {
   ctx.stroke();
   ctx.restore();
 
-  text('偵測參數離散度', r.x, r.y - 6, { size: 9.5, font: 'mono', color: '--ink-3' });
-  text('縱向距離 →', r.x + r.w, r.y + r.h + 14,
+  for (const m of [40, 80]) {
+    text(String(m), r.x - 4, py(m) + 3,
+         { size: 8.5, font: 'mono', color: '--ink-3', align: 'right' });
+  }
+  text('有效視野距離 (m)', r.x, r.y - 6,
+       { size: 9.5, font: 'mono', color: '--ink-3' });
+  text('車速 (kph) →', r.x + r.w, r.y + r.h + 14,
        { size: 9.5, font: 'mono', color: '--ink-3', align: 'right' });
 
-  const N = 150, shown = Math.floor(N * ease(k / 0.62));
+  // 實車量測散點
+  const N = 420, shown = Math.floor(N * ease(k / 0.6));
   ctx.save();
-  ctx.fillStyle = C('--amber');
+  ctx.fillStyle = C('--green');
   for (let i = 0; i < shown; i++) {
-    const fx = rnd(i + 1);
-    const dy = (rnd(i + 90) - 0.5) * 2 * spreadAt(fx);
-    ctx.globalAlpha = 0.18 + clamp((shown - i) / 26, 0, 1) * 0.42;
-    ctx.beginPath();
-    ctx.arc(r.x + fx * r.w, cy + dy * r.h * 0.5, 1.8, 0, Math.PI * 2);
-    ctx.fill();
+    const v = rnd(i + 1) * VMAX;
+    // 分佈:低速時集中在定值以下,轉折後跟著上界一起抬升
+    const top = rangeAt(v, true) * 1.06;
+    const m = top * (0.1 + 0.9 * Math.pow(rnd(i + 90), 0.75));
+    ctx.globalAlpha = 0.14 + clamp((shown - i) / 40, 0, 1) * 0.34;
+    ctx.beginPath(); ctx.arc(px(v), py(m), 1.4, 0, Math.PI * 2); ctx.fill();
   }
   ctx.restore();
 
-  const fit = ease((k - 0.5) / 0.42);
+  const fit = ease((k - 0.48) / 0.44);
   if (fit <= 0) return;
-  const band = sgn => {
-    ctx.beginPath();
-    for (let s = 0; s <= 40; s++) {
-      const fx = s / 40;
-      ctx.lineTo(r.x + fx * r.w, cy + sgn * spreadAt(fx) * r.h * 0.5);
-    }
-  };
+
+  // 上下界之間的模型帶
   ctx.save();
-  ctx.globalAlpha = fit * 0.2; ctx.fillStyle = C('--blue');
+  ctx.globalAlpha = fit * 0.16; ctx.fillStyle = C('--blue');
   ctx.beginPath();
-  for (let s = 0; s <= 40; s++) {
-    const fx = s / 40;
-    ctx.lineTo(r.x + fx * r.w, cy - spreadAt(fx) * r.h * 0.5);
-  }
-  for (let s = 40; s >= 0; s--) {
-    const fx = s / 40;
-    ctx.lineTo(r.x + fx * r.w, cy + spreadAt(fx) * r.h * 0.5);
-  }
+  for (let v = 0; v <= VMAX; v += 5) ctx.lineTo(px(v), py(rangeAt(v, true)));
+  for (let v = VMAX; v >= 0; v -= 5) ctx.lineTo(px(v), py(rangeAt(v, false)));
   ctx.closePath(); ctx.fill();
-  ctx.globalAlpha = fit; ctx.strokeStyle = C('--blue'); ctx.lineWidth = 1.6;
-  band(-1); ctx.stroke(); band(1); ctx.stroke();
+
+  // 上界(琥珀點劃線)與下界(藍虛線)
+  for (const hi of [true, false]) {
+    ctx.globalAlpha = fit;
+    ctx.strokeStyle = hi ? C('--amber') : C('--blue');
+    ctx.lineWidth = 1.8;
+    ctx.setLineDash(hi ? [6, 3, 1.5, 3] : [5, 4]);
+    ctx.beginPath();
+    for (let v = 0; v <= VMAX; v += 2) ctx.lineTo(px(v), py(rangeAt(v, hi)));
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // 轉折點
+  ctx.globalAlpha = fit * 0.5;
+  ctx.strokeStyle = C('--ink-3'); ctx.lineWidth = 1;
+  ctx.setLineDash([2, 3]);
+  ctx.beginPath();
+  ctx.moveTo(px(KNEE), r.y + r.h); ctx.lineTo(px(KNEE), py(90));
+  ctx.stroke();
+  ctx.setLineDash([]);
   ctx.restore();
 
-  text('±σ 特性曲線 = 相機模型', r.x + r.w, r.y + 12,
-       { size: 10, font: 'mono', color: '--blue', align: 'right', alpha: fit });
+  // 兩個標註都放在低速側的上半部 —— 那塊區域沒有散點也沒有模型帶
+  text('上下界折線 = 相機模型', r.x + 6, r.y + 12,
+       { size: 10, font: 'mono', color: '--blue', alpha: fit });
+  text('≈40 kph 起隨車速線性成長', px(KNEE) + 6, py(94),
+       { size: 9, font: 'mono', color: '--ink-2', alpha: fit });
 }
 
 /* ---------- 第 2 幕:道路模型 ---------- */
@@ -283,7 +312,8 @@ function drawScene(p, k, time) {
     ctx.beginPath();
     for (let s = 0; s <= 36; s++) {
       const t = s / 36;
-      const noise = Math.sin(time * 2.4 + s * 0.8 + lane) * spreadAt(t) * 9;
+      // 抖動依相機模型:視野距離內穩定,接近並超出有效距離才明顯晃動
+      const noise = Math.sin(time * 2.4 + s * 0.8 + lane) * (0.05 + t * t * 0.5) * 9;
       ctx.lineTo(laneAt(t, lane) + noise, r.y + r.h * (1 - t));
     }
     ctx.stroke();
