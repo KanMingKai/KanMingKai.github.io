@@ -65,7 +65,10 @@ h1 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:tex
 
 @media(max-width:680px){
   .xp{grid-template-columns:1fr;gap:8px;padding:18px 0}
-  .xp-m{display:inline-flex;align-items:baseline;gap:8px}
+  /* 專利號與單位並排,查證按鈕換到下一行、但只佔內容寬 */
+  .xp-m{display:grid;grid-template-columns:auto auto;justify-content:start;
+        align-items:baseline;gap:4px 8px}
+  .xp-m .pt-verify{grid-column:1/-1;justify-self:start;margin-top:4px}
   .xp-m .unit{margin-top:0}
 }
 
@@ -235,6 +238,16 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 .pt-link{color:inherit;text-decoration:none;border-bottom:1px dashed #a8c8ef;transition:border-color .2s,color .2s}
 .pt-link:hover{color:var(--blue-d);border-bottom-color:var(--blue-d)}
 .pt-link::after{content:"↗";font-size:.62em;vertical-align:.45em;margin-left:3px;opacity:.6}
+
+/* 查證按鈕:專利號本身不再是連結,改用明確的按鈕 */
+.pt-verify{display:inline-flex;align-items:center;gap:5px;margin-top:9px;
+  font-size:11.5px;font-weight:600;line-height:1;text-decoration:none;
+  color:var(--blue);background:#eef5ff;border:1px solid #cfe2fb;border-radius:8px;
+  padding:6px 11px;transition:background .18s,border-color .18s,color .18s}
+.pt-verify:hover{background:#dce9fb;border-color:var(--blue);color:var(--blue-d)}
+.pt-verify:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.pt-verify .ic{font-size:10px;opacity:.75}
+.pt-no-plain{font-family:var(--mono);font-size:15.5px;font-weight:700;color:var(--blue);letter-spacing:.01em}
 @media(max-width:640px){.edu{grid-template-columns:1fr;gap:6px}}
 </style>
 </head>
@@ -918,10 +931,10 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
       <span class="co-period">4 項 · 3 已獲證</span>
       <span class="co-title">1 項台/中雙邊獲證 · 1 項掛第一發明人</span>
     </div>
-    <p class="co-scope">專利號均為<b>公開資料</b>,<b>點擊專利號即可開啟 Google Patents 查證</b>——不需要相信我的說法。第一項(行車路線規劃)即前述 <b>TRJ 通用型軌跡規劃架構</b>,目前審查中;其餘三項為求學與研究階段成果,全數已獲證。</p>
+    <p class="co-scope">專利號均為<b>公開資料</b>,每一項都附上 <b>Google Patents 查證按鈕</b>,點下去即可核對——不需要相信我的說法。第一項(行車路線規劃)即前述 <b>TRJ 通用型軌跡規劃架構</b>,目前審查中;其餘三項為求學與研究階段成果,全數已獲證。</p>
 
     <div class="xp">
-      <div class="xp-m"><div class="big sm"><a class="pt-link" href="https://patents.google.com/patent/TW202426860A/zh" target="_blank" rel="noopener">TW202426860A</a></div><div class="unit">審查中 · 尚未獲證</div></div>
+      <div class="xp-m"><div class="big sm"><span class="pt-no-plain">TW202426860A</span></div><div class="unit">審查中 · 尚未獲證</div><a class="pt-verify" href="https://patents.google.com/patent/TW202426860A/zh" target="_blank" rel="noopener">Google Patents 查證<span class="ic">↗</span></a></div>
       <div class="xp-c">
         <h4>行車路線規劃方法、車載裝置及儲存介質</h4>
         <p class="xp-sum">即前述 <span class="hl">TRJ 通用型軌跡規劃架構</span>|申請人 富智捷 MobileDrive</p>
@@ -929,14 +942,14 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
         <ul>
           <li>申請日 <code>2022/12/15</code>;台灣 <code>TW202426860A</code>(公開 2024/07/01)、中國 <code>CN118209120A</code>(公開 2024/06/18)</li>
           <li>Driving Route Planning Method, Vehicle-mounted Device and Storage Medium</li>
-          <li>發明人 <span class="ph">待補</span></li>
+          <li>發明人 <b>甘銘凱</b></li>
         </ul>
         </div>
       </div>
     </div>
 
     <div class="xp">
-      <div class="xp-m"><div class="big sm"><a class="pt-link" href="https://patents.google.com/patent/TWI722875B/zh" target="_blank" rel="noopener">TWI722875B</a></div><div class="unit">已獲證</div></div>
+      <div class="xp-m"><div class="big sm"><span class="pt-no-plain">TWI722875B</span></div><div class="unit">已獲證</div><a class="pt-verify" href="https://patents.google.com/patent/TWI722875B/zh" target="_blank" rel="noopener">Google Patents 查證<span class="ic">↗</span></a></div>
       <div class="xp-c">
         <h4>機車防鎖死煞車系統之控制方法及控制器、電腦可讀取的記錄媒體及特殊應用積體電路晶片</h4>
         <p class="xp-sum">機車 ABS <span class="hl">演算法到 ASIC 晶片</span>|申請人 國立臺北科技大學</p>
@@ -951,7 +964,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     </div>
 
     <div class="xp">
-      <div class="xp-m"><div class="big sm"><a class="pt-link" href="https://patents.google.com/patent/TWI719598B/zh" target="_blank" rel="noopener">TWI719598B</a></div><div class="unit">已獲證 · 第一發明人</div></div>
+      <div class="xp-m"><div class="big sm"><span class="pt-no-plain">TWI719598B</span></div><div class="unit">已獲證 · 第一發明人</div><a class="pt-verify" href="https://patents.google.com/patent/TWI719598B/zh" target="_blank" rel="noopener">Google Patents 查證<span class="ic">↗</span></a></div>
       <div class="xp-c">
         <h4>車輛路面摩擦係數估測方法</h4>
         <p class="xp-sum">中科院 6 人發明團隊中<span class="hl">掛第一發明人</span>|申請人 國家中山科學研究院</p>
@@ -966,7 +979,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     </div>
 
     <div class="xp">
-      <div class="xp-m"><div class="big sm"><a class="pt-link" href="https://patents.google.com/patent/TWI655435B/zh" target="_blank" rel="noopener">TWI655435B</a></div><div class="unit">台 · 中 雙邊獲證</div></div>
+      <div class="xp-m"><div class="big sm"><span class="pt-no-plain">TWI655435B</span></div><div class="unit">台 · 中 雙邊獲證</div><a class="pt-verify" href="https://patents.google.com/patent/TWI655435B/zh" target="_blank" rel="noopener">Google Patents 查證<span class="ic">↗</span></a></div>
       <div class="xp-c">
         <h4>車速估算裝置、車速估算方法、及其電腦程式產品</h4>
         <p class="xp-sum">台灣、中國<span class="hl">雙邊獲證</span>|申請人 華創車電技術中心</p>
