@@ -1,0 +1,58 @@
+/* ============================================================
+   固定導覽 — 三頁共用元件(兩層)
+   ------------------------------------------------------------
+     第一層 .pnav   切換三頁:履歷 / TRJ / LFS。當前頁帶 .cur
+     第二層 .chnav  當前頁的章節快速跳轉,捲動時自動高亮
+
+   HTML 骨架(三頁只差在誰帶 .cur、chnav 放哪些章節):
+
+     <nav class="pnav">
+       <div class="in">
+         <a class="brand" href="…">甘銘凱 Ming-Kai Kan</a>
+         <div class="tabs">
+           <span class="tab-l cur">履歷</span>
+           <a class="tab-l" href="…">TRJ 軌跡規劃</a>
+           <a class="tab-l" href="…">LFS 車道融合</a>
+         </div>
+       </div>
+     </nav>
+
+     <nav class="chnav" aria-label="章節導覽">
+       <div class="in">
+         <a href="#xxx" data-sec="xxx">章節名</a>   ← data-sec 要等於 section 的 id
+       </div>
+     </nav>
+
+   搭配 assets/nav.js(chnav 捲動高亮)。
+   顏色與字體來自 assets/tokens.css。
+   ============================================================ */
+
+/* ---------- 第一層:三頁切換 ---------- */
+.pnav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(0,0,0,.08)}
+.pnav .in{max-width:980px;margin:0 auto;height:52px;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.pnav .brand{font-family:var(--sans);font-size:14.5px;font-weight:700;letter-spacing:-.01em;color:var(--ink);text-decoration:none;white-space:nowrap}
+.pnav .tabs{display:flex;align-items:center;gap:2px}
+.pnav .tab-l{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--ink-2);text-decoration:none;padding:7px 11px;border-radius:8px;white-space:nowrap;transition:background .2s,color .2s}
+.pnav .tab-l:hover{color:var(--ink);background:rgba(0,0,0,.05)}
+.pnav .tab-l.cur{color:var(--blue);font-weight:700;background:#eef5ff;cursor:default}
+
+/* ---------- 第二層:章節快速跳轉 ---------- */
+.chnav{position:sticky;top:52px;z-index:199;background:rgba(255,255,255,.86);backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);border-bottom:1px solid rgba(0,0,0,.06)}
+.chnav .in{max-width:980px;margin:0 auto;padding:10px 22px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.chnav .in::-webkit-scrollbar{display:none}
+.chnav a{flex:none;font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--ink-2);text-decoration:none;padding:6px 13px;border-radius:980px;border:1px solid var(--line);white-space:nowrap;transition:color .15s ease,border-color .15s ease,background .15s ease}
+.chnav a:hover{color:var(--ink);border-color:var(--ink-3)}
+.chnav a.on{color:#fff;background:var(--ink);border-color:var(--ink)}
+
+@media(max-width:680px){
+  .pnav .in{padding:0 14px;gap:8px}
+  .pnav .brand{font-size:12.5px}
+  .pnav .tab-l{padding:7px 8px;font-size:12.5px}
+  .chnav .in{padding:9px 14px;gap:7px}
+  .chnav a{font-size:12px;padding:5px 11px}
+}
+/* 很窄的螢幕:品牌名讓位給三頁切換 */
+@media(max-width:430px){ .pnav .brand{display:none} }
+
+/* 錨點不要被兩層固定列蓋住(52px + chnav 約 45px) */
+section[id]{scroll-margin-top:108px}

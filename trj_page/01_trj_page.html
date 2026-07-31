@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TRJ 共用軌跡規劃模組 — 架構整合</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/nav.css">
+<style>
+/* 共用 token 見 ../assets/tokens.css;以下為本頁專屬 */
+:root{
+  --grad-warm:linear-gradient(120deg,#0071e3,#9f5cff);
+  --red:#ef4444;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.wrap{max-width:980px;margin:0 auto;padding:0 22px}
+
+/* ===== 固定導覽列(樣式見 ../assets/nav.css,三頁共用) ===== */
+/* .pnav 樣式已移至 ../assets/nav.css(三頁共用) */
+.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+section{padding:clamp(56px,9vw,104px) 0}
+.band-alt{background:var(--bg-alt)}
+.sec-head{max-width:760px;margin:0 auto clamp(32px,5vw,48px)}
+.eyebrow{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px}
+h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;line-height:1.2}
+.note{font-size:12px;color:var(--ink-3);margin-top:6px;font-family:var(--mono)}
+
+/* ===== LAYER 1 : 5-second card ===== */
+.l1{padding:clamp(80px,12vw,120px) 0 clamp(64px,9vw,96px);text-align:center}
+.l1-inner{max-width:680px;margin:0 auto}
+.l1-role{font-size:clamp(26px,4vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1.35;margin-bottom:22px}
+.l1-role .em{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.l1-badge{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-2);background:var(--bg-alt);border-radius:980px;padding:8px 18px;margin-bottom:36px}
+.l1-badge b{color:var(--ink);font-weight:600}
+.l1-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:28px}
+.l1-mc{padding:20px 10px}
+.l1-ba{display:flex;align-items:baseline;justify-content:center;gap:8px;flex-wrap:wrap}
+.l1-before{font-family:var(--mono);font-size:clamp(18px,2.6vw,24px);font-weight:600;color:var(--ink-3);text-decoration:line-through;text-decoration-color:rgba(0,0,0,.22)}
+.l1-arrow{font-size:clamp(16px,2vw,20px);color:var(--ink-3)}
+.l1-after{font-family:var(--mono);font-size:clamp(28px,4.2vw,40px);font-weight:700;letter-spacing:-.02em}
+.l1-mc .lbl{font-size:12.5px;color:var(--ink-2);margin-top:8px;font-weight:500}
+.l1-pct{font-size:11px;color:var(--ink-3);font-family:var(--mono);font-weight:600}
+.l1-trust{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:var(--ink-3);font-family:var(--mono)}
+.l1-trust .dot{width:6px;height:6px;border-radius:50%;background:var(--blue)}
+
+/* ===== generic sub-unit block ===== */
+.unit{margin:0 auto clamp(72px,10vw,104px)}
+.unit:last-child{margin-bottom:0}
+.unit-head{text-align:center;margin-bottom:28px}
+.unit-tag{font-size:12px;font-weight:700;color:var(--blue);letter-spacing:.04em;margin-bottom:6px}
+.unit-title{font-size:clamp(20px,2.8vw,26px);font-weight:700;letter-spacing:-.01em}
+.step-tag{font-family:var(--mono);font-size:11px;color:var(--blue);font-weight:700;letter-spacing:.06em;text-align:center;margin:0 auto}
+
+/* root cause diagram — fixed native size, horizontal scroll on narrow screens */
+.rcg{display:flex;align-items:center;justify-content:center;gap:16px;max-width:820px;margin:0 auto}
+.rcg-symptoms{display:flex;flex-direction:column;gap:10px;flex:1;max-width:280px}
+.rcg-item{background:var(--bg-alt);border:1px solid var(--line);border-radius:14px;padding:13px 16px;font-size:13px;font-weight:600;color:var(--ink-2);text-align:center}
+.rcg-root{flex:1;max-width:280px;background:#eef4ff;border:1.5px solid #93c5fd;border-radius:14px;padding:20px;text-align:center}
+.rcg-root::before{display:none}
+.rcg-root-k{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ink-3);margin-bottom:8px}
+.rcg-root-v{font-size:16px;font-weight:700;color:var(--ink);line-height:1.4}
+.rcg-svg-arrow{flex:none}
+@media(max-width:680px){
+  .rcg{flex-direction:column}
+  .rcg-symptoms,.rcg-root{max-width:340px;width:100%}
+  .rcg-svg-arrow{transform:rotate(90deg)}
+}
+.svg-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 auto}
+.svg-scroll::-webkit-scrollbar{height:5px}
+.svg-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.rc-scroll{max-width:680px}
+.collab-scroll{max-width:640px}
+
+/* generic desktop/mobile visibility toggle (desktop SVGs stay untouched, mobile gets HTML/CSS fallback) */
+.dt-mobile-only{display:none!important}
+@media(max-width:680px){
+  .dt-desktop-only{display:none!important}
+  .dt-mobile-only{display:flex!important}
+}
+
+/* mobile fallback: collaboration */
+.collabm{display:flex;flex-direction:column;align-items:center;gap:10px;max-width:340px;margin:0 auto}
+.collabm-you{background:var(--grad);color:#fff;border-radius:980px;padding:10px 22px;font-weight:700;font-size:13px;box-shadow:0 8px 20px rgba(0,113,227,.25)}
+.collabm-arrow{width:8px;height:18px}
+.collabm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.collabm-node{background:#f5f5f7;border-radius:12px;padding:12px;text-align:center;font-size:11.5px;display:flex;flex-direction:column;gap:4px;border-left:3px solid var(--nc)}
+.collabm-node b{font-size:12.5px;color:var(--ink)}
+.collabm-node span{color:var(--nc);font-weight:700}
+.fanline{width:100%;height:50px;display:block}
+.fanline-sm{height:36px}
+.pipeline-svg{width:800px;max-width:none;height:auto;display:block}
+.pipeline-scroll{max-width:800px}
+
+/* mobile fallback: pipeline (Version B — focused hero + grayscale mini pipeline) */
+.pipem{display:flex;flex-direction:column;align-items:center;gap:8px;max-width:340px;margin:0 auto}
+.pipem-features{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.pipem-feat{background:#eef4ff;border:1px solid #93c5fd;border-radius:10px;padding:10px 8px;font-size:11.5px;font-weight:700;color:#0071e3;text-align:center}
+.pipem-focus{width:100%;background:linear-gradient(155deg,#eaf3ff 0%,#e3f6fb 100%);border:2px solid #0071e3;border-radius:16px;padding:18px 16px;text-align:center;display:flex;flex-direction:column;gap:5px;box-shadow:0 4px 14px rgba(0,113,227,.12)}
+.pipem-focus b{font-size:15px;font-weight:700;color:#0071e3;letter-spacing:.02em}
+.pipem-focus span{font-size:11px;color:#0071e3;font-weight:600}
+.pipem-context-lbl{font-size:11px;color:var(--ink-3);margin-top:4px;font-weight:600}
+.pipem-mini{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;margin-top:6px}
+.mini-card{background:#f5f5f7;border:1px solid #e5e5ea;border-radius:10px;padding:8px 12px;font-size:10.5px;font-weight:700;color:#9a9aa0;text-align:center;line-height:1.35}
+.mini-arrow{font-size:12px;color:#d2d2d7;font-weight:700}
+.mini-active{background:#eaf3ff;border-color:#0071e3;color:#0071e3}
+.internal-svg{width:760px;max-width:none;height:auto;display:block}
+.internal-scroll{max-width:760px;margin:0 auto}
+
+/* responsive internal module diagram (no SVG, no scroll) */
+.idg{
+  max-width:900px;margin:0 auto;
+  display:grid;
+  grid-template-columns:auto auto minmax(170px,auto) minmax(220px,1fr) auto auto;
+  grid-template-areas:
+    "fnlabel fnarrow box1  box1  .      .   "
+    ".       .       conn  conn  .      .   "
+    "fslabel fsarrow group group arrow3 ctrl";
+  column-gap:16px;row-gap:10px;
+  align-items:center;justify-content:center;justify-items:center;
+  padding:6px 8px;
+}
+.idg-box{background:#f5f9ff;border:1.5px solid #b6d4fb;border-radius:14px;padding:14px 18px;font-size:13.5px;font-weight:600;color:#0071e3;text-align:center;white-space:normal;width:170px;line-height:1.45;box-shadow:0 1px 2px rgba(0,50,120,.05),0 6px 16px rgba(0,90,200,.06);letter-spacing:-.01em}
+.idg-box-solo{grid-area:box1;width:auto;min-width:220px;padding:14px 32px;justify-self:center;position:relative}
+.idg-fn-tag{display:none}
+@media(min-width:681px){
+  .idg-fn-tag{display:flex;position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);align-items:center;gap:8px;white-space:nowrap}
+  .idg-fn-mobile{display:none!important}
+}
+.idg-highlight{width:190px;background:linear-gradient(155deg,#eaf3ff 0%,#e3f6fb 100%);box-shadow:0 2px 4px rgba(0,50,120,.08),0 10px 24px rgba(0,113,227,.14)}
+.idg-label{font-size:12px;font-weight:600;color:var(--ink-2);white-space:nowrap;letter-spacing:.01em}
+.idg-connector{grid-area:conn;position:relative;display:flex;flex-direction:column;align-items:center;gap:6px}
+.idg-param-text{font-size:14px;font-weight:700;color:var(--blue);white-space:nowrap}
+.idg-group{grid-area:group;display:flex;align-items:center;justify-content:center;gap:16px;border:1.5px solid #b6d4fb;border-radius:18px;padding:16px 20px;background:rgba(245,249,255,.55);width:100%}
+
+/* SVG arrows — same #93c5fd line + marker style as converge diagrams below */
+.cx-arrow{display:inline-flex;align-items:center;flex:none}
+.cx-arrow.cx-h{width:18px;height:8px}
+.cx-arrow.cx-v{flex-direction:column;width:8px;height:18px;justify-content:center}
+.cx-arrow.cx-v-strong{width:14px;height:34px}
+
+@media(max-width:680px){
+  .idg{
+    grid-template-columns:1fr;
+    grid-template-areas:
+      "fnlabel" "fnarrow" "box1" "conn" "fslabel" "fsarrow" "group" "arrow3" "ctrl";
+    justify-items:center;row-gap:12px;
+  }
+  .idg-box{white-space:normal;max-width:280px}
+  .idg-box-solo{width:100%;max-width:280px}
+  .idg-group{flex-direction:column;max-width:280px}
+  .cx-arrow.cx-h{transform:rotate(90deg)}
+}
+.converge-svg1{width:500px;max-width:none;height:auto;display:block}
+.converge-svg2{width:620px;max-width:none;height:auto;display:block}
+.converge-scroll{max-width:500px}
+.converge-scroll2{max-width:620px}
+
+/* mobile fallback: convergence diagram 1 (9 functions -> 2 branches) */
+.cvg1m{display:flex;flex-direction:column;align-items:center;gap:0;max-width:340px;margin:0 auto}
+.cvg1m-src{background:var(--bg-alt);border:1px solid var(--line);border-radius:14px;padding:14px 18px;width:88%;text-align:center;display:flex;flex-direction:column;gap:4px}
+.cvg1m-src b{font-size:13.5px;color:var(--ink)}
+.cvg1m-src span{font-size:10.5px;color:var(--ink-3)}
+.tbranch{width:100%;height:46px;display:block}
+.cvg1m-branches{display:flex;gap:10px;width:100%}
+.cvg1m-branch{flex:1;background:var(--bbg);border:1px solid var(--bbd);border-radius:14px;padding:12px 10px;text-align:center;display:flex;flex-direction:column;gap:4px;min-width:0}
+.cvg1m-branch b{font-size:12.5px;color:var(--bc)}
+.cvg1m-branch span{font-size:9.5px;color:var(--bc);line-height:1.4}
+
+/* mobile fallback: convergence diagram 2 (2 branches -> 3 shared params) */
+.cvg2m{display:flex;flex-direction:column;align-items:center;gap:0;max-width:340px;margin:0 auto}
+.cvg2m-branches{display:flex;gap:10px;width:88%}
+.cvg2m-branch{flex:1;background:var(--bbg);border:1px solid var(--bbd);border-radius:14px;padding:12px 10px;text-align:center;font-size:13px;font-weight:700;color:var(--bc)}
+.tbranch-merge{height:46px}
+.cvg2m-both{font-size:10.5px;font-weight:700;color:var(--ink-3);margin-bottom:8px}
+.cvg2m-params{display:flex;flex-direction:column;gap:8px;width:100%}
+.cvg2m-param{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 16px;text-align:center;display:flex;flex-direction:column;gap:3px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.cvg2m-param b{font-size:12.5px;color:var(--ink)}
+.cvg2m-param span{font-size:10px;color:var(--ink-3)}
+.sig-wrap{max-width:860px;margin:28px auto 0;padding:0 12px}
+.sig-cap{text-align:center;margin-bottom:18px}
+.sig-cap-tag{display:inline-block;background:#eaf3ff;color:var(--blue);font-size:10.5px;font-weight:700;padding:4px 12px;border-radius:980px;letter-spacing:.02em;margin-bottom:8px}
+.sig-cap-title{font-size:12.5px;color:var(--ink-3);font-weight:600}
+.idg-why{max-width:640px;margin:22px auto 0;text-align:center;font-size:12.5px;color:var(--ink-2);line-height:1.65}
+.sig{background:#0b0b0c;border-radius:12px;padding:14px 18px;font-family:var(--mono);font-size:12.5px;color:#7dd3fc;overflow-x:auto;white-space:pre}
+.sig .c1{color:#f0abfc}.sig .c2{color:#86efac}.sig .c3{color:#94a3b8}
+.scroll-hint{display:none;text-align:center;font-size:11px;color:var(--ink-3);margin-top:10px;font-family:var(--mono)}
+
+/* collaboration diagram */
+.collab-svg{width:640px;max-width:none;height:auto;display:block}
+
+@media(max-width:680px){
+  .scroll-hint{display:block}
+}
+
+/* architecture diagram */
+.arch{max-width:820px;margin:0 auto}
+.arch .layer{background:var(--bg-alt);border-radius:18px;padding:20px 24px;margin-bottom:8px}
+.arch .layer.core{background:#eef4ff;border:1px solid #cfe1ff}
+.arch .sig{background:#0b0b0c;border-radius:12px;padding:14px 18px;margin-top:12px;font-family:var(--mono);font-size:12.5px;color:#7dd3fc;overflow-x:auto;white-space:pre}
+.arch .sig .c1{color:#f0abfc}.arch .sig .c2{color:#86efac}.arch .sig .c3{color:#94a3b8}
+.arch .ln{font-size:12px;color:var(--ink-3);font-weight:600;margin-bottom:10px}
+.arch .chips{display:flex;flex-wrap:wrap;gap:8px}
+.arch .chip{background:#fff;border:1px solid var(--line);border-radius:980px;padding:6px 14px;font-size:12.5px;font-weight:500}
+.arch .down{text-align:center;color:var(--ink-3);font-size:12px;font-family:var(--mono);padding:6px 0}
+.arch-platform{text-align:center;margin-top:14px;font-size:12.5px;color:var(--ink-2)}
+
+/* collaboration diagram */
+.collab{max-width:640px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px}
+
+/* scale cards */
+.scale{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:760px;margin:0 auto}
+.scale-c{background:var(--bg-alt);border-radius:16px;padding:20px;text-align:center}
+.scale-c .num{font-family:var(--mono);font-size:26px;font-weight:700}
+.scale-c .lbl{font-size:12px;color:var(--ink-2);margin-top:4px}
+.scale-c .ex{font-size:11px;color:var(--ink-3);margin-top:6px}
+
+/* decision cards */
+.decisions{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:900px;margin:0 auto}
+.dc{border:1px solid var(--line);border-top:3px solid var(--dc-c,var(--blue));border-radius:16px;padding:20px}
+.dc:nth-child(1){--dc-c:#0a84ff}
+.dc:nth-child(2){--dc-c:#0071e3}
+.dc:nth-child(3){--dc-c:#28c6e8}
+.dc .n{font-family:var(--mono);font-size:11px;color:var(--blue);font-weight:700;margin-bottom:8px}
+.dc .t{font-size:14px;font-weight:700;margin-bottom:8px}
+.dc .r{font-size:12.5px;color:var(--ink-2);line-height:1.55}
+
+/* FOT banner */
+.fot-note{max-width:600px;margin:0 auto;text-align:center;font-size:14.5px;color:var(--ink-2);line-height:1.75}
+.fot-em{font-family:var(--mono);font-weight:700;color:var(--ink);text-decoration:underline;text-decoration-color:var(--blue);text-decoration-thickness:2px;text-underline-offset:3px}
+.fot .num{font-family:var(--mono);font-size:clamp(30px,4vw,42px);font-weight:700;color:var(--amber)}
+.fot .txt{font-size:13.5px;color:#7c4a12;line-height:1.55}
+
+/* demo tabs */
+.demo-stage{position:relative;max-width:920px;margin:0 auto}
+.demo-tabs{position:absolute;left:50%;top:514px;transform:translateX(-50%);z-index:5;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;background:rgba(255,255,255,.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);padding:8px;border-radius:980px;box-shadow:0 4px 18px rgba(0,0,0,.10)}
+.demo-tabs button{border:1px solid var(--line);background:#fff;border-radius:980px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink-2)}
+.demo-tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.demo-panel{display:none;max-width:920px;margin:0 auto}
+.demo-panel.on{display:block}
+.demo-panel .tag{display:inline-block;font-size:11.5px;color:var(--blue-d);background:#eef4ff;border-radius:980px;padding:5px 12px;font-weight:600;margin-bottom:12px}
+.demo-ph{text-align:center;max-width:700px;margin:20px auto 0}
+.demo-ph h3{font-size:clamp(17px,2.4vw,22px);font-weight:700;letter-spacing:-.01em;margin-bottom:8px}
+.demo-ph p{font-size:14px;color:var(--ink-2);line-height:1.65;margin-bottom:12px}
+.device{background:#16161a;border-radius:22px;overflow:hidden;box-shadow:var(--shadow-lg);border:1px solid #2a2a30}
+.device .bar{display:flex;align-items:center;gap:10px;padding:12px 18px;background:#1f1f25}
+.device .bar i{width:10px;height:10px;border-radius:50%}
+.device .bar i:nth-child(1){background:#ff5f57}.device .bar i:nth-child(2){background:#febc2e}.device .bar i:nth-child(3){background:#28c840}
+.device iframe{width:100%;height:580px;border:0;display:block;background:#1a1a1e}
+.veh-embed{width:100%;height:580px;border:0;display:block;background:transparent}
+.arm-trj-embed{width:100%;height:560px;border:0;display:block;background:transparent;max-width:960px;margin:0 auto}
+
+/* FAQ accordion */
+.faq{max-width:760px;margin:0 auto}
+.faq details{border-bottom:1px solid var(--line);padding:16px 0}
+.faq summary{cursor:pointer;font-size:14.5px;font-weight:600;display:flex;gap:10px;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq .qb{color:var(--blue);font-family:var(--mono)}
+.faq .a{font-size:13.5px;color:var(--ink-2);line-height:1.7;margin-top:10px;padding-left:26px}
+
+/* CTA */
+.cta{text-align:center}
+.cta-btns{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.cta-btns a{display:inline-block;padding:12px 26px;border-radius:980px;font-size:14px;font-weight:600;text-decoration:none}
+.cta-btns .p{background:var(--ink);color:#fff}
+.cta-btns .s{border:1px solid var(--line);color:var(--ink)}
+
+@media(max-width:680px){
+  .l1-metrics,.decisions,.scale{grid-template-columns:1fr}
+  .arch .sig{font-size:10.5px;padding:12px 14px}
+  .arch .layer{padding:16px 18px}
+  .sig{font-size:10.5px;padding:12px 14px}
+  .scale{margin-top:24px!important;gap:10px}
+  .scale-c{padding:16px}
+  .device iframe{height:320px}
+  .veh-embed{height:320px}
+  .arm-trj-embed{height:340px}
+  .demo-tabs{top:275px;gap:5px;padding:5px;max-width:94%}
+  .demo-tabs button{padding:6px 11px;font-size:11px}
+}
+
+/* ===== Impact Metric Cards ===== */
+.l1-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-bottom:32px;max-width:760px;margin-left:auto;margin-right:auto;}
+.mc-card{display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 20px 16px;background:none;border:none;}
+.mc-accent{width:28px;height:3px;border-radius:2px;margin-bottom:10px;}
+.mc-accent--safety{background:#f59e0b;}
+.mc-accent--hw    {background:#0071e3;}
+.mc-accent--dev   {background:#0d9488;}
+.mc-badge{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;border-radius:980px;padding:4px 11px;margin-bottom:10px;}
+.mc-badge--safety{background:#fff8ec;color:#c07c0b;}
+.mc-badge--hw    {background:#eef4ff;color:#0071e3;}
+.mc-badge--dev   {background:#edfaf5;color:#0b9070;}
+.mc-before{font-family:var(--mono);font-size:14px;font-weight:600;color:#c0c0c5;text-decoration:line-through;text-decoration-color:rgba(0,0,0,.18);text-decoration-thickness:1.5px;}
+.mc-dnarrow{font-size:11px;color:#dedee3;margin:2px 0;line-height:1;}
+.mc-after-val{font-family:var(--mono);font-size:clamp(36px,5.2vw,50px);font-weight:700;letter-spacing:-.03em;line-height:1;margin:2px 0 10px;}
+.mc-sep{width:16px;height:1px;background:rgba(0,0,0,.08);margin-bottom:8px;}
+.mc-label-text{font-size:12px;color:var(--ink-3);font-weight:500;line-height:1.5;}
+@media(max-width:680px){
+  .l1-metrics{gap:28px;}
+  .mc-card{padding:0 10px 20px;}
+  .mc-after-val{font-size:clamp(32px,9vw,44px);}
+}
+/* ===== Vehicle Showcase ===== */
+.veh-showcase{width:100%;max-width:800px;margin:0 auto;}
+</style>
+</head>
+<body>
+
+<nav class="pnav">
+  <div class="in">
+    <a href="../index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
+    <div class="tabs">
+      <a class="tab-l" href="../index.html">履歷</a>
+      <span class="tab-l cur">TRJ 軌跡規劃</span>
+      <a class="tab-l" href="../lfs_page/lfs01.html">LFS 車道融合</a>
+    </div>
+  </div>
+</nav>
+
+<!-- 章節快速跳轉。data-sec 必須等於對應 <section> 的 id,捲動高亮才會生效。 -->
+<nav class="chnav" aria-label="章節導覽">
+  <div class="in">
+    <a href="#root-cause"    data-sec="root-cause">根因拆解</a>
+    <a href="#decisions"     data-sec="decisions">關鍵決策</a>
+    <a href="#architecture"  data-sec="architecture">系統架構</a>
+    <a href="#functions"     data-sec="functions">功能 Demo</a>
+    <a href="#collaboration" data-sec="collaboration">協作</a>
+    <a href="#platforms"     data-sec="platforms">跨平台</a>
+    <a href="#faq"           data-sec="faq">FAQ</a>
+    <a href="#reflection"    data-sec="reflection">反思</a>
+  </div>
+</nav>
+
+<!-- ============ LAYER 1 : 5-second card ============ -->
+<section class="l1">
+  <div class="wrap l1-inner">
+    <div class="l1-role">
+      不是哪個功能寫得不好。是每個功能都在重複算同一件事。<br>
+      <span style="font-size:clamp(18px,2.6vw,26px);font-weight:500;color:var(--ink-2)">我主導設計了共用軌跡模組，CPU 降到 <span class="em">37%</span>，新功能開發從 <span class="em">4 個月</span>壓到 <span class="em">2~3 天</span>。</span>
+    </div>
+    <div class="l1-metrics">
+      <div class="mc-card">
+        <div class="mc-accent mc-accent--safety"></div>
+        <span class="mc-badge mc-badge--safety">安全品質</span>
+        <span class="mc-before">20+次</span>
+        <span class="mc-dnarrow">↓</span>
+        <span class="mc-after-val grad">&lt;3次</span>
+        <span class="mc-sep"></span>
+        <span class="mc-label-text">100km 接手次數</span>
+      </div>
+      <div class="mc-card">
+        <div class="mc-accent mc-accent--hw"></div>
+        <span class="mc-badge mc-badge--hw">硬體效率</span>
+        <span class="mc-before">100%</span>
+        <span class="mc-dnarrow">↓</span>
+        <span class="mc-after-val grad">37%</span>
+        <span class="mc-sep"></span>
+        <span class="mc-label-text">TC277 運算資源佔用</span>
+      </div>
+      <div class="mc-card">
+        <div class="mc-accent mc-accent--dev"></div>
+        <span class="mc-badge mc-badge--dev">開發速度</span>
+        <span class="mc-before">4個月+</span>
+        <span class="mc-dnarrow">↓</span>
+        <span class="mc-after-val grad">2~3天</span>
+        <span class="mc-sep"></span>
+        <span class="mc-label-text">新功能開發週期</span>
+      </div>
+    </div>
+    <div class="l1-trust"><span class="dot"></span>車用嵌入式晶片 · 實路測試驗證</div>
+  </div>
+</section>
+
+<!-- ============ LAYER 2 ============ -->
+
+<!-- 2-1 根因圖 -->
+<section id="root-cause" class="band-alt">
+  <div class="wrap">
+    <div class="unit">
+      <div class="unit-head">
+        <div class="unit-tag">ROOT CAUSE</div>
+        <div class="unit-title">五個問題，其實是同一個根因</div>
+        <p style="font-size:13.5px;color:var(--ink-2);margin-top:10px;max-width:520px;margin-left:auto;margin-right:auto">降頻之後 CPU 確實降下來了——但下次還是爆。我看了幾輪這個循環才意識到：這五個問題不是五個 bug，它們是同一件事的不同表現。只要每個功能繼續各自定義軌跡邏輯，這些問題就是結構性的必然，砍掉任何一個都會從別處長出來。</p>
+      </div>
+      <svg viewBox="0 0 600 262" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:600px;display:block;margin:0 auto" role="img" aria-label="五個問題收斂到同一根因">
+        <defs>
+          <marker id="rcgArrow" markerWidth="7" markerHeight="7" refX="5" refY="2.5" orient="auto">
+            <path d="M0,0 L5,2.5 L0,5 Z" fill="#93c5fd"/>
+          </marker>
+        </defs>
+
+        <!-- symptom boxes (5), each 44px tall, 10px gap -->
+        <rect x="0" y="0"   width="205" height="44" rx="12" fill="#f5f5f7" stroke="#d2d2d7" stroke-width="1"/>
+        <text x="102" y="26"  text-anchor="middle" font-size="12.5" font-weight="600" fill="#6e6e73" font-family="var(--sans)">CPU 超載 &gt;100%</text>
+
+        <rect x="0" y="54"  width="205" height="44" rx="12" fill="#f5f5f7" stroke="#d2d2d7" stroke-width="1"/>
+        <text x="102" y="80"  text-anchor="middle" font-size="12.5" font-weight="600" fill="#6e6e73" font-family="var(--sans)">新功能開發要 4 個月</text>
+
+        <rect x="0" y="108" width="205" height="44" rx="12" fill="#f5f5f7" stroke="#d2d2d7" stroke-width="1"/>
+        <text x="102" y="134" text-anchor="middle" font-size="12.5" font-weight="600" fill="#6e6e73" font-family="var(--sans)">各功能邏輯互不相容</text>
+
+        <rect x="0" y="162" width="205" height="44" rx="12" fill="#f5f5f7" stroke="#d2d2d7" stroke-width="1"/>
+        <text x="102" y="188" text-anchor="middle" font-size="12.5" font-weight="600" fill="#6e6e73" font-family="var(--sans)">方向盤響應容易抖動</text>
+
+        <rect x="0" y="216" width="205" height="46" rx="12" fill="#f5f5f7" stroke="#d2d2d7" stroke-width="1"/>
+        <text x="102" y="234" text-anchor="middle" font-size="12" font-weight="600" fill="#6e6e73" font-family="var(--sans)">每對應一個新車型</text>
+        <text x="102" y="252" text-anchor="middle" font-size="12" font-weight="600" fill="#6e6e73" font-family="var(--sans)">需大量調教，無法共用</text>
+
+        <!-- five paths converging to root cause (center y=130) -->
+        <path d="M205,22  C 282,22  282,130 360,130" fill="none" stroke="#93c5fd" stroke-width="1.5" marker-end="url(#rcgArrow)"/>
+        <path d="M205,76  C 282,76  282,130 360,130" fill="none" stroke="#93c5fd" stroke-width="1.5" marker-end="url(#rcgArrow)"/>
+        <path d="M205,130 L360,130"                  fill="none" stroke="#93c5fd" stroke-width="1.5" marker-end="url(#rcgArrow)"/>
+        <path d="M205,184 C 282,184 282,130 360,130" fill="none" stroke="#93c5fd" stroke-width="1.5" marker-end="url(#rcgArrow)"/>
+        <path d="M205,239 C 282,239 282,130 360,130" fill="none" stroke="#93c5fd" stroke-width="1.5" marker-end="url(#rcgArrow)"/>
+
+        <!-- root cause box, centered at y=130 -->
+        <rect x="360" y="85" width="234" height="90" rx="14" fill="#eef4ff" stroke="#93c5fd" stroke-width="1.5"/>
+        <text x="477" y="106" text-anchor="middle" font-size="10" font-weight="700" letter-spacing="1" fill="#86868b" font-family="var(--sans)">根因</text>
+        <text x="477" y="128" text-anchor="middle" font-size="13" font-weight="700" fill="#1d1d1f" font-family="var(--sans)">每個功能各自</text>
+        <text x="477" y="147" text-anchor="middle" font-size="13" font-weight="700" fill="#1d1d1f" font-family="var(--sans)">重複計算軌跡</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- 2-2 決策卡片 -->
+<section id="decisions">
+  <div class="wrap">
+    <div class="unit">
+      <div class="unit-head">
+        <div class="unit-tag">KEY DECISIONS</div>
+        <div class="unit-title">怎麼設計 TRJ</div>
+        <p style="font-size:13.5px;color:var(--ink-2);margin-top:10px;max-width:520px;margin-left:auto;margin-right:auto">根因找到之後，第一件事不是動手寫，是先回頭看真實路況——9 項功能到底長什麼樣。</p>
+      </div>
+
+      <div class="step-tag">STEP 1 · 觀察</div>
+      <p class="fot-note">這批資料我已經看過兩遍——第一遍找感知失效、第二遍驗證 LFS。這次我拉出同一批深圳→上海 <span class="fot-em">1,600 km</span> Mini-FOT 紀錄看第三遍，問的問題不一樣了：不是哪裡壞掉，而是這 9 項側向功能在真實路況裡，到底都在做什麼動作。</p>
+
+      <div class="step-tag" style="margin-top:32px">STEP 2 · 歸納</div>
+      <p style="font-size:16px;color:var(--ink);font-weight:600;line-height:1.7;max-width:600px;margin:8px auto 0;text-align:center">看完之後第一個發現是——ADAS 側向功能其實沒有想像中複雜，攤開來看只有兩種行為。</p>
+      <p style="font-size:13.5px;color:var(--ink-2);line-height:1.7;max-width:560px;margin:12px auto 0;text-align:center">分類的依據是「目標本身是不是固定的」：偏移類是移動到一個固定的新位置就停住（變換車道、大車避讓）；銜接類則是持續貼合一條會變動的參考路徑（跟隨前車軌跡、匝道幾何），目標本身也在動。</p>
+
+      <div class="svg-scroll converge-scroll dt-desktop-only" style="margin-top:24px">
+        <svg class="converge-svg1" viewBox="0 0 500 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="9項功能其實只有兩種行為">
+          <defs>
+            <marker id="cvArrow1" markerWidth="7" markerHeight="7" refX="5" refY="2.5" orient="auto">
+              <path d="M0,0 L5,2.5 L0,5 Z" fill="#c7ccd1"/>
+            </marker>
+          </defs>
+
+          <rect x="20" y="88" width="150" height="64" rx="14" fill="var(--bg-alt)" stroke="#d2d2d7"/>
+          <text x="95" y="114" text-anchor="middle" font-size="13" font-weight="700" fill="#1d1d1f">9 項側向功能</text>
+          <text x="95" y="131" text-anchor="middle" font-size="9.5" fill="#86868b">RMA・co-Drive</text>
+          <text x="95" y="142" text-anchor="middle" font-size="9.5" fill="#86868b">Emergency Corridor 等</text>
+
+          <path d="M170,110 C 200,80 210,54 230,54" fill="none" stroke="#93c5fd" stroke-width="1.5" marker-end="url(#cvArrow1)"/>
+          <path d="M170,130 C 200,160 210,186 230,186" fill="none" stroke="#86efac" stroke-width="1.5" marker-end="url(#cvArrow1)"/>
+
+          <rect x="230" y="20" width="250" height="68" rx="14" fill="#eef4ff" stroke="#93c5fd"/>
+          <text x="355" y="42" text-anchor="middle" font-size="13" font-weight="700" fill="#0071e3">偏移類</text>
+          <text x="355" y="60" text-anchor="middle" font-size="9.5" fill="#3b82f6">大車避讓・變換車道</text>
+          <text x="355" y="72" text-anchor="middle" font-size="9.5" fill="#3b82f6">緊急閃避 等</text>
+
+          <rect x="230" y="152" width="250" height="68" rx="14" fill="#ecfdf5" stroke="#86efac"/>
+          <text x="355" y="174" text-anchor="middle" font-size="13" font-weight="700" fill="#0a8a5c">銜接類</text>
+          <text x="355" y="192" text-anchor="middle" font-size="9.5" fill="#10b981">前車軌跡跟隨</text>
+          <text x="355" y="204" text-anchor="middle" font-size="9.5" fill="#10b981">上下匝道 等</text>
+        </svg>
+      </div>
+
+      <!-- mobile-only fallback (desktop SVG above untouched) -->
+      <div class="cvg1m dt-mobile-only">
+        <div class="cvg1m-src">
+          <b>9 項側向功能</b><span>RMA・co-Drive・Emergency Corridor 等</span>
+        </div>
+        <svg class="tbranch" viewBox="0 0 300 46" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="150" y1="0" x2="150" y2="18" stroke="#c7ccd1" stroke-width="2"/>
+          <line x1="75" y1="18" x2="225" y2="18" stroke="#c7ccd1" stroke-width="2"/>
+          <line x1="75" y1="18" x2="75" y2="44" stroke="#93c5fd" stroke-width="2.5"/>
+          <line x1="225" y1="18" x2="225" y2="44" stroke="#86efac" stroke-width="2.5"/>
+        </svg>
+        <div class="cvg1m-branches">
+          <div class="cvg1m-branch" style="--bc:#3b82f6;--bbg:#eef4ff;--bbd:#93c5fd">
+            <b>偏移類</b><span>大車避讓・變換車道・緊急閃避 等</span>
+          </div>
+          <div class="cvg1m-branch" style="--bc:#0a8a5c;--bbg:#ecfdf5;--bbd:#86efac">
+            <b>銜接類</b><span>前車軌跡跟隨・上下匝道 等</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="scroll-hint dt-desktop-only">← 左右滑動查看完整圖 →</div>
+
+      <div class="step-tag" style="margin-top:40px">STEP 3 · 抽象</div>
+      <p style="font-size:16px;color:var(--ink);font-weight:600;line-height:1.7;max-width:600px;margin:8px auto 0;text-align:center">再往下拆，還有更深一層的簡化——兩種行為背後，其實需要同一組資訊才能算出軌跡。</p>
+
+      <div class="step-tag" style="margin-top:32px">STEP 4 · 類比</div>
+      <p style="font-size:13.5px;color:var(--ink-2);line-height:1.7;max-width:560px;margin:8px auto 0;text-align:center">在抽象這組資訊的過程中，我聯想到一件事：這其實跟機器人手臂的軌跡規劃是同一個數學問題——用起點、終點的位置與斜率，定義一段平滑軌跡的邊界條件。</p>
+
+      <iframe class="arm-trj-embed" src="01_ArmTrjOneScene.html" loading="lazy" title="從機械手臂聯想到 trj 軌跡設計" style="margin-top:20px"></iframe>
+
+      <p style="font-size:13.5px;color:var(--ink-2);line-height:1.7;max-width:560px;margin:20px auto 0;text-align:center">這個類比讓我確定：trj 不需要為 9 項功能各自設計演算法——用同一套邊界條件思維，就能同時描述「偏移到新位置」跟「銜接一條變動路徑」這兩種行為。</p>
+
+      <div class="svg-scroll converge-scroll2 dt-desktop-only" style="margin-top:24px">
+        <svg class="converge-svg2" viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="兩種行為都能用同樣的3個參數描述">
+          <defs>
+            <marker id="cvArrow2" markerWidth="7" markerHeight="7" refX="5" refY="2.5" orient="auto">
+              <path d="M0,0 L5,2.5 L0,5 Z" fill="#c7ccd1"/>
+            </marker>
+          </defs>
+
+          <rect x="20" y="16" width="140" height="56" rx="12" fill="#eef4ff" stroke="#93c5fd"/>
+          <text x="90" y="49" text-anchor="middle" font-size="13" font-weight="700" fill="#0071e3">偏移類</text>
+
+          <rect x="20" y="128" width="140" height="56" rx="12" fill="#ecfdf5" stroke="#86efac"/>
+          <text x="90" y="161" text-anchor="middle" font-size="13" font-weight="700" fill="#0a8a5c">銜接類</text>
+
+          <path d="M160,44 C 220,44 220,100 260,100" fill="none" stroke="#93c5fd" stroke-width="1.5"/>
+          <path d="M160,156 C 220,156 220,100 260,100" fill="none" stroke="#86efac" stroke-width="1.5"/>
+          <circle cx="260" cy="100" r="3" fill="#9ca3af"/>
+          <text x="260" y="84" text-anchor="middle" font-size="9.5" font-weight="700" fill="#6e6e73">兩類都需要</text>
+
+          <path d="M260,100 C 300,100 310,30 350,30" fill="none" stroke="#c7ccd1" stroke-width="1.5" marker-end="url(#cvArrow2)"/>
+          <path d="M260,100 L 350,100" fill="none" stroke="#c7ccd1" stroke-width="1.5" marker-end="url(#cvArrow2)"/>
+          <path d="M260,100 C 300,100 310,170 350,170" fill="none" stroke="#c7ccd1" stroke-width="1.5" marker-end="url(#cvArrow2)"/>
+
+          <rect x="350" y="6" width="250" height="48" rx="12" fill="#fff" stroke="#d2d2d7" stroke-width="1.5"/>
+          <text x="475" y="24" text-anchor="middle" font-size="12" font-weight="700" fill="#1d1d1f">偏移量</text>
+          <text x="475" y="38" text-anchor="middle" font-size="9" fill="#86868b">公尺（m）・例 co-Drive 0.5m</text>
+
+          <rect x="350" y="76" width="250" height="48" rx="12" fill="#fff" stroke="#d2d2d7" stroke-width="1.5"/>
+          <text x="475" y="96" text-anchor="middle" font-size="12" font-weight="700" fill="#1d1d1f">銜接起點</text>
+          <text x="475" y="111" text-anchor="middle" font-size="9.5" fill="#86868b">s ∈ [0,1]</text>
+
+          <rect x="350" y="146" width="250" height="48" rx="12" fill="#fff" stroke="#d2d2d7" stroke-width="1.5"/>
+          <text x="475" y="164" text-anchor="middle" font-size="12" font-weight="700" fill="#1d1d1f">銜接終點</text>
+          <text x="475" y="178" text-anchor="middle" font-size="9" fill="#86868b">s ∈ [0,1]・例 RMA 1.2m 偏移</text>
+        </svg>
+      </div>
+
+      <!-- mobile-only fallback (desktop SVG above untouched) -->
+      <div class="cvg2m dt-mobile-only">
+        <div class="cvg2m-branches">
+          <div class="cvg2m-branch" style="--bc:#3b82f6;--bbg:#eef4ff;--bbd:#93c5fd">偏移類</div>
+          <div class="cvg2m-branch" style="--bc:#0a8a5c;--bbg:#ecfdf5;--bbd:#86efac">銜接類</div>
+        </div>
+        <svg class="tbranch tbranch-merge" viewBox="0 0 300 46" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="75" y1="0" x2="150" y2="20" stroke="#93c5fd" stroke-width="2.5"/>
+          <line x1="225" y1="0" x2="150" y2="20" stroke="#86efac" stroke-width="2.5"/>
+          <circle cx="150" cy="20" r="3" fill="#9ca3af"/>
+          <line x1="150" y1="20" x2="150" y2="44" stroke="#c7ccd1" stroke-width="2"/>
+        </svg>
+        <span class="cvg2m-both">兩類都需要</span>
+        <div class="cvg2m-params">
+          <div class="cvg2m-param"><b>偏移量</b><span>公尺（m）・例 co-Drive 0.5m</span></div>
+          <div class="cvg2m-param"><b>銜接起點</b><span>s ∈ [0,1]</span></div>
+          <div class="cvg2m-param"><b>銜接終點</b><span>s ∈ [0,1]・例 RMA 1.2m 偏移</span></div>
+        </div>
+      </div>
+
+      <div class="scroll-hint dt-desktop-only">← 左右滑動查看完整圖 →</div>
+
+      <p style="font-size:16px;color:var(--ink);font-weight:600;line-height:1.7;max-width:600px;margin:28px auto 0;text-align:center">不管是偏移類還是銜接類，都只需要偏移量、銜接起點、銜接終點——三個數字，就能描述所有 9 項功能的軌跡需求。</p>
+
+      <div class="step-tag" style="margin-top:32px">STEP 5 · 決策</div>
+      <p style="font-size:13.5px;color:var(--ink-2);margin-top:8px;max-width:560px;margin-left:auto;margin-right:auto;text-align:center">有了這三個輸入，接下來的問題是：怎麼用它們算出一條平順的軌跡？這是下面三個決策要回答的。</p>
+
+      <div class="decisions" style="margin-top:32px">
+        <div class="dc">
+          <div class="n">DECISION 01</div>
+          <div class="t">介面只留 3 個數字</div>
+          <div class="r">偏移量、銜接起點、銜接終點——不多不少，讓任何人不用懂 trj 內部邏輯，也能快速驗證、調教自己負責的功能。這也是後續 4 位同事能 2 天接入的關鍵。</div>
+        </div>
+        <div class="dc">
+          <div class="n">DECISION 02</div>
+          <div class="t">三段式軌跡，段數也是取捨</div>
+          <div class="r">段數太多不好維護，太少又涵蓋不了所有情境；三段、每段用 poly4 平滑銜接，剛好滿足全部 9 項功能。3 階多項式只滿足 4 個邊界條件不足，5 階多出的 C2 連續性沒有對應收益，4 階是有依據的選擇。</div>
+        </div>
+        <div class="dc">
+          <div class="n">DECISION 03</div>
+          <div class="t">軌跡嚴格平順，零跳動</div>
+          <div class="r">銜接點只要有一點跳動，駕駛就會對系統失去信任——這是 ADAS 能不能真正取代人類駕駛的關鍵，不只是體驗問題。C0+C1 連續 + 距離參數化（s∈[0,1]，O(1) 單點查詢取代逐幀積分）確保這件事，同時也是 CPU 從超載降到 37% 的關鍵。</div>
+        </div>
+      </div>
+      <p style="font-size:13.5px;color:var(--ink-2);line-height:1.7;max-width:640px;margin:28px auto 0;text-align:center">省下來的運算資源沒有浪費掉——同一顆晶片現在能塞進更多功能，不用等硬體升級。開發週期壓到 2~3 天之後，客戶提新需求時，我們真的能快速做出來，co-Drive 就是這樣生出來的。</p>
+    </div>
+  </div>
+</section>
+
+<!-- 2-3 架構圖 -->
+<section id="architecture" class="band-alt">
+  <div class="wrap">
+    <div class="unit">
+      <div class="unit-head">
+        <div class="unit-tag">ARCHITECTURE · 核心</div>
+        <div class="unit-title">TRJ 在整個 pipeline 裡的位置</div>
+        <p style="font-size:13.5px;color:var(--ink-2);margin-top:10px;max-width:520px;margin-left:auto;margin-right:auto">這三個決策，最後長成這樣的系統位置——trj 只管 Trajectory Planning 這一層，不越界。</p>
+      </div>
+      <div class="svg-scroll pipeline-scroll dt-desktop-only">
+        <svg class="pipeline-svg" viewBox="0 0 800 268" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TRJ 在 ADAS pipeline 中的位置">
+          <defs>
+            <linearGradient id="pipeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#0a84ff"/>
+              <stop offset="42%" stop-color="#0071e3"/>
+              <stop offset="100%" stop-color="#28c6e8"/>
+            </linearGradient>
+            <marker id="pipeArrow" markerWidth="7" markerHeight="7" refX="5" refY="2.5" orient="auto">
+              <path d="M0,0 L5,2.5 L0,5 Z" fill="#93c5fd"/>
+            </marker>
+          </defs>
+
+          <!-- feature boxes -->
+          <g font-family="var(--sans)">
+            <rect x="39" y="10" width="170" height="44" rx="10" fill="#eef4ff" stroke="#93c5fd"/>
+            <text x="124" y="36" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0071e3">RMA</text>
+
+            <rect x="223" y="10" width="170" height="44" rx="10" fill="#eef4ff" stroke="#93c5fd"/>
+            <text x="308" y="29" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0071e3">Front Vehicle</text>
+            <text x="308" y="43" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0071e3">Trajectory</text>
+
+            <rect x="407" y="10" width="170" height="44" rx="10" fill="#eef4ff" stroke="#93c5fd"/>
+            <text x="492" y="36" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0071e3">Emergency Corridor</text>
+
+            <rect x="591" y="10" width="170" height="44" rx="10" fill="#eef4ff" stroke="#93c5fd"/>
+            <text x="676" y="36" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0071e3">Lane Change</text>
+          </g>
+
+          <!-- converging dashed connectors down to Trajectory Planning (centered on box midpoint x=406.5) -->
+          <path d="M124,54 C 260,90 350,90 380,150" fill="none" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#pipeArrow)"/>
+          <path d="M308,54 C 330,90 385,90 398,150" fill="none" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#pipeArrow)"/>
+          <path d="M492,54 C 470,90 425,90 415,150" fill="none" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#pipeArrow)"/>
+          <path d="M676,54 C 550,95 460,95 433,150" fill="none" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#pipeArrow)"/>
+
+          <!-- pipeline stages -->
+          <g font-family="var(--sans)">
+            <rect x="39" y="150" width="132" height="70" rx="12" fill="#fff" stroke="#d2d2d7"/>
+            <text x="105" y="178" text-anchor="middle" font-size="12" font-weight="700" fill="#1d1d1f" letter-spacing="0.5">SENSING</text>
+            <text x="105" y="196" text-anchor="middle" font-size="9.5" fill="#86868b">Camera・Radar</text>
+            <text x="105" y="207" text-anchor="middle" font-size="9.5" fill="#86868b">LiDAR</text>
+
+            <path d="M171,185 L186,185" stroke="#c7ccd1" stroke-width="1.5" marker-end="url(#pipeArrow)"/>
+
+            <rect x="186" y="150" width="132" height="70" rx="12" fill="#fff" stroke="#d2d2d7"/>
+            <text x="252" y="178" text-anchor="middle" font-size="12" font-weight="700" fill="#1d1d1f" letter-spacing="0.5">FUSION</text>
+            <text x="252" y="196" text-anchor="middle" font-size="9.5" fill="#86868b">Object /</text>
+            <text x="252" y="207" text-anchor="middle" font-size="9.5" fill="#86868b">Environment</text>
+
+            <path d="M318,185 L333,185" stroke="#c7ccd1" stroke-width="1.5" marker-end="url(#pipeArrow)"/>
+
+            <!-- highlighted: Trajectory Planning -->
+            <rect x="333" y="146" width="147" height="78" rx="14" fill="url(#pipeGrad)" opacity="0.1"/>
+            <rect x="333" y="146" width="147" height="78" rx="14" fill="none" stroke="url(#pipeGrad)" stroke-width="2"/>
+            <text x="406.5" y="176" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0071e3" letter-spacing="0.3">TRAJECTORY</text>
+            <text x="406.5" y="191" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0071e3" letter-spacing="0.3">PLANNING</text>
+            <text x="406.5" y="207" text-anchor="middle" font-size="9.5" fill="#0071e3" font-weight="600">by trj module</text>
+
+            <path d="M480,185 L495,185" stroke="#c7ccd1" stroke-width="1.5" marker-end="url(#pipeArrow)"/>
+
+            <rect x="495" y="150" width="132" height="70" rx="12" fill="#fff" stroke="#d2d2d7"/>
+            <text x="561" y="178" text-anchor="middle" font-size="12" font-weight="700" fill="#1d1d1f" letter-spacing="0.5">CONTROL</text>
+            <text x="561" y="196" text-anchor="middle" font-size="9.5" fill="#86868b">Tracking &amp;</text>
+            <text x="561" y="207" text-anchor="middle" font-size="9.5" fill="#86868b">Stability</text>
+
+            <path d="M627,185 L642,185" stroke="#c7ccd1" stroke-width="1.5" marker-end="url(#pipeArrow)"/>
+
+            <rect x="642" y="150" width="132" height="70" rx="12" fill="#fff" stroke="#d2d2d7"/>
+            <text x="708" y="178" text-anchor="middle" font-size="12" font-weight="700" fill="#1d1d1f" letter-spacing="0.5">ACTUATION</text>
+            <text x="708" y="196" text-anchor="middle" font-size="9.5" fill="#86868b">Steering・Throttle</text>
+            <text x="708" y="207" text-anchor="middle" font-size="9.5" fill="#86868b">Brake・Gear</text>
+          </g>
+
+          <!-- subtle road dashed line -->
+          <line x1="39" y1="248" x2="774" y2="248" stroke="#e5e5ea" stroke-width="2" stroke-dasharray="10,8"/>
+        </svg>
+      </div>
+
+      <!-- mobile-only responsive fallback (desktop SVG above is untouched) -->
+      <div class="pipem dt-mobile-only">
+        <div class="pipem-features">
+          <div class="pipem-feat">RMA</div>
+          <div class="pipem-feat">Front Vehicle Trajectory</div>
+          <div class="pipem-feat">Emergency Corridor</div>
+          <div class="pipem-feat">Lane Change</div>
+        </div>
+        <svg class="fanline" viewBox="0 0 300 60" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M45,0 C 90,30 130,44 148,58" fill="none" stroke="#93c5fd" stroke-width="2" stroke-dasharray="4,4"/>
+          <path d="M125,0 C 135,30 145,44 150,58" fill="none" stroke="#93c5fd" stroke-width="2" stroke-dasharray="4,4"/>
+          <path d="M175,0 C 165,30 155,44 152,58" fill="none" stroke="#93c5fd" stroke-width="2" stroke-dasharray="4,4"/>
+          <path d="M255,0 C 210,30 170,44 154,58" fill="none" stroke="#93c5fd" stroke-width="2" stroke-dasharray="4,4"/>
+        </svg>
+
+        <div class="pipem-focus">
+          <b>TRAJECTORY PLANNING</b>
+          <span>by trj module</span>
+        </div>
+
+        <div class="pipem-context-lbl">在完整 pipeline 裡的位置</div>
+        <div class="pipem-mini">
+          <div class="mini-card">SENSING</div>
+          <div class="mini-arrow">→</div>
+          <div class="mini-card">FUSION</div>
+          <div class="mini-arrow">→</div>
+          <div class="mini-card mini-active">TRAJECTORY<br>PLANNING</div>
+          <div class="mini-arrow">→</div>
+          <div class="mini-card">CONTROL</div>
+          <div class="mini-arrow">→</div>
+          <div class="mini-card">ACTUATION</div>
+        </div>
+      </div>
+
+      <div class="scroll-hint dt-desktop-only">← 左右滑動查看完整圖 →</div>
+      <div class="sig-wrap">
+        <div class="sig-cap">
+          <span class="sig-cap-tag">↧ TRAJECTORY PLANNING 展開</span>
+          <div class="sig-cap-title">trj module 內部設計</div>
+        </div>
+
+        <div class="idg">
+          <div class="idg-label idg-fn-mobile" style="grid-area:fnlabel">Functions</div>
+          <svg class="cx-arrow cx-h idg-fn-mobile" style="grid-area:fnarrow" viewBox="0 0 18 8" aria-hidden="true">
+            <path d="M0,4 L12,4" stroke="#93c5fd" stroke-width="1.5"/>
+            <path d="M10,1 L17,4 L10,7 Z" fill="#93c5fd"/>
+          </svg>
+          <div class="idg-box idg-box-solo">
+            Dispatcher
+            <span class="idg-fn-tag">
+              <span class="idg-label">Functions</span>
+              <svg class="cx-arrow cx-h" viewBox="0 0 18 8" aria-hidden="true">
+                <path d="M0,4 L12,4" stroke="#93c5fd" stroke-width="1.5"/>
+                <path d="M10,1 L17,4 L10,7 Z" fill="#93c5fd"/>
+              </svg>
+            </span>
+          </div>
+
+          <div class="idg-connector">
+            <svg class="cx-arrow cx-v-strong" viewBox="0 0 14 34" aria-hidden="true">
+              <path d="M7,0 L7,25" stroke="#0066cc" stroke-width="2"/>
+              <path d="M2,22 L7,32 L12,22 Z" fill="#0066cc"/>
+            </svg>
+            <div class="idg-param-text">bias · start distance · end distance</div>
+          </div>
+
+          <div class="idg-label" style="grid-area:fslabel">Fusion</div>
+          <svg class="cx-arrow cx-h" style="grid-area:fsarrow" viewBox="0 0 18 8" aria-hidden="true">
+            <path d="M0,4 L12,4" stroke="#93c5fd" stroke-width="1.5"/>
+            <path d="M10,1 L17,4 L10,7 Z" fill="#93c5fd"/>
+          </svg>
+
+          <div class="idg-group">
+            <div class="idg-box">3-Segment<br>Trajectory Design</div>
+            <svg class="cx-arrow cx-h" viewBox="0 0 18 8" aria-hidden="true">
+              <path d="M0,4 L12,4" stroke="#93c5fd" stroke-width="1.5"/>
+              <path d="M10,1 L17,4 L10,7 Z" fill="#93c5fd"/>
+            </svg>
+            <div class="idg-box idg-highlight">Trajectory–Controller<br>Interface</div>
+          </div>
+
+          <svg class="cx-arrow cx-h" style="grid-area:arrow3" viewBox="0 0 18 8" aria-hidden="true">
+            <path d="M0,4 L12,4" stroke="#93c5fd" stroke-width="1.5"/>
+            <path d="M10,1 L17,4 L10,7 Z" fill="#93c5fd"/>
+          </svg>
+          <div class="idg-label" style="grid-area:ctrl">Control</div>
+        </div>
+
+        <p class="idg-why">Dispatcher 依場景切換 <b>bias / start distance / end distance</b> 三個參數,同一套 3-Segment 演算法可複用於 9 個側向功能。</p>
+      </div>
+      <div class="arch-platform">適用於 <b>TC277 / TC397</b> 雙 MCU 平台</div>
+      <div style="height:1px;background:var(--line);max-width:760px;margin:36px auto 0"></div>
+      <div class="scale" style="margin-top:32px">
+        <div class="scale-c">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" style="margin-bottom:8px"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          <div class="num">9</div><div class="lbl">側向功能</div><div class="ex">RMA・co-Drive 等</div>
+        </div>
+        <div class="scale-c">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" style="margin-bottom:8px"><path d="M3 16 L5 9 H19 L21 16"/><rect x="3" y="16" width="18" height="4" rx="1"/><circle cx="7" cy="20" r="1.4" fill="#0071e3"/><circle cx="17" cy="20" r="1.4" fill="#0071e3"/></svg>
+          <div class="num">5</div><div class="lbl">車型平台</div><div class="ex">轎車・SUV・貨車・皮卡・聯結車</div>
+        </div>
+        <div class="scale-c" style="border:1px solid var(--amber-line);background:var(--amber-bg)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="1.8" style="margin-bottom:8px"><rect x="6" y="6" width="12" height="12" rx="1.5"/><line x1="9" y1="2" x2="9" y2="6"/><line x1="15" y1="2" x2="15" y2="6"/><line x1="9" y1="18" x2="9" y2="22"/><line x1="15" y1="18" x2="15" y2="22"/><line x1="2" y1="9" x2="6" y2="9"/><line x1="2" y1="15" x2="6" y2="15"/><line x1="18" y1="9" x2="22" y2="9"/><line x1="18" y1="15" x2="22" y2="15"/></svg>
+          <div class="num" style="color:#b45309">2</div><div class="lbl">MCU 平台</div><div class="ex">TC277・TC397・需跨平台驗證</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2-5 Live Demo -->
+<section id="functions">
+  <div class="wrap">
+    <div class="unit">
+      <div class="unit-head">
+        <div class="unit-tag">LIVE DEMO</div>
+        <div class="unit-title">同一套 trj，支援不同行為</div>
+        <p style="font-size:13.5px;color:var(--ink-2);margin-top:10px;max-width:520px;margin-left:auto;margin-right:auto">四個功能場景使用不同的控制邏輯，但全部共用 trj 模組的軌跡規劃基礎——一套規格、多功能複用。</p>
+      </div>
+      <div class="demo-stage">
+        <div class="demo-panel on" id="d1">
+          <iframe class="veh-embed" src="01_LetralFunction.html" loading="lazy" title="RMA + co-Drive demo"></iframe>
+          <div class="demo-ph">
+            <h3>進階側向功能整合</h3>
+            <p>RMA 完成大幅換道後，co-Drive 接手執行微小側偏修正，再平順回歸車道中心。兩套演算法透過 trj 共用介面無縫銜接，銜接點零跳變——已展示給 10+ 家車廠，獲得高度評價。</p>
+            <span class="tag">多功能銜接 · 零跳變</span>
+          </div>
+        </div>
+        <div class="demo-panel" id="d2">
+          <iframe class="veh-embed" data-src="01_co-Drive.html" loading="lazy" title="co-Drive demo"></iframe>
+          <div class="demo-ph">
+            <h3>協同駕駛輔助</h3>
+            <p>前方偵測到大型車輛時，系統自動側偏讓出超車空間，完成後平順回歸車道中心。已獲 OEM 客戶高度評價並量產上市。</p>
+            <span class="tag">量產功能 · 側偏修正</span>
+          </div>
+        </div>
+        <div class="demo-panel" id="d3">
+          <iframe class="veh-embed" data-src="01_EmergencyCorridio.html" loading="lazy" title="Emergency Corridor demo"></iframe>
+          <div class="demo-ph">
+            <h3>緊急通道讓道</h3>
+            <p>後方救護車逼近時，ego 車迅速靠邊讓出緊急通道。針對歐洲法規特別開發——2 天完成程式碼，5 天完成實車驗證。與換道場景共用同一套 trj 規格，展示模組的複用性。</p>
+            <span class="tag">2天開發 · 5天實車驗證</span>
+          </div>
+        </div>
+        <div class="demo-panel" id="d4">
+          <iframe class="veh-embed" data-src="01_FrontVehicleTrajectory.html" loading="lazy" title="前車軌跡預測 demo"></iframe>
+          <div class="demo-ph">
+            <h3>前車軌跡預測</h3>
+            <p>即時追蹤前方 CIPV 的側向行駛軌跡，擬合三段式曲線預測其未來路徑，提供後續決策依據。使用 trj 模組的曲線建構能力進行平滑擬合——已展示給 20+ 家車廠，現行量產於轎車與貨車。</p>
+            <span class="tag">曲線建構 · 量產驗證</span>
+          </div>
+        </div>
+        <div class="demo-tabs">
+          <button class="on" data-tab="d1">Common Lateral Function</button>
+          <button data-tab="d2">Co-Drive</button>
+          <button data-tab="d3">Emergency Corridor</button>
+          <button data-tab="d4">Follow Leading vehicle</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2-4 協作模式 -->
+<section id="collaboration">
+  <div class="wrap">
+    <div class="unit">
+      <div class="unit-head">
+        <div class="unit-tag">COLLABORATION</div>
+        <div class="unit-title">開放接口，而不是強迫遷移</div>
+        <p style="font-size:13.5px;color:var(--ink-2);margin-top:10px;max-width:480px;margin-left:auto;margin-right:auto">介面穩定之後，我沒有要求大家馬上換過來。</p>
+      </div>
+      <div class="collab">
+        <div class="svg-scroll collab-scroll dt-desktop-only">
+        <svg class="collab-svg" viewBox="0 0 640 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="開放接口給四位同事">
+          <defs>
+            <linearGradient id="collabGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#0a84ff"/>
+              <stop offset="42%" stop-color="#0071e3"/>
+              <stop offset="100%" stop-color="#28c6e8"/>
+            </linearGradient>
+          </defs>
+          <!-- fan lines -->
+          <path d="M320,58 C 260,100 130,110 100,150" fill="none" stroke="#93c5fd" stroke-width="1.5"/>
+          <path d="M320,58 C 300,100 250,110 230,150" fill="none" stroke="#93c5fd" stroke-width="1.5"/>
+          <path d="M320,58 C 340,100 390,110 410,150" fill="none" stroke="#86efac" stroke-width="1.5"/>
+          <path d="M320,58 C 380,100 510,110 540,150" fill="none" stroke="#86efac" stroke-width="1.5"/>
+
+          <!-- you node -->
+          <rect x="210" y="18" width="220" height="42" rx="21" fill="url(#collabGrad)"/>
+          <text x="320" y="44" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff">我 · 獨立落地 5 項功能</text>
+
+          <!-- colleague nodes -->
+          <g font-family="var(--sans)">
+            <rect x="40" y="150" width="120" height="54" rx="12" fill="#f5f5f7"/>
+            <text x="100" y="168" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">同事 A</text>
+            <text x="100" y="183" text-anchor="middle" font-size="10" font-weight="700" fill="#3b82f6">偏移類 · 2天接入</text>
+
+            <rect x="170" y="150" width="120" height="54" rx="12" fill="#f5f5f7"/>
+            <text x="230" y="168" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">同事 B</text>
+            <text x="230" y="183" text-anchor="middle" font-size="10" font-weight="700" fill="#3b82f6">偏移類 · 2天接入</text>
+
+            <rect x="350" y="150" width="120" height="54" rx="12" fill="#f5f5f7"/>
+            <text x="410" y="168" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">同事 C</text>
+            <text x="410" y="183" text-anchor="middle" font-size="10" font-weight="700" fill="#10b981">銜接類 · 2天接入</text>
+
+            <rect x="480" y="150" width="120" height="54" rx="12" fill="#f5f5f7"/>
+            <text x="540" y="168" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">同事 D</text>
+            <text x="540" y="183" text-anchor="middle" font-size="10" font-weight="700" fill="#10b981">銜接類 · 2天接入</text>
+          </g>
+        </svg>
+        </div>
+
+        <!-- mobile-only responsive fallback (desktop SVG above is untouched) -->
+        <div class="collabm dt-mobile-only">
+          <div class="collabm-you">我 · 獨立落地 5 項功能</div>
+          <svg class="fanline" viewBox="0 0 300 70" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M150,0 C 90,35 60,50 45,68" fill="none" stroke="#93c5fd" stroke-width="2"/>
+            <path d="M150,0 C 130,35 130,50 125,68" fill="none" stroke="#93c5fd" stroke-width="2"/>
+            <path d="M150,0 C 170,35 170,50 175,68" fill="none" stroke="#86efac" stroke-width="2"/>
+            <path d="M150,0 C 210,35 240,50 255,68" fill="none" stroke="#86efac" stroke-width="2"/>
+          </svg>
+          <div class="collabm-grid">
+            <div class="collabm-node" style="--nc:#3b82f6"><b>同事 A</b><span>偏移類 · 2天接入</span></div>
+            <div class="collabm-node" style="--nc:#3b82f6"><b>同事 B</b><span>偏移類 · 2天接入</span></div>
+            <div class="collabm-node" style="--nc:#10b981"><b>同事 C</b><span>銜接類 · 2天接入</span></div>
+            <div class="collabm-node" style="--nc:#10b981"><b>同事 D</b><span>銜接類 · 2天接入</span></div>
+          </div>
+        </div>
+
+        <div class="dt-desktop-only" style="display:flex;gap:18px;font-size:11px;color:var(--ink-3);align-items:center">
+          <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block"></span>偏移類</span>
+          <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block"></span>銜接類</span>
+        </div>
+        <div class="note" style="font-family:var(--sans);font-size:13px;color:var(--ink-2);max-width:480px;text-align:center;margin-top:2px">大家手上都有自己的任務，所以我先把東西做出來，再開放接口讓同事按自己的步調導入——規格固定，但調教空間留給各自負責的人。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2-3b 跨載具部署 -->
+<section id="platforms">
+  <div class="wrap">
+    <div class="unit" style="margin-bottom:clamp(28px,3.5vw,40px)">
+      <div class="unit-head">
+        <div class="unit-tag">DEPLOYMENT SCALE</div>
+        <div class="unit-title">一套核心，五種載具平台</div>
+        <p style="font-size:13.5px;color:var(--ink-2);margin-top:10px;max-width:540px;margin-left:auto;margin-right:auto">TRJ 不是針對特定車型設計的——它從架構層就被要求跨平台可用。1.5 噸小貨卡與 35 噸聯結車的動力學相差超過二十倍，但呼叫 TRJ 的介面完全一樣，差別只在傳入的參數，不在邏輯。</p>
+      </div>
+    </div>
+
+    <div class="veh-showcase">
+      <iframe class="veh-embed" src="01_MergedFunction.html" loading="lazy" title="五種載具平台切換 demo"></iframe>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section id="faq">
+  <div class="wrap">
+    <div class="unit">
+      <div class="unit-head">
+        <div class="unit-tag">面試官可能會問</div>
+        <div class="unit-title">Q&amp;A</div>
+      </div>
+      <div class="faq">
+        <details>
+          <summary><span class="qb">Q</span>&nbsp;為什麼選 4 階而不是 5 階或 3 階多項式？</summary>
+          <div class="a">3 階只能滿足 4 個邊界條件，不足。5 階滿足 6 個，但只需要 C1 連續，C2 是多餘的複雜度。4 階以最低複雜度滿足需求。</div>
+        </details>
+        <details>
+          <summary><span class="qb">Q</span>&nbsp;CPU 運算量是怎麼從超載降到 37% 的？</summary>
+          <div class="a">消除重複計算（N 個功能共用一份結果），並將每幀積分（O(N)）改為距離參數化的單點查詢（O(1)）。</div>
+        </details>
+        <details>
+          <summary><span class="qb">Q</span>&nbsp;這個架構能繼續擴展嗎？</summary>
+          <div class="a">可以，新增功能只需定義觸發條件、呼叫 trj 介面、新增對應 phase state，現有邏輯完全不需修改。</div>
+        </details>
+        <details>
+          <summary><span class="qb">Q</span>&nbsp;trj 跟 Fusion、Control 這些前後階段的邊界在哪？</summary>
+          <div class="a">trj 只負責 Trajectory Planning 這一層——輸入是 Fusion 給的物件/環境資訊與各功能的目標位移量，輸出是 egoX（位置、朝向、曲率）。往下的 tracking、stability control 屬於 Control 階段，不是 trj 的責任範圍，這個邊界切分讓每一層都能獨立驗證、獨立替換。</div>
+        </details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CLOSING REFLECTION ============ -->
+<section id="reflection" style="padding-top:0">
+  <div class="wrap">
+    <p style="font-size:16px;color:var(--ink);font-weight:600;line-height:1.7;max-width:560px;margin:0 auto;text-align:center">這件事讓我真正體會到，架構對了，能帶給團隊的好處遠比想像中大——不只是數字變好看，是大家都不用再花時間跟舊架構打架。</p>
+    <p style="font-size:15px;color:var(--ink-2);line-height:1.8;max-width:560px;margin:28px auto 0;text-align:center">這個結果也讓我更確信一件事：好的系統從來不是一個人做出來的。如果大家各自做各自的，每個人寫一套軌跡邏輯、對接方式也各自定義，不管每一份程式碼寫得多好，最後都會是一盤散沙。真正讓這件事成功的，是四位同事願意在介面確定之後，把自己的功能遷移進來——這需要信任，也需要默契。架構是我設計的，但系統是大家一起建起來的。</p>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="band-alt cta">
+  <div class="wrap">
+    <div class="cta-btns">
+      <a href="../lfs_page/lfs01.html" class="s">看另一個專案:LFS 車道融合 →</a>
+      <a href="mailto:tkps50803@gmail.com?subject=關於 TRJ 共用軌跡規劃模組" class="p">想聊聊，這邊找我</a>
+    </div>
+  </div>
+</section>
+
+<script>
+document.querySelectorAll('.demo-tabs button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.demo-tabs button').forEach(b=>b.classList.remove('on'));
+    document.querySelectorAll('.demo-panel').forEach(p=>p.classList.remove('on'));
+    btn.classList.add('on');
+    const panel=document.getElementById(btn.dataset.tab);
+    panel.classList.add('on');
+    const iframe=panel.querySelector('iframe[data-src]');
+    if(iframe){iframe.src=iframe.dataset.src;iframe.removeAttribute('data-src')}
+  });
+});
+</script>
+
+<script src="../assets/nav.js"></script>
+
+</body>
+</html>

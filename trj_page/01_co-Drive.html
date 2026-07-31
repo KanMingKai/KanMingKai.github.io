@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>co-Drive — 協同駕駛輔助</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #ffffff; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+    #canvas-container { width: 100vw; height: 100vh; }
+
+    #title-label {
+      position: absolute; top: 22px; left: 24px;
+      pointer-events: none;
+    }
+    #title-label .t1 {
+      font-size: 15px; font-weight: 700; color: #1a1a1e;
+      letter-spacing: 0.04em; line-height: 1;
+      display: flex; align-items: center; gap: 8px;
+    }
+    #title-label .t1::before {
+      content: ''; display: block;
+      width: 3px; height: 16px; border-radius: 2px;
+      background: #ff6600;
+    }
+    #title-label .t2 {
+      font-size: 10.5px; color: #888; font-weight: 400;
+      letter-spacing: 0.02em; margin-top: 5px; padding-left: 11px;
+    }
+
+    #wheel-panel { position: absolute; bottom: 24px; left: 20px; pointer-events: none; }
+  </style>
+</head>
+<body>
+<div id="canvas-container"></div>
+
+<div id="title-label">
+  <div class="t1">Co-Pilot Assist</div>
+  <div class="t2">Highly Rated by OEM Customers · Deployed in Mass Production</div>
+</div>
+
+<!-- 方向盤 HUD：左下角 160px，隨 heading 即時旋轉 -->
+<div id="wheel-panel">
+<svg width="160" height="160" viewBox="0 0 540 540">
+<defs>
+  <filter id="wShadow" x="-18%" y="-18%" width="136%" height="136%">
+    <feDropShadow dx="4" dy="7" stdDeviation="9" flood-color="#000" flood-opacity="0.55"/>
+  </filter>
+  <radialGradient id="hubG" cx="33%" cy="28%" r="72%">
+    <stop offset="0%"   stop-color="#8c8c8c"/>
+    <stop offset="30%"  stop-color="#505050"/>
+    <stop offset="70%"  stop-color="#282828"/>
+    <stop offset="100%" stop-color="#0c0c0c"/>
+  </radialGradient>
+  <radialGradient id="coverG" cx="38%" cy="33%" r="68%">
+    <stop offset="0%"   stop-color="#2e2e2e"/>
+    <stop offset="100%" stop-color="#0e0e0e"/>
+  </radialGradient>
+</defs>
+<g id="steeringWheel" transform="rotate(0,270,270)">
+<g filter="url(#wShadow)">
+  <!-- 輪緣皮革 -->
+  <circle cx="270" cy="270" r="158" fill="none" stroke="#0a0501"  stroke-width="36"/>
+  <circle cx="270" cy="270" r="158" fill="none" stroke="#1a0a04"  stroke-width="30"/>
+  <circle cx="270" cy="270" r="158" fill="none" stroke="#2c1508"  stroke-width="24"/>
+  <circle cx="270" cy="270" r="158" fill="none" stroke="#3e1e0c"  stroke-width="17"/>
+  <circle cx="270" cy="270" r="158" fill="none" stroke="#541f0b"  stroke-width="9"/>
+  <circle cx="270" cy="270" r="158" fill="none" stroke="#6e3515"  stroke-width="3.5"/>
+  <circle cx="270" cy="270" r="158" fill="none" stroke="#c09858"
+          stroke-width="1.3" stroke-dasharray="4 10" opacity="0.8"/>
+  <path d="M 178,148 A 158,158 0 0,1 305,116"
+        fill="none" stroke="#7a4020" stroke-width="5" stroke-linecap="round" opacity="0.5"/>
+  <path d="M 185,152 A 158,158 0 0,1 298,121"
+        fill="none" stroke="#9a5530" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+  <!-- 12 o'clock 輪輻 -->
+  <line x1="270" y1="220" x2="270" y2="112" stroke="#141414" stroke-width="30" stroke-linecap="square"/>
+  <line x1="270" y1="220" x2="270" y2="112" stroke="#2c2c2c" stroke-width="22" stroke-linecap="square"/>
+  <line x1="270" y1="220" x2="270" y2="112" stroke="#484848" stroke-width="12" stroke-linecap="square"/>
+  <line x1="266" y1="220" x2="266" y2="112" stroke="#686868" stroke-width="4" opacity="0.7"/>
+  <line x1="274" y1="220" x2="274" y2="112" stroke="#0c0c0c" stroke-width="4" opacity="0.85"/>
+  <!-- 8 o'clock 輪輻 -->
+  <line x1="225" y1="296" x2="133" y2="349" stroke="#141414" stroke-width="30" stroke-linecap="square"/>
+  <line x1="225" y1="296" x2="133" y2="349" stroke="#2c2c2c" stroke-width="22" stroke-linecap="square"/>
+  <line x1="225" y1="296" x2="133" y2="349" stroke="#484848" stroke-width="12" stroke-linecap="square"/>
+  <line x1="222" y1="290" x2="130" y2="343" stroke="#686868" stroke-width="4" opacity="0.7"/>
+  <line x1="228" y1="302" x2="136" y2="355" stroke="#0c0c0c" stroke-width="4" opacity="0.85"/>
+  <!-- 4 o'clock 輪輻 -->
+  <line x1="315" y1="296" x2="407" y2="349" stroke="#141414" stroke-width="30" stroke-linecap="square"/>
+  <line x1="315" y1="296" x2="407" y2="349" stroke="#2c2c2c" stroke-width="22" stroke-linecap="square"/>
+  <line x1="315" y1="296" x2="407" y2="349" stroke="#484848" stroke-width="12" stroke-linecap="square"/>
+  <line x1="318" y1="290" x2="410" y2="343" stroke="#686868" stroke-width="4" opacity="0.7"/>
+  <line x1="312" y1="302" x2="404" y2="355" stroke="#0c0c0c" stroke-width="4" opacity="0.85"/>
+  <!-- Hub -->
+  <circle cx="270" cy="270" r="54" fill="url(#hubG)" stroke="#0e0e0e" stroke-width="2"/>
+  <circle cx="270" cy="270" r="47" fill="none" stroke="#606060" stroke-width="1.2"/>
+  <circle cx="270" cy="270" r="46" fill="none" stroke="#1a1a1a" stroke-width="0.8"/>
+  <rect x="240" y="250" width="60" height="42" rx="9"
+        fill="url(#coverG)" stroke="#282828" stroke-width="1.5"/>
+  <line x1="270" y1="250" x2="270" y2="292" stroke="#1c1c1c" stroke-width="0.8" opacity="0.7"/>
+  <line x1="240" y1="271" x2="300" y2="271" stroke="#1c1c1c" stroke-width="0.8" opacity="0.7"/>
+  <circle cx="270" cy="267" r="10" fill="#121212" stroke="#2e2e2e" stroke-width="1.2"/>
+  <circle cx="270" cy="267" r="6"  fill="none"    stroke="#3a3a3a" stroke-width="1"/>
+  <ellipse cx="255" cy="254" rx="11" ry="6" fill="white" opacity="0.07" transform="rotate(-30 255 254)"/>
+</g>
+</g>
+</svg>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three":          "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+    "three/addons/":  "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { Line2 }        from 'three/addons/lines/Line2.js';
+import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+
+// ─── Scene ────────────────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xffffff);
+scene.fog = new THREE.Fog(0xffffff, 55, 110);
+
+// ─── Renderer ─────────────────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+// ─── Camera ───────────────────────────────────────────────────────────────
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(0, 8, -14);
+camera.lookAt(0, 0, 10);
+
+// ─── Controls ─────────────────────────────────────────────────────────────
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableZoom = false;
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.target.set(0, 0, 6);
+controls.maxPolarAngle = Math.PI / 2.1;
+controls.minDistance = 4;
+controls.maxDistance = 60;
+controls.update();
+
+// ─── Lights ───────────────────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.4);
+dirLight.position.set(8, 18, -10);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(2048, 2048);
+dirLight.shadow.camera.near = 0.1; dirLight.shadow.camera.far = 100;
+dirLight.shadow.camera.left = -30; dirLight.shadow.camera.right = 30;
+dirLight.shadow.camera.top  = 30;  dirLight.shadow.camera.bottom = -30;
+scene.add(dirLight);
+
+const rimLight = new THREE.DirectionalLight(0xaabbdd, 0.5);
+rimLight.position.set(-8, 5, 4);
+scene.add(rimLight);
+
+// ─── Ground plane ─────────────────────────────────────────────────────────
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(200, 200),
+  new THREE.MeshBasicMaterial({ color: 0xffffff })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.02;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+function straightPts(x, zFrom, zTo, n = 80) {
+  const pts = [];
+  for (let i = 0; i <= n; i++)
+    pts.push(new THREE.Vector3(x, 0.02, zFrom + (zTo - zFrom) * (i / n)));
+  return pts;
+}
+
+function makeDashedLine(points, color, dashLen = 1.2, gapLen = 0.8, opacity = 0.75) {
+  const group = new THREE.Group();
+  const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
+  let acc = 0, drawing = true, buf = [];
+  const flush = () => {
+    if (buf.length >= 2)
+      group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(buf), mat));
+    buf = [];
+  };
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i], b = points[i + 1];
+    const segLen = a.distanceTo(b);
+    const dir = b.clone().sub(a).normalize();
+    let t = 0;
+    while (t < segLen) {
+      const limit = drawing ? dashLen : gapLen;
+      const step  = Math.min(limit - acc, segLen - t);
+      if (drawing) buf.push(a.clone().addScaledVector(dir, t));
+      t += step; acc += step;
+      if (acc >= limit - 1e-6) {
+        if (drawing) { buf.push(a.clone().addScaledVector(dir, t)); flush(); }
+        drawing = !drawing; acc = 0;
+      }
+    }
+  }
+  if (drawing && buf.length >= 2) flush();
+  return group;
+}
+
+// ─── Constants ────────────────────────────────────────────────────────────
+const LANE_HALF  = 1.9;
+const ROAD_LEN   = 80;
+const LANE_CYCLE = 4.0;
+
+const D          = 0.8;         // co-Drive lateral offset: 0.8 m to the right
+const Z1         = 5;           // brief center-hold before shifting (m)
+const Z2         = 25;          // end of poly4 transition (m)
+const OBSTACLE_Z = 38;          // obstacle distance from deploy point (m)
+const EGO_SPEED  = 60 / 3.6;   // 16.67 m/s
+
+
+function poly4(s) {
+  const s2 = s*s, s3 = s2*s, s4 = s3*s;
+  return 3*s4 - 8*s3 + 6*s2;
+}
+
+function poly4Prime(s) {
+  const s2 = s*s;
+  return 12*s2*s - 24*s2 + 12*s;
+}
+
+function trajWX(relZ) {
+  if (relZ <= Z1) return 0;
+  if (relZ <= Z2) return -D * poly4((relZ - Z1) / (Z2 - Z1));
+  return -D;
+}
+
+function trajReturnWX(relZ) {
+  if (relZ <= Z1) return -D;
+  if (relZ <= Z2) return -D * (1 - poly4((relZ - Z1) / (Z2 - Z1)));
+  return 0;
+}
+
+// ─── worldGroup ───────────────────────────────────────────────────────────
+const worldGroup = new THREE.Group();
+scene.add(worldGroup);
+
+const laneGroup = new THREE.Group();
+
+function makeThickLine(x, zFrom, zTo, color, width, opacity = 1.0) {
+  const pts = straightPts(x, zFrom, zTo);
+  const flat = [];
+  for (const p of pts) flat.push(p.x, p.y, p.z);
+  const geo = new LineGeometry(); geo.setPositions(flat);
+  const mat = new LineMaterial({
+    color, linewidth: width, opacity, transparent: opacity < 1,
+    resolution: new THREE.Vector2(window.innerWidth, window.innerHeight),
+    worldUnits: false
+  });
+  const line = new Line2(geo, mat);
+  line.frustumCulled = false;
+  return line;
+}
+
+// 左右車道線（本車道邊界）：粗深灰虛線
+function makeThickDashedLine(x, zFrom, zTo, color, width, dashLen = 2.5, gapLen = 1.5) {
+  const group = new THREE.Group();
+  let z = zFrom;
+  while (z < zTo) {
+    const zEnd = Math.min(z + dashLen, zTo);
+    const flat = [x, 0.02, z, x, 0.02, zEnd];
+    const geo = new LineGeometry(); geo.setPositions(flat);
+    const mat = new LineMaterial({
+      color, linewidth: width,
+      resolution: new THREE.Vector2(window.innerWidth, window.innerHeight),
+      worldUnits: false
+    });
+    const seg = new Line2(geo, mat);
+    seg.frustumCulled = false;
+    group.add(seg);
+    z = zEnd + gapLen;
+  }
+  return group;
+}
+
+laneGroup.add(makeThickDashedLine(-LANE_HALF, -10, ROAD_LEN, 0x444444, 3));
+laneGroup.add(makeThickDashedLine( LANE_HALF, -10, ROAD_LEN, 0x444444, 3));
+
+// 最外側路邊線：稍細深灰實線
+laneGroup.add(makeThickLine(-LANE_HALF * 3, -10, ROAD_LEN, 0x666666, 2));
+laneGroup.add(makeThickLine( LANE_HALF * 3, -10, ROAD_LEN, 0x666666, 2));
+
+// 中心線：細橘色實線
+const centerLine = makeThickLine(0, -10, ROAD_LEN, 0xff6600, 1.5);
+laneGroup.add(centerLine);
+worldGroup.add(laneGroup);
+
+// ─── Obstacle (cardboard boxes) ───────────────────────────────────────────
+let obstacleGroup = null;
+let hazardMeshes  = [];
+
+function buildObstacle() {
+  const g = new THREE.Group();
+
+  // Cardboard material variants (slightly different browns for visual interest)
+  function boxMat(c) {
+    return new THREE.MeshLambertMaterial({ color: c });
+  }
+
+  // Box definitions: [w, h, d, cx, cy, cz, color]
+  const boxes = [
+    // Bottom row — 3 large boxes side by side
+    [0.58, 0.55, 0.58,  -0.60, 0.275, 0,   0xc8862a],
+    [0.58, 0.55, 0.58,   0.00, 0.275, 0,   0xbe7b22],
+    [0.58, 0.55, 0.58,   0.60, 0.275, 0,   0xca8c2e],
+    // Bottom row — front (z = -0.6)
+    [0.58, 0.55, 0.58,  -0.60, 0.275, -0.62, 0xc28025],
+    [0.58, 0.55, 0.58,   0.00, 0.275, -0.62, 0xbc7820],
+    [0.58, 0.55, 0.58,   0.60, 0.275, -0.62, 0xc88830],
+    // Middle row — 2 boxes (offset for stagger)
+    [0.58, 0.50, 0.58,  -0.30, 0.825,  0.00, 0xd49535],
+    [0.58, 0.50, 0.58,   0.30, 0.825, -0.62, 0xcc8c2c],
+    // Top box — one small box askew
+    [0.50, 0.44, 0.50,   0.00, 1.345,  -0.28, 0xdaa040],
+  ];
+
+  for (const [w, h, d, cx, cy, cz, col] of boxes) {
+    const mesh = new THREE.Mesh(
+      new THREE.BoxGeometry(w, h, d),
+      boxMat(col)
+    );
+    mesh.position.set(cx, cy, cz);
+    mesh.castShadow = true;
+    g.add(mesh);
+  }
+
+  // Tape lines drawn as thin dark quads on front-facing box faces
+  const tapeMat = new THREE.MeshBasicMaterial({ color: 0x7a5c10 });
+  for (const [cx, cz] of [[-0.60, -0.62],[0.00, -0.62],[0.60, -0.62]]) {
+    const tape = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.04, 0.02), tapeMat);
+    tape.position.set(cx, 0.275, cz - 0.30);
+    g.add(tape);
+  }
+
+  // Traffic cones around the boxes
+  const coneGeo = new THREE.ConeGeometry(0.18, 0.62, 8);
+  const coneMat = new THREE.MeshLambertMaterial({ color: 0xff5500 });
+  for (const [x, z] of [[-1.0, 0.4],[1.0, 0.4],[-1.0,-1.1],[1.0,-1.1],[0,-1.7]]) {
+    const cone = new THREE.Mesh(coneGeo, coneMat);
+    cone.position.set(x, 0.31, z);
+    g.add(cone);
+  }
+
+  hazardMeshes = [];
+  return g;
+}
+
+function spawnObstacle() {
+  if (obstacleGroup) return;
+  obstacleGroup = new THREE.Group();
+  obstacleGroup.frustumCulled = false;
+  const obs = buildObstacle();
+  obs.position.set(-LANE_HALF, 0, OBSTACLE_Z);
+  obstacleGroup.add(obs);
+  worldGroup.add(obstacleGroup);
+}
+
+function removeObstacle() {
+  if (!obstacleGroup) return;
+  worldGroup.remove(obstacleGroup);
+  obstacleGroup = null;
+  hazardMeshes = [];
+}
+
+// ─── Return-to-center trajectory (三段軌跡，仿 LFCP 做法) ─────────────────
+const TRAJ_COLORS   = [0xff2200, 0xff8c00, 0xff2200];
+const TRAJ_OPACITIES = [0.35, 0.70, 1.00];
+const SEG3_LEN = 20;  // z extent of "at center" segment (m)
+
+const retTrajGroup = new THREE.Group();
+retTrajGroup.frustumCulled = false;
+retTrajGroup.visible = false;
+worldGroup.add(retTrajGroup);
+let retTrajLines = [];
+
+function buildReturnTrajLines() {
+  for (const l of retTrajLines) {
+    l.geometry.dispose(); l.material.dispose(); retTrajGroup.remove(l);
+  }
+  retTrajLines = [];
+
+  function addSeg(flat, color, opacity) {
+    const geo = new LineGeometry(); geo.setPositions(flat);
+    const mat = new LineMaterial({
+      color, opacity, transparent: true, linewidth: 3,
+      resolution: new THREE.Vector2(window.innerWidth, window.innerHeight),
+      worldUnits: false
+    });
+    const line = new Line2(geo, mat);
+    line.frustumCulled = false;
+    retTrajGroup.add(line); retTrajLines.push(line);
+  }
+
+  // Seg1: 維持右偏 D，z = 0 → Z1  (co-Drive 向右偏，worldGroup local x = +D)
+  const f1 = [];
+  for (let i = 0; i <= 30; i++) f1.push(D, 0.05, (i / 30) * Z1);
+  addSeg(f1, TRAJ_COLORS[0], TRAJ_OPACITIES[0]);
+
+  // Seg2: poly4 從 +D 回到 0，z = Z1 → Z2
+  const f2 = [];
+  for (let i = 0; i <= 80; i++) {
+    const s = i / 80;
+    f2.push(D * (1 - poly4(s)), 0.05, Z1 + s * (Z2 - Z1));
+  }
+  addSeg(f2, TRAJ_COLORS[1], TRAJ_OPACITIES[1]);
+
+  // Seg3: 回到車道中心 x=0，z = Z2 → Z2+SEG3_LEN
+  const f3 = [];
+  for (let i = 0; i <= 30; i++) f3.push(0, 0.05, Z2 + (i / 30) * SEG3_LEN);
+  addSeg(f3, TRAJ_COLORS[2], TRAJ_OPACITIES[2]);
+}
+
+buildReturnTrajLines();
+
+// ─── Ego vehicle ──────────────────────────────────────────────────────────
+function buildEgo() {
+  const g = new THREE.Group();
+
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(1.8, 0.6, 4.2),
+    new THREE.MeshPhysicalMaterial({
+      color: 0xf4f4f2, metalness: 0.45, roughness: 0.22,
+      clearcoat: 1.0, clearcoatRoughness: 0.08
+    })
+  );
+  body.position.y = 0.55; body.castShadow = true; g.add(body);
+
+  const cabin = new THREE.Mesh(
+    new THREE.BoxGeometry(1.5, 0.5, 2.2),
+    new THREE.MeshPhysicalMaterial({
+      color: 0x3a4a5a, metalness: 0.2, roughness: 0.3,
+      transparent: true, opacity: 0.78
+    })
+  );
+  cabin.position.set(0, 1.05, -0.3); cabin.castShadow = true; g.add(cabin);
+
+  const stripe = new THREE.Mesh(
+    new THREE.BoxGeometry(1.82, 0.04, 4.22),
+    new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.7 })
+  );
+  stripe.position.y = 0.28; g.add(stripe);
+
+  const wGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.22, 24);
+  const wMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
+  for (const [x, y, z] of [[-0.95,0.32,-1.35],[0.95,0.32,-1.35],[-0.95,0.32,1.35],[0.95,0.32,1.35]]) {
+    const w = new THREE.Mesh(wGeo, wMat);
+    w.rotation.z = Math.PI / 2; w.position.set(x, y, z); w.castShadow = true; g.add(w);
+  }
+
+  for (const x of [-0.65, 0.65]) {
+    const hl = new THREE.Mesh(
+      new THREE.BoxGeometry(0.3, 0.12, 0.06),
+      new THREE.MeshBasicMaterial({ color: 0xfff8e0 })
+    );
+    hl.position.set(x, 0.5, 2.12); g.add(hl);
+
+    const tl = new THREE.Mesh(
+      new THREE.BoxGeometry(0.3, 0.10, 0.06),
+      new THREE.MeshBasicMaterial({ color: 0xff2200, transparent: true, opacity: 0.9 })
+    );
+    tl.position.set(x, 0.5, -2.12); g.add(tl);
+  }
+  return g;
+}
+
+const ego = buildEgo();
+scene.add(ego);
+
+// ─── HUD ──────────────────────────────────────────────────────────────────
+const steeringWheelEl = document.getElementById('steeringWheel');
+const STEER_SCALE     = 12;
+
+// ─── Phase state machine ──────────────────────────────────────────────────
+let totalScroll = 0;
+const PH = { NORMAL:0, DETECT:1, MOVE:2, PASS:3, RETURN:4, IDLE:5 };
+let phase        = PH.NORMAL;
+let phaseStartS  = 0;
+let deploy_scroll = 0;
+let return_scroll = 0;
+let lastTime     = performance.now();
+
+const NORMAL_DUR = 1.5;
+const PASS_HOLD  = 2.5;
+const IDLE_DUR   = 1.5;
+
+// ─── Animation loop ───────────────────────────────────────────────────────
+function animate(now) {
+  requestAnimationFrame(animate);
+
+  const dt      = Math.min((now - lastTime) / 1000, 0.05);
+  lastTime = now;
+  const timeSec = now / 1000;
+
+  totalScroll += EGO_SPEED * dt;
+  const relZ = totalScroll - deploy_scroll;
+
+  // ── Phase transitions ────────────────────────────────────────────────
+  if (phase === PH.NORMAL) {
+    if (timeSec - phaseStartS >= NORMAL_DUR) {
+      phase = PH.DETECT; phaseStartS = timeSec;
+      deploy_scroll = totalScroll;
+      spawnObstacle();
+    }
+  } else if (phase === PH.DETECT) {
+    if (relZ >= Z1) { phase = PH.MOVE; phaseStartS = timeSec; }
+  } else if (phase === PH.MOVE) {
+    if (relZ >= Z2) { phase = PH.PASS; phaseStartS = timeSec; }
+  } else if (phase === PH.PASS) {
+    if (timeSec - phaseStartS >= PASS_HOLD) {
+      phase = PH.RETURN; phaseStartS = timeSec;
+      return_scroll = totalScroll;
+      buildReturnTrajLines();
+      retTrajGroup.visible = true;
+    }
+  } else if (phase === PH.RETURN) {
+    if (totalScroll - return_scroll >= Z2 + SEG3_LEN) {
+      phase = PH.IDLE; phaseStartS = timeSec;
+      retTrajGroup.visible = false;
+    }
+  } else { // IDLE
+    if (timeSec - phaseStartS >= IDLE_DUR) {
+      removeObstacle();
+      phase = PH.NORMAL; phaseStartS = timeSec;
+    }
+  }
+
+  // ── egoX ────────────────────────────────────────────────────────────
+  let egoX = 0;
+  if (phase === PH.MOVE) {
+    egoX = trajWX(relZ);
+  } else if (phase === PH.PASS) {
+    egoX = -D;
+  } else if (phase === PH.RETURN) {
+    egoX = trajReturnWX(totalScroll - return_scroll);
+  }
+
+  // ── Obstacle world-fixed position ────────────────────────────────────────
+  if (obstacleGroup) {
+    obstacleGroup.position.z = -(totalScroll - deploy_scroll);
+  }
+
+  // ── Road scroll (infinite loop illusion) ─────────────────────────────
+  laneGroup.position.z  = -(totalScroll % LANE_CYCLE);
+
+  // ── Heading angle from trajectory derivative ──────────────────────────
+  let heading = 0;
+  if (phase === PH.MOVE) {
+    const s = Math.max(0, Math.min(1, (relZ - Z1) / (Z2 - Z1)));
+    heading = -Math.atan(D * poly4Prime(s) / (Z2 - Z1));
+  } else if (phase === PH.RETURN) {
+    const s = Math.max(0, Math.min(1, (totalScroll - return_scroll - Z1) / (Z2 - Z1)));
+    heading = Math.atan(D * poly4Prime(s) / (Z2 - Z1));
+  }
+
+  worldGroup.position.x = egoX;
+  worldGroup.rotation.y = heading;
+
+  const steerDeg = (heading * (180 / Math.PI)) * STEER_SCALE;
+  steeringWheelEl.setAttribute('transform', `rotate(${steerDeg.toFixed(2)},270,270)`);
+
+  // 回正三段軌跡：world-fixed，只需平移 group
+  if (phase === PH.RETURN) {
+    retTrajGroup.position.z = -(totalScroll - return_scroll);
+  }
+
+  ego.position.y = Math.sin(timeSec * 1.4) * 0.012;
+
+  // ── 橘色中心線：co-Drive 側偏到回正完成前隱藏 ────────────────────────────
+  centerLine.visible = !(phase === PH.MOVE || phase === PH.PASS || phase === PH.RETURN);
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+requestAnimationFrame(animate);
+
+// ─── Resize ───────────────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  const res = new THREE.Vector2(window.innerWidth, window.innerHeight);
+  for (const l of retTrajLines) l.material.resolution.copy(res);
+  laneGroup.traverse(obj => {
+    if (obj.isLine2) obj.material.resolution.copy(res);
+  });
+});
+</script>
+</body>
+</html>

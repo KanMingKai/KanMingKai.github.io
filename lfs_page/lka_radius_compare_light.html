@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LKA — Radius Comparison (Light)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+TC:wght@500;600;700&display=swap');
+    :root{
+      --bg:#ffffff;--bg-alt:#f5f5f7;--ink:#1d1d1f;--ink-2:#6e6e73;--ink-3:#86868b;
+      --line:#d2d2d7;--blue:#0071e3;--amber:#c2760b;--amber-line:#fde3c8;--green:#0a8a5c;
+      --sans:"SF Pro TC",-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+      --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg); overflow: hidden; font-family: var(--sans); color: var(--ink); }
+
+    #layout { display: flex; width: 100vw; height: 100vh; }
+
+    #scene-col { flex: 1 1 0; position: relative; min-width: 0; background:#ffffff; }
+    #canvas-container { width: 100%; height: 100%; }
+
+    /* ── RIGHT PANEL ── */
+    #analysis-col {
+      width: 420px; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      background: #ffffff;
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 14px 18px 12px;
+      background: var(--bg-alt);
+    }
+    .panel-title {
+      font-size: 13px; font-weight: 700; letter-spacing: 0.06em;
+      color: var(--ink); text-transform: uppercase;
+    }
+    .panel-subtitle {
+      font-size: 10px; color: var(--ink-3); margin-top: 3px;
+      font-family: var(--mono);
+    }
+
+    /* ── 3 readout cards ── */
+    #readout-row { display: flex; }
+    .rcard {
+      flex: 1; padding: 12px 14px;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .rcard-label { font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.08em; color: var(--ink-3); text-transform: uppercase; }
+    .rcard-value { font-family: var(--mono); font-size: 23px; font-weight: 700; line-height: 1.05; }
+    .rcard-unit  { font-family: var(--mono); font-size: 8.5px; color: var(--ink-3); }
+    .col-true  { color: var(--green); }
+    .col-c2    { color: var(--amber); }
+    .col-t3    { color: var(--blue); }
+
+    /* formula legend row */
+    #formula-row {
+      display: flex; gap: 8px; padding: 9px 14px;
+      background: var(--bg-alt);
+    }
+    .fchip {
+      flex: 1; display: flex; align-items: center; gap: 7px;
+      padding: 6px 9px; border-radius: 8px; border: 1px solid;
+    }
+    .fchip.c2  { border-color: var(--amber-line); background: #fff7ed; }
+    .fchip.t3  { border-color: #cfe1ff; background: #eef4ff; }
+    .fdot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .fdot.c2 { background: var(--amber); } .fdot.t3 { background: var(--blue); }
+    .ftext { font-family: var(--mono); font-size: 9.5px; color: var(--ink-2); line-height: 1.4; }
+    .ftext em { color: var(--ink-3); font-style: normal; }
+
+    /* comparison card tints (wordless: amber = old, blue = 3-point) */
+    .rcard.c2bg { background: #fff7ed; }
+    .rcard.t3bg { background: #eef4ff; }
+
+    /* ── wave section ── */
+    .wave-section { display: flex; flex-direction: column; }
+    .wave-label {
+      padding: 7px 14px 3px;
+      font-family: var(--mono);
+      font-size: 8.5px; letter-spacing: 0.08em; color: var(--ink-3);
+      text-transform: uppercase; display: flex; align-items: center; gap: 6px;
+    }
+    .wave-label::after { content:''; flex:1; }
+    .wave-canvas { display: block; width: 100%; }
+
+    /* ── HUD left ── */
+    #hud {
+      position: absolute; top: 20px; left: 22px;
+      color: var(--ink-2); font-size: 12px; line-height: 1.85;
+      pointer-events: none; z-index: 10;
+    }
+    #hud .title { font-size: 15px; font-weight: 700; color: var(--ink); letter-spacing: 0.02em; margin-bottom: 8px; }
+    #hud .stat { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+    #hud .stat span { color: var(--green); }
+    #hud .stat span.blue  { color: var(--blue); }
+    #hud .stat span.amber { color: var(--amber); }
+
+    #legend {
+      position: absolute; bottom: 24px; left: 22px;
+      color: var(--ink-3); font-size: 10px; line-height: 2;
+      pointer-events: none; z-index: 10;
+      font-family: var(--mono);
+    }
+    .legend-row { display: flex; align-items: center; gap: 8px; }
+    .legend-swatch { width: 22px; height: 2px; border-radius: 1px; }
+
+    #controls-hint {
+      position: absolute; bottom: 24px; right: 22px;
+      color: var(--ink-3); font-size: 9px; text-align: right; opacity:.7;
+      pointer-events: none; z-index: 10;
+      font-family: var(--mono); line-height: 1.8;
+    }
+
+    /* ── responsive: keep LEFT/RIGHT side-by-side, just shrink to fit narrow / mobile ── */
+    @media (max-width: 720px) {
+      #analysis-col { width: 44%; }        /* percentage instead of fixed → never overflows */
+      #hud { top: 10px; left: 12px; }
+      #hud .title { font-size: 12px; }
+      #legend { bottom: 10px; left: 12px; font-size: 8px; line-height: 1.6; }
+      .panel-header { padding: 9px 11px 7px; }
+      .panel-title { font-size: 11px; }
+      .panel-subtitle { font-size: 8px; }
+      .rcard { padding: 7px 7px; }
+      .rcard-label { font-size: 7px; }
+      .rcard-value { font-size: 15px; }
+      .rcard-unit { font-size: 7px; }
+      .wave-label { font-size: 7.5px; padding: 5px 10px 2px; }
+    }
+    @media (max-width: 460px) {
+      #analysis-col { width: 46%; }
+      .rcard-value { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+<div id="layout">
+
+  <!-- ═══ LEFT ═══ -->
+  <div id="scene-col">
+    <div id="canvas-container"></div>
+    <div id="hud">
+      <div class="title">Lane Keeping Control</div>
+    </div>
+    <div id="legend">
+      <div class="legend-row"><div class="legend-swatch" style="background:repeating-linear-gradient(90deg,#9a9aa0 0 7px,transparent 7px 12px)"></div>Lane</div>
+      <div class="legend-row"><div class="legend-swatch" style="background:#e0403f"></div>LKA Path</div>
+      <div class="legend-row"><div class="legend-swatch" style="border-top:1px dashed #0071e3;height:0"></div>Predicted</div>
+    </div>
+  </div>
+
+  <!-- ═══ RIGHT ═══ -->
+  <div id="analysis-col">
+    <div class="panel-header">
+      <div class="panel-title">Radius Estimation</div>
+      <div class="panel-subtitle">1/(2C₂) &nbsp;vs&nbsp; closed-form</div>
+    </div>
+
+    <div class="wave-section" style="flex: 1;">
+      <div class="wave-label">Estimated R(t)</div>
+      <canvas id="waveR" class="wave-canvas" style="flex:1"></canvas>
+    </div>
+
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ═══ Scene ════════════════════════════════════════════════════════════════
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xffffff);
+scene.fog = new THREE.Fog(0xffffff, 60, 120);
+
+const container = document.getElementById('canvas-container');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+container.appendChild(renderer.domElement);
+
+function resizeRenderer() {
+  const w = container.clientWidth, h = container.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+
+const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 200);
+camera.position.set(0, 8, -14);
+camera.lookAt(0, 0, 10);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.06;
+controls.target.set(0, 0, 6); controls.maxPolarAngle = Math.PI / 2.1;
+controls.minDistance = 4; controls.maxDistance = 60; controls.update();
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+const dL = new THREE.DirectionalLight(0xffffff, 1.15);
+dL.position.set(8,20,-8); dL.castShadow = true;
+dL.shadow.mapSize.set(2048,2048);
+dL.shadow.camera.near   = 0.1;
+dL.shadow.camera.far    = 100;
+dL.shadow.camera.left   = -30;
+dL.shadow.camera.right  = 30;
+dL.shadow.camera.top    = 30;
+dL.shadow.camera.bottom = -30;
+dL.shadow.bias = -0.0004;
+scene.add(dL);
+const rim = new THREE.DirectionalLight(0xcfe1ff, 0.35); rim.position.set(-8,5,4); scene.add(rim);
+
+// ═══ Constants ════════════════════════════════════════════════════════════
+const LANE_H = 1.9, ROAD_LEN = 80, LANE_CYCLE = 4.0, CURVE_R = 180, GRID_CELL = 2.5;
+
+// ═══ Ground ═══════════════════════════════════════════════════════════════
+const gnd = new THREE.Mesh(new THREE.PlaneGeometry(200,200), new THREE.MeshBasicMaterial({color:0xffffff}));
+gnd.rotation.x = -Math.PI/2; gnd.position.y = -0.02; gnd.receiveShadow = false; scene.add(gnd);
+
+// ═══ Road geometry helpers ════════════════════════════════════════════════
+function curvePts(xOff, z0, z1, n=300) {
+  const pts = [];
+  for (let i=0;i<=n;i++) {
+    const z = z0+(z1-z0)*(i/n);
+    pts.push(new THREE.Vector3(xOff + (z>0 ? -z*z/(2*CURVE_R) : 0), 0.02, z));
+  }
+  return pts;
+}
+
+const worldGroup = new THREE.Group(); scene.add(worldGroup);
+const solidMat = new THREE.LineBasicMaterial({color:0x9a9aa0,transparent:true,opacity:0.55});
+for (const x of [-LANE_H*3, LANE_H*3])
+  worldGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(curvePts(x,-10,ROAD_LEN)), solidMat));
+
+function buildScrollDash(xOff, dLen, gLen, color, opacity, zMin, zMax, nPts) {
+  const cycle = dLen+gLen, maxN = Math.ceil((zMax-zMin+cycle)/cycle)+2;
+  const mat = new THREE.LineBasicMaterial({color,transparent:true,opacity});
+  const group = new THREE.Group(); const dashes=[];
+  for (let i=0;i<maxN;i++) {
+    const buf=new Float32Array(nPts*3), geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.BufferAttribute(buf,3));
+    const line=new THREE.Line(geo,mat); line.frustumCulled=false;
+    group.add(line); dashes.push({line,buf});
+  }
+  group.userData={xOff,dLen,cycle,maxN,nPts,dashes,zMin,zMax}; return group;
+}
+function updateScrollDash(group, scroll) {
+  const {xOff,dLen,cycle,maxN,nPts,dashes,zMin,zMax}=group.userData;
+  const off=scroll%cycle, kStart=Math.floor((zMin+off)/cycle)-1;
+  for (let i=0;i<maxN;i++) {
+    const k=kStart+i, z0=k*cycle-off, z1=z0+dLen, {line,buf}=dashes[i];
+    if (z1<=zMin||z0>=zMax){line.visible=false;continue;}
+    line.visible=true;
+    const az0=Math.max(z0,zMin), az1=Math.min(z1,zMax);
+    for (let j=0;j<nPts;j++) {
+      const z=az0+(az1-az0)*j/(nPts-1);
+      buf[j*3]=xOff+(z>0?-z*z/(2*CURVE_R):0); buf[j*3+1]=0.02; buf[j*3+2]=z;
+    }
+    line.geometry.attributes.position.needsUpdate=true;
+  }
+}
+const lD=buildScrollDash(-LANE_H,2.5,1.5,0x8a8a90,0.75,-10,ROAD_LEN,6);
+const rD=buildScrollDash( LANE_H,2.5,1.5,0x8a8a90,0.75,-10,ROAD_LEN,6);
+const yD=buildScrollDash(0,0.4,0.6,0xe0a020,0.55,-2,40,4);
+worldGroup.add(lD,rD,yD);
+
+// path
+const PATH_N=80;
+function buildPath(egoX) {
+  const pts=[];
+  for (let i=0;i<=PATH_N;i++) {
+    const z=(ROAD_LEN*i)/PATH_N, t=Math.min(z/40,1), ease=(1-Math.cos(t*Math.PI))/2;
+    pts.push(new THREE.Vector3(-z*z/(2*CURVE_R)-egoX*ease, 0.03, z));
+  }
+  return pts;
+}
+const pathMat=new THREE.LineBasicMaterial({color:0xe0403f});
+let pathLine=new THREE.Line(new THREE.BufferGeometry().setFromPoints(buildPath(0)),pathMat);
+pathLine.frustumCulled=false; scene.add(pathLine);
+const gLm=new THREE.LineBasicMaterial({color:0xe0403f,transparent:true,opacity:0.14});
+const gRm=new THREE.LineBasicMaterial({color:0xe0403f,transparent:true,opacity:0.14});
+let glowL=new THREE.Line(new THREE.BufferGeometry().setFromPoints(buildPath(0).map(p=>new THREE.Vector3(p.x-.14,p.y,p.z))),gLm);
+let glowR=new THREE.Line(new THREE.BufferGeometry().setFromPoints(buildPath(0).map(p=>new THREE.Vector3(p.x+.14,p.y,p.z))),gRm);
+glowL.frustumCulled=glowR.frustumCulled=false; scene.add(glowL,glowR);
+function updatePath(egoX) {
+  const pts=buildPath(egoX);
+  pathLine.geometry.dispose(); pathLine.geometry=new THREE.BufferGeometry().setFromPoints(pts);
+  glowL.geometry.dispose(); glowL.geometry=new THREE.BufferGeometry().setFromPoints(pts.map(p=>new THREE.Vector3(p.x-.14,p.y,p.z)));
+  glowR.geometry.dispose(); glowR.geometry=new THREE.BufferGeometry().setFromPoints(pts.map(p=>new THREE.Vector3(p.x+.14,p.y,p.z)));
+}
+
+// predicted dashed
+function makeDashed(points,color,dL=1.0,gL=1.2,op=0.55) {
+  const g=new THREE.Group(), mat=new THREE.LineBasicMaterial({color,transparent:true,opacity:op});
+  let acc=0,drawing=true,buf=[];
+  const flush=()=>{if(buf.length>=2)g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(buf),mat));buf=[];};
+  for(let i=0;i<points.length-1;i++){
+    const a=points[i],b=points[i+1],sL=a.distanceTo(b),dir=b.clone().sub(a).normalize();
+    let t=0;
+    while(t<sL){const lim=drawing?dL:gL,step=Math.min(lim-acc,sL-t);
+      if(drawing)buf.push(a.clone().addScaledVector(dir,t));
+      t+=step;acc+=step;
+      if(acc>=lim-1e-6){if(drawing){buf.push(a.clone().addScaledVector(dir,t));flush();}drawing=!drawing;acc=0;}
+    }
+  }
+  if(drawing&&buf.length>=2)flush(); return g;
+}
+const predPath=makeDashed(curvePts(0,0,ROAD_LEN*0.7),0x0071e3);
+predPath.frustumCulled=false; worldGroup.add(predPath);
+
+// ego car
+function buildEgo() {
+  const g=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.BoxGeometry(1.8,.6,4.2),
+    new THREE.MeshPhysicalMaterial({color:0xccd2da,metalness:.35,roughness:.32,clearcoat:.8,clearcoatRoughness:.1}));
+  body.position.y=.55; body.castShadow=true; g.add(body);
+  const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.5,.5,2.2),
+    new THREE.MeshPhysicalMaterial({color:0x33465a,metalness:.2,roughness:.3,transparent:true,opacity:.82}));
+  cabin.position.set(0,1.05,-.3); g.add(cabin);
+  const stripe=new THREE.Mesh(new THREE.BoxGeometry(1.82,.05,4.22),
+    new THREE.MeshBasicMaterial({color:0x0071e3,transparent:true,opacity:.7}));
+  stripe.position.y=.30; g.add(stripe);
+  const wG=new THREE.CylinderGeometry(.32,.32,.22,24),wM=new THREE.MeshLambertMaterial({color:0x222228});
+  for(const[x,y,z]of[[-0.95,.32,-1.35],[.95,.32,-1.35],[-0.95,.32,1.35],[.95,.32,1.35]]){
+    const w=new THREE.Mesh(wG,wM); w.rotation.z=Math.PI/2; w.position.set(x,y,z); w.castShadow=true; g.add(w);
+  }
+  for(const x of[-.65,.65]){
+    const hl=new THREE.Mesh(new THREE.BoxGeometry(.3,.12,.06),new THREE.MeshBasicMaterial({color:0xfff1b8}));
+    hl.position.set(x,.58,2.12); g.add(hl);
+    const tl=new THREE.Mesh(new THREE.BoxGeometry(.3,.12,.06),new THREE.MeshBasicMaterial({color:0xdd2222}));
+    tl.position.set(x,.58,-2.12); g.add(tl);
+  }
+  return g;
+}
+const ego=buildEgo(); scene.add(ego);
+
+let totalScroll=0;
+
+// ═══ Radius Estimation (Correct Physics) ════════════════════════════════
+// True arc radius is constant (the road doesn't change). With vehicle heading C1
+// relative to the lane, the fitted 2nd-order coeff is |C2| = (1+C1²)^(3/2)/(2·R).
+//   Old (truncated)    R = 1/(2|C2|)             = R / (1+C1²)^(3/2)  → underestimates
+//   New (closed-form)  R = (1+C1²)^(3/2)/(2|C2|) = R                  → stays correct
+function radii(C1, noiseScale) {
+  const factor = Math.pow(1 + C1*C1, 1.5);
+  const C2mag  = factor / (2 * CURVE_R);
+  const nOld = 1 + (Math.random()-0.5) * noiseScale * 0.028;
+  const nNew = 1 + (Math.random()-0.5) * noiseScale * 0.028;
+  return [ (1/(2*C2mag))*nOld, (factor/(2*C2mag))*nNew ];
+}
+
+// ═══ History buffers ══════════════════════════════════════════════════════
+const N = 280;
+const hC2R=new Float32Array(N).fill(CURVE_R), hT3R=new Float32Array(N).fill(CURVE_R);
+let hIdx=0;
+
+// ═══ Wave drawing ═════════════════════════════════════════════════════════
+function getDims(canvas) {
+  const r=canvas.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
+  canvas.width=r.width*dpr; canvas.height=r.height*dpr;
+  const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+  return [r.width, r.height, ctx];
+}
+
+function drawWaveR() {
+  const [W,H,ctx]=getDims(document.getElementById('waveR'));
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#f7f7f9'; ctx.fillRect(0,0,W,H);
+  const P={l:38,r:10,t:10,b:18};
+  const gW=W-P.l-P.r, gH=H-P.t-P.b;
+  const R0=120, R1=240;
+  const ry=v=>P.t+gH-((Math.max(R0,Math.min(R1,v))-R0)/(R1-R0))*gH;
+
+  ctx.font='8px JetBrains Mono,monospace';
+  for(const r of[120,150,180,210,240]) {
+    const y=ry(r);
+    ctx.strokeStyle='rgba(0,0,0,0.07)'; ctx.lineWidth=0.5;
+    ctx.beginPath(); ctx.moveTo(P.l,y); ctx.lineTo(P.l+gW,y); ctx.stroke();
+    ctx.fillStyle=r===CURVE_R?'#0a8a5c':'rgba(0,0,0,0.32)';
+    ctx.fillText(r,2,y+3);
+  }
+
+  // Ground Truth — thick semi-transparent green band, drawn first; waves sit on it
+  { const gy=ry(CURVE_R);
+    ctx.strokeStyle='rgba(10,138,92,0.32)'; ctx.lineWidth=7; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(P.l,gy); ctx.lineTo(P.l+gW,gy); ctx.stroke(); }
+
+  function wave(hist,color,shadow) {
+    ctx.strokeStyle=color; ctx.lineWidth=1.6;
+    if(shadow){ctx.shadowBlur=4;ctx.shadowColor=color;}
+    ctx.beginPath(); let first=true;
+    for(let i=0;i<N;i++){
+      const idx=(hIdx+i)%N, x=P.l+(i/(N-1))*gW, y=ry(hist[idx]);
+      first?ctx.moveTo(x,y):ctx.lineTo(x,y); first=false;
+    }
+    ctx.stroke(); ctx.shadowBlur=0;
+  }
+  ctx.lineWidth=3; wave(hC2R,'rgba(194,118,11,0.14)',false);
+  wave(hC2R,'#c2760b',true);
+  ctx.lineWidth=3; wave(hT3R,'rgba(0,113,227,0.12)',false);
+  wave(hT3R,'#0071e3',true);
+
+  // Ground Truth label
+  { const gy=ry(CURVE_R);
+    ctx.fillStyle='#0a8a5c'; ctx.font='8px JetBrains Mono,monospace';
+    ctx.fillText('Ground Truth',P.l+gW-70,gy-6); }
+
+  ctx.strokeStyle='rgba(0,0,0,0.18)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(P.l,P.t); ctx.lineTo(P.l,P.t+gH); ctx.lineTo(P.l+gW,P.t+gH); ctx.stroke();
+  ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.font='7px JetBrains Mono,monospace';
+  ctx.fillText('now →',P.l+gW-26,P.t+gH+12);
+
+  const lx=P.l+6;
+  ctx.fillStyle='#c2760b'; ctx.fillRect(lx,P.t+3,16,2);
+  ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillText('1/(2C₂)',lx+20,P.t+8);
+  ctx.fillStyle='#0071e3'; ctx.fillRect(lx+70,P.t+3,16,2);
+  ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillText('new R',lx+90,P.t+8);
+  ctx.fillStyle='#0a8a5c'; ctx.fillRect(lx+126,P.t+3,16,2);
+  ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillText('GT',lx+146,P.t+8);
+}
+
+// ═══ Animation ════════════════════════════════════════════════════════════
+const SPEED=60/3.6;
+let lastT=performance.now(), prevEgoX=0, frame=0;
+
+resizeRenderer();
+
+function animate(now) {
+  requestAnimationFrame(animate);
+  const dt=Math.min((now-lastT)/1000,.05); lastT=now;
+  const t=now/1000;
+
+  const cycle=t%10;
+  const egoX=cycle<5?-Math.sin((cycle/5)*Math.PI)*1.3:0;
+
+  // heading error C1 tracks the car's deviation, so the wave stays in sync with the car:
+  // car swings off-centre → C1 rises → old formula dips; car centred/straight → C1≈0 → 180
+  const C1=Math.abs(egoX)/1.3*0.32;
+  const [rC2, rT3] = radii(C1, 1.0);
+
+  hC2R[hIdx]=rC2; hT3R[hIdx]=rT3;
+  hIdx=(hIdx+1)%N;
+
+  totalScroll+=SPEED*dt;
+  updateScrollDash(lD,totalScroll); updateScrollDash(rD,totalScroll); updateScrollDash(yD,totalScroll);
+  worldGroup.position.x=-egoX;
+  if(Math.abs(egoX-prevEgoX)>.001){updatePath(egoX);prevEgoX=egoX;}
+  ego.position.y=Math.sin(t*1.4)*.012;
+
+  if(frame%2===0) drawWaveR();
+  frame++;
+  controls.update();
+  renderer.render(scene,camera);
+}
+requestAnimationFrame(animate);
+window.addEventListener('resize',resizeRenderer);
+</script>
+</body>
+</html>
