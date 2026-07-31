@@ -49,48 +49,41 @@ const META = [
   { n: '1', t: '相機模型', s: 'Mini-FOT 統計:車速 → 有效視野距離' },
   { n: '2', t: '場景記錄', s: '左:當下場景　右:逐幀累積的結果' },
   { n: '3', t: '場景合成', s: '加入合成車流,產生沒發生過的情境' },
-  { n: '4', t: '回撥驗證', s: '改完程式,用同一段場景重跑比對' },
 ];
 
 let L = null, scale = 1, offX = 0, offY = 0;
 
-// 上排三格「建環境」,下排整行「用環境」——版面本身就在講這個層次。
-// 第二格裡有兩個子畫面,所以比同排另外兩格大一號。
+// 第二格裡有「即時場景 + 累積圖」兩個子畫面,所以比另外兩格大一號
 const SHARE = [0.29, 0.42, 0.29];
 
 function buildLayout(cssW, cssH) {
-  // 門檻對應 3+1 版面的長寬比(920x640 ≈ 1.44):比它更瘦就改直排
-  const vertical = cssW / cssH < 1.15;
-
+  const vertical = cssW / cssH < 1.5;
   if (vertical) {
-    const W = 360, H = 1000, pad = 16, top = 62, gap = 16;
-    const avail = H - top - 44 - gap * 3;
-    const share = [0.21, 0.29, 0.21, 0.29];
+    const W = 360, H = 830, pad = 16, top = 62, gap = 16;
+    const avail = H - top - 44 - gap * 2;
     let y = top;
     return {
       W, H, vertical, headY: 26, footY: H - 42,
       panels: META.map((m, i) => {
-        const h = Math.floor(avail * share[i]);
+        const h = Math.floor(avail * SHARE[i]);
         const box = { ...m, x: pad, y, w: W - pad * 2, h };
         y += h + gap;
         return box;
       }),
     };
   }
-
-  const W = 920, H = 640, pad = 22, top = 66, gap = 30, rowGap = 34;
-  const rowH = 248;
+  const W = 920, H = 400, pad = 22, top = 66, gap = 30;
   const avail = W - pad * 2 - gap * 2;
   let x = pad;
-  const panels = META.slice(0, 3).map((m, i) => {
-    const w = Math.floor(avail * SHARE[i]);
-    const box = { ...m, x, y: top, w, h: rowH };
-    x += w + gap;
-    return box;
-  });
-  panels.push({ ...META[3], x: pad, y: top + rowH + rowGap,
-                w: W - pad * 2, h: H - (top + rowH + rowGap) - 62 });
-  return { W, H, vertical, headY: 30, footY: H - 26, panels };
+  return {
+    W, H, vertical, headY: 30, footY: 374,
+    panels: META.map((m, i) => {
+      const w = Math.floor(avail * SHARE[i]);
+      const box = { ...m, x, y: top, w, h: H - top - 62 };
+      x += w + gap;
+      return box;
+    }),
+  };
 }
 
 function resize() {
@@ -479,9 +472,6 @@ function drawRecord(p, k) {
 }
 
 /* ---------- 第 3 幕:場景合成 ---------- */
-// 迴旋曲線:近處近乎直線,越遠曲率越大(第三幕自己用,與 PATH 無關)
-const roadX = (t, bend) => bend * t * t * (1.15 - t * 0.25);
-
 function drawScene(p, k, time) {
   const r = plotOf(p);
   const cx = r.x + r.w * 0.5;
@@ -545,121 +535,14 @@ function drawScene(p, k, time) {
        { size: 10, weight: 700, color: '--blue', align: 'center', alpha: app });
 }
 
-/* ---------- 第 4 幕:回撥驗證 ----------
-   場景是「左轉車道」:直行車道的左側邊線在路口前岔出去,
-   融合層若跟著岔出去的那條線走,本車就會被帶離直行車道。
-   同一段記錄餵給兩個版本的程式,唯一的變數就是程式碼本身。   */
-
-// 左側邊線從 xs 之後岔開的量(0..1 → 0..1)
-const flare = u => u <= 0 ? 0 : Math.pow(u, 1.7);
-
-function drawVariant(r, prog, after) {
-  const lw = Math.min(22, r.h * 0.22);          // 車道半寬
-  const cy = r.y + r.h * 0.54;
-  const xs = r.x + r.w * 0.42;                  // 岔開起點
-  const SPREAD = lw * 2.0;
-  const uAt = px => clamp((px - xs) / (r.x + r.w - xs), 0, 1);
-  const turnEdge = px => cy - lw * 1.5 - flare(uAt(px)) * SPREAD;
-
-  ctx.save();
-  ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 8); ctx.clip();
-  ctx.fillStyle = '#eef0f3'; ctx.fillRect(r.x, r.y, r.w, r.h);
-
-  // 直行路面 + 岔出去的左轉車道
-  ctx.fillStyle = '#c3c9d1';
-  ctx.fillRect(r.x, cy - lw * 1.5, r.w, lw * 3);
-  ctx.beginPath();
-  ctx.moveTo(xs, cy - lw * 1.5);
-  for (let px = xs; px <= r.x + r.w; px += 4) ctx.lineTo(px, turnEdge(px));
-  ctx.lineTo(r.x + r.w, cy - lw * 1.5);
-  ctx.closePath(); ctx.fill();
-
-  // 車道線
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 1.6; ctx.setLineDash([8, 8]);
-  for (const off of [-0.5, 0.5]) {
-    ctx.beginPath();
-    ctx.moveTo(r.x, cy + off * lw * 2); ctx.lineTo(r.x + r.w, cy + off * lw * 2);
-    ctx.stroke();
-  }
-  ctx.setLineDash([]); ctx.lineWidth = 2.2;
-  for (const off of [-1.5, 1.5]) {
-    ctx.beginPath();
-    ctx.moveTo(r.x, cy + off * lw); ctx.lineTo(r.x + r.w, cy + off * lw);
-    ctx.stroke();
-  }
-
-  // 岔出去的左轉邊線 —— 就是會把人帶走的那條
-  ctx.strokeStyle = C('--amber'); ctx.lineWidth = 2.2;
-  ctx.beginPath();
-  for (let px = xs; px <= r.x + r.w; px += 3) ctx.lineTo(px, turnEdge(px));
-  ctx.stroke();
-
-  // 岔開點
-  ctx.strokeStyle = C('--ink-3'); ctx.lineWidth = 1;
-  ctx.setLineDash([2, 3]); ctx.globalAlpha = 0.7;
-  ctx.beginPath();
-  ctx.moveTo(xs, cy - lw * 1.5 - 4); ctx.lineTo(xs, r.y + 22); ctx.stroke();
-  ctx.setLineDash([]); ctx.globalAlpha = 1;
-
-  // 本車:改版前跟著岔線走,改版後守住直行車道
-  const lane = cy - lw;
-  const pathY = px => after ? lane : lane - flare(uAt(px)) * SPREAD * 0.86;
-  const ex = r.x + 16 + prog * (r.w - 40);
-  const col = after ? C('--blue') : C('--amber');
-
-  ctx.strokeStyle = col; ctx.lineWidth = 2.4; ctx.globalAlpha = 0.9;
-  ctx.beginPath();
-  for (let px = r.x + 16; px <= ex; px += 3) ctx.lineTo(px, pathY(px));
-  ctx.stroke();
-  ctx.globalAlpha = 1;
-
-  // 偏離量:只有改版前才有,用一段標註把差異講明
-  if (!after && prog > 0.55) {
-    const a = clamp((prog - 0.55) * 4, 0, 1);
-    ctx.globalAlpha = a * 0.85;
-    ctx.strokeStyle = C('--amber'); ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
-    ctx.beginPath(); ctx.moveTo(ex, pathY(ex)); ctx.lineTo(ex, lane); ctx.stroke();
-    ctx.setLineDash([]); ctx.globalAlpha = 1;
-  }
-
-  ctx.fillStyle = col;
-  ctx.beginPath(); ctx.roundRect(ex - 8, pathY(ex) - 5, 16, 10, 3); ctx.fill();
-  ctx.restore();
-
-  ctx.save();
-  ctx.strokeStyle = C('--line'); ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 8); ctx.stroke();
-  ctx.restore();
-
-  text(after ? '改版後' : '改版前', r.x + 9, r.y + 15,
-       { size: 10, weight: 700, color: after ? '--blue' : '--amber' });
-  text(after ? '守住直行車道' : '跟著左轉邊線被帶出去', r.x + 48, r.y + 15,
-       { size: 9.5, font: 'mono', color: '--ink-2' });
-  if (!after)
-    text('左轉車道在此岔開', xs + 5, r.y + 32,
-         { size: 8.5, font: 'mono', color: '--ink-3' });
-}
-
-function drawReplay(p, k) {
-  const r = plotOf(p);
-  const prog = ease(clamp(k / 0.82, 0, 1));
-  const gap = 12, hw = (r.w - gap) / 2;
-  drawVariant({ x: r.x, y: r.y, w: hw, h: r.h }, prog, false);
-  drawVariant({ x: r.x + hw + gap, y: r.y, w: hw, h: r.h }, prog, true);
-
-  text('輸入:同一段記錄的左轉車道場景　·　唯一的變數是程式碼',
-       r.x, r.y + r.h + 14, { size: 9.5, font: 'mono', color: '--ink-3' });
-}
-
 /* ---------- 主迴圈 ---------- */
 // 第二幕要跑完一段有感的路程,又不能讓虛線快到閃爍,所以給它最長的時間
-const T1 = 2.9, T2 = 9.6, T3 = 13.6, T4 = 19.0, TEND = 21.2;
+const T1 = 3.2, T2 = 10.4, T3 = 15.4, TEND = 17.6;
 const t0 = performance.now();
 
 function frame(now) {
   const time = ((now - t0) / 1000) % TEND;
-  const act = time < T1 ? 0 : time < T2 ? 1 : time < T3 ? 2 : 3;
+  const act = time < T1 ? 0 : time < T2 ? 1 : 2;
   const P = L.panels;
 
   ctx.save();
@@ -677,21 +560,19 @@ function frame(now) {
   drawCamera(P[0], act === 0 ? clamp(time / T1, 0, 1) : 1);
   if (act >= 1) drawRecord(P[1], act === 1 ? clamp((time - T1) / (T2 - T1), 0, 1) : 1);
   if (act >= 2) drawScene(P[2], clamp((time - T2) / (T3 - T2), 0, 1), time);
-  if (act >= 3) drawReplay(P[3], clamp((time - T3) / (T4 - T3), 0, 1));
 
-  // 面板之間的箭頭。橫排版面的上排往右接,第三格到第四格是換行往下。
-  for (let i = 0; i < 3; i++) {
-    const a = clamp((time - [T1, T2, T3][i] + 0.5) * 2, 0, 1);
-    const sameRow = !L.vertical && i < 2;
-    if (sameRow)
-      arrow(P[i].x + P[i].w + 8, P[i].y + P[i].h / 2,
-            P[i + 1].x - 8, P[i].y + P[i].h / 2, a);
-    else
+  // 面板之間的箭頭:橫排指右、直排指下
+  for (let i = 0; i < 2; i++) {
+    const a = clamp((time - (i ? T2 : T1) + 0.5) * 2, 0, 1);
+    if (L.vertical)
       arrow(P[i].x + P[i].w / 2, P[i].y + P[i].h + 3,
             P[i].x + P[i].w / 2, P[i + 1].y - 3, a);
+    else
+      arrow(P[i].x + P[i].w + 8, P[i].y + P[i].h / 2,
+            P[i + 1].x - 8, P[i].y + P[i].h / 2, a);
   }
 
-  const fin = ease((time - T4 + 0.6) / 1.1);
+  const fin = ease((time - T3 + 0.6) / 1.1);
   if (fin > 0) {
     ctx.save();
     ctx.globalAlpha = fin * 0.6;

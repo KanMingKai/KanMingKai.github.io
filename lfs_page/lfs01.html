@@ -209,8 +209,10 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 .ldemo iframe{width:100%;height:420px;border:0;display:block}
 .ldemo-cap{font-size:12px;color:var(--ink-3);text-align:center;margin-top:12px;line-height:1.65;max-width:600px;margin-left:auto;margin-right:auto}
 @media(max-width:680px){.ldemo iframe{height:360px}}
-/* 模擬環境動畫在窄螢幕會改成直排三列,需要更高的框才看得清 */
-@media(max-width:680px){.ldemo--tall iframe{height:770px}}
+/* 模擬環境動畫是 3+1 版面(920x640),iframe 要給對長寬比;
+   窄螢幕會改成四格直排,需要更高的框 */
+.ldemo--tall iframe{height:640px}
+@media(max-width:680px){.ldemo--tall iframe{height:960px}}
 
 /* CTO 3-second scan badges */
 .rbadges{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:600px;margin:28px auto 0}
@@ -1163,7 +1165,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
       <div class="ldemo ldemo--tall" style="margin-top:26px">
         <iframe src="sim_env.html" title="資料驅動的車道線模擬環境 — 相機模型、道路模型與場景合成" loading="lazy"></iframe>
       </div>
-      <p class="ldemo-cap"><b>三層都由實車資料長出來</b>：相機模型決定車道線「看得到多遠、錯得像不像真的」，場景記錄提供真實的路型與車流軌跡，兩者到位之後才有資格合成沒發生過的情境。</p>
+      <p class="ldemo-cap"><b>前三格建環境，第四格才是拿它做事</b>：相機模型決定車道線「看得到多遠、錯得像不像真的」，場景記錄提供真實的路型與車流軌跡，兩者到位才有資格合成沒發生過的情境——而這一切的用途，是改完程式碼之後能立刻重跑比對。</p>
 
       <div class="p-narr" style="margin-top:26px">
         <p class="p-narr">關鍵在第一層。從 CAN log 錄下車道線係數與物件的位置、速度不難，難的是<b>讓模擬出來的車道線「錯得跟真的一樣」</b>。我統計的其中一項是<b>有效視野距離與車速的關係</b>——低速時穩定在一個定值，超過約 40 kph 之後隨車速線性成長，而且有明確的上下界。這條分段折線就是模型：模擬時車道線該在多遠開始不可信，由它決定，而不是我隨手設一個數字。</p>
@@ -1171,6 +1173,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
         <p class="p-narr" style="margin-top:14px">第二層是把跑過的路整段記錄下來：<b>四條車道線的起點（<code>C0</code>）與所有物件的位置，逐幀累積</b>，畫在以本車為原點的座標上——縱軸是縱向距離，負值代表已經開過的路。開得越久，尾巴越長；過彎時整條尾巴會相對現在的車頭甩出去。</p>
         <p class="p-narr" style="margin-top:14px">要讓這條尾巴是平滑的、而不是波浪狀，有一步不能少：<b><code>C0</code> 量的是「車道線相對本車」</b>，本車在車道內左右晃時記錄到的值就跟著擺，必須用<b>本車動態把自身的晃動扣掉</b>才能對齊到世界座標。這跟融合層做的是同一件事——車道線偵測必須和本車動態一起看，單獨看任何一邊都不夠。</p>
         <p class="p-narr" style="margin-top:14px">物件的黑點軌跡還有一個附帶好處：<b>前車實際走過的路，和車道線推出來的路會疊在一起</b>。兩個獨立來源互相印證，記錄有沒有歪掉一眼就看得出來。</p>
+        <p class="p-narr" style="margin-top:14px">環境建好之後，用途是這樣的：<b>改完融合邏輯，把同一段記錄的場景重跑一次，直接看下游拿到的車道線有沒有變穩</b>。動畫最後一格用左轉車道當例子——直行車道的左側邊線在路口前岔出去，融合層若跟著那條線走，本車就會被帶離直行車道。<b>輸入完全一樣，唯一的變數是程式碼</b>，所以改動有沒有效，是比對出來的，不是等下一次路測碰運氣。</p>
         <p class="p-narr" style="margin-top:14px">整套是自研的 <b>MATLAB</b> 腳本。它最後<span class="grad">驗證了 50 個以上的問題</span>，也是 LFS 車道融合系統能一路補齊的原因——每次改完融合邏輯，都能拿同一批資料重跑，直接看下游拿到的車道線有沒有變穩，而不是等下一次路測。</p>
       </div>
 
