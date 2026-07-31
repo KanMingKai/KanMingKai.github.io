@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>資料驅動的車道線模擬環境 — 相機模型 · 道路模型 · 場景合成</title>
+<style>
+  :root{
+    --bg:#fbfcfd;--ink:#1d1d1f;--ink-2:#6e6e73;--ink-3:#86868b;--line:#d2d2d7;
+    --blue:#0071e3;--green:#0a8a5c;--amber:#c2760b;--grid:#eaeef3;
+    --sans:"SF Pro TC",-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden}
+  canvas{display:block;width:100%;height:100%}
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<script>
+/* ============================================================
+   資料驅動的車道線模擬環境 — 三段式流程動畫
+
+     1 相機模型  Mini-FOT 取 100 km 統計相機偵測車道線的參數行為
+     2 道路模型  1,600 km 全程的偵測點統計成路型
+     3 場景合成  路型 + 相機模型 + 合成車流 → 產生沒發生過的情境
+
+   自動循環,無控制項(與本專案其他 demo 一致)。
+   版面兩種:寬螢幕橫排三欄、窄螢幕直排三列 —— 等比縮放會讓手機上
+   完全看不清,所以依容器長寬比切換,而不是縮小同一份版面。
+   ============================================================ */
+
+const cv  = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const CSS = getComputedStyle(document.documentElement);
+const C = n => CSS.getPropertyValue(n).trim();
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const ease  = t => t < 0 ? 0 : t > 1 ? 1 : t * t * (3 - 2 * t);
+// 固定亂數:每次循環的散點都在同一個位置,才像「同一批資料」
+const rnd = s => { const x = Math.sin(s * 127.1) * 43758.5453; return x - Math.floor(x); };
+
+/* ---------- 版面 ---------- */
+const META = [
+  { n: '1', t: '相機模型', s: 'Mini-FOT 取 100 km 統計偵測特性' },
+  { n: '2', t: '道路模型', s: '1,600 km 全程偵測點統計成路型' },
+  { n: '3', t: '場景合成', s: '加入合成車流,產生沒發生過的情境' },
+];
+
+let L = null, scale = 1, offX = 0, offY = 0;
+
+function buildLayout(cssW, cssH) {
+  const vertical = cssW / cssH < 1.5;
+  if (vertical) {
+    const W = 360, H = 760, pad = 16, top = 62, gap = 16;
+    const ph = Math.floor((H - top - 44 - gap * 2) / 3);
+    return {
+      W, H, vertical, headY: 26, footY: H - 42,
+      panels: META.map((m, i) => ({
+        ...m, x: pad, y: top + i * (ph + gap), w: W - pad * 2, h: ph,
+      })),
+    };
+  }
+  const W = 920, H = 400, pad = 22, top = 66, gap = 36;
+  const pw = Math.floor((W - pad * 2 - gap * 2) / 3);
+  return {
+    W, H, vertical, headY: 30, footY: 374,
+    panels: META.map((m, i) => ({
+      ...m, x: pad + i * (pw + gap), y: top, w: pw, h: H - top - 62,
+    })),
+  };
+}
+
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  const r = cv.getBoundingClientRect();
+  cv.width  = Math.round(r.width  * dpr);
+  cv.height = Math.round(r.height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  L = buildLayout(r.width, r.height);
+  scale = Math.min(r.width / L.W, r.height / L.H);
+  offX = (r.width  - L.W * scale) / 2;
+  offY = (r.height - L.H * scale) / 2;
+}
+new ResizeObserver(resize).observe(cv);
+resize();
+
+/* ---------- 繪圖小工具 ---------- */
+function text(s, x, y, { size = 12, weight = 400, color = '--ink',
+                        font = 'sans', align = 'left', alpha = 1 } = {}) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = C(color);
+  ctx.font = `${weight} ${size}px ${font === 'mono' ? C('--mono') : C('--sans')}`;
+  ctx.textAlign = align;
+  ctx.fillText(s, x, y);
+  ctx.restore();
+}
+
+function measure(s, size, font) {
+  ctx.save();
+  ctx.font = `400 ${size}px ${font === 'mono' ? C('--mono') : C('--sans')}`;
+  const w = ctx.measureText(s).width;
+  ctx.restore();
+  return w;
+}
+
+// 面板內的繪圖區(扣掉標題列)
+// 上緣留 64px 給面板標題與副標,避免與圖表的軸標籤擠在一起
+const plotOf = p => ({ x: p.x + 16, y: p.y + 64, w: p.w - 32, h: p.h - 88 });
+
+function panelChrome(p, state) {          // state: 0 未到 / 1 進行中 / 2 已完成
+  ctx.save();
+  ctx.strokeStyle = state === 1 ? C('--blue') : C('--line');
+  ctx.globalAlpha = state === 1 ? 0.85 : state === 2 ? 0.55 : 0.35;
+  ctx.lineWidth = state === 1 ? 1.5 : 1;
+  ctx.beginPath(); ctx.roundRect(p.x, p.y, p.w, p.h, 12); ctx.stroke();
+  ctx.restore();
+
+  const a = state ? 1 : 0.34;
+  text(p.n, p.x + 15, p.y + 24, { size: 11, weight: 700, font: 'mono',
+       color: state === 1 ? '--blue' : '--ink-3', alpha: a });
+  text(p.t, p.x + 31, p.y + 24, { size: 12.5, weight: 700,
+       color: state === 1 ? '--ink' : '--ink-2', alpha: a });
+  text(p.s, p.x + 15, p.y + 41, { size: 9.5, font: 'mono', color: '--ink-3',
+       alpha: state ? 0.95 : 0.3 });
+}
+
+function arrow(x1, y1, x2, y2, alpha) {
+  if (alpha <= 0) return;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = C('--ink-3'); ctx.fillStyle = C('--ink-3'); ctx.lineWidth = 1.4;
+  const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy);
+  const ux = dx / len, uy = dy / len;
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - ux * 6, y2 - uy * 6); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - ux * 7 - uy * 3.5, y2 - uy * 7 + ux * 3.5);
+  ctx.lineTo(x2 - ux * 7 + uy * 3.5, y2 - uy * 7 - ux * 3.5);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+/* ---------- 第 1 幕:相機模型 ---------- */
+// 縱向距離越遠,車道線參數的離散度越大 —— 這條特性就是相機模型
+const spreadAt = fx => 0.06 + fx * fx * 0.42;
+
+function drawCamera(p, k) {
+  const r = plotOf(p), cy = r.y + r.h * 0.5;
+
+  ctx.save();
+  ctx.strokeStyle = C('--grid'); ctx.lineWidth = 1;
+  for (let i = 1; i < 4; i++) {
+    const gy = r.y + r.h * i / 4;
+    ctx.beginPath(); ctx.moveTo(r.x, gy); ctx.lineTo(r.x + r.w, gy); ctx.stroke();
+  }
+  ctx.strokeStyle = C('--line'); ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(r.x, r.y); ctx.lineTo(r.x, r.y + r.h); ctx.lineTo(r.x + r.w, r.y + r.h);
+  ctx.stroke();
+  ctx.restore();
+
+  text('偵測參數離散度', r.x, r.y - 6, { size: 9.5, font: 'mono', color: '--ink-3' });
+  text('縱向距離 →', r.x + r.w, r.y + r.h + 14,
+       { size: 9.5, font: 'mono', color: '--ink-3', align: 'right' });
+
+  const N = 150, shown = Math.floor(N * ease(k / 0.62));
+  ctx.save();
+  ctx.fillStyle = C('--amber');
+  for (let i = 0; i < shown; i++) {
+    const fx = rnd(i + 1);
+    const dy = (rnd(i + 90) - 0.5) * 2 * spreadAt(fx);
+    ctx.globalAlpha = 0.18 + clamp((shown - i) / 26, 0, 1) * 0.42;
+    ctx.beginPath();
+    ctx.arc(r.x + fx * r.w, cy + dy * r.h * 0.5, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  const fit = ease((k - 0.5) / 0.42);
+  if (fit <= 0) return;
+  const band = sgn => {
+    ctx.beginPath();
+    for (let s = 0; s <= 40; s++) {
+      const fx = s / 40;
+      ctx.lineTo(r.x + fx * r.w, cy + sgn * spreadAt(fx) * r.h * 0.5);
+    }
+  };
+  ctx.save();
+  ctx.globalAlpha = fit * 0.2; ctx.fillStyle = C('--blue');
+  ctx.beginPath();
+  for (let s = 0; s <= 40; s++) {
+    const fx = s / 40;
+    ctx.lineTo(r.x + fx * r.w, cy - spreadAt(fx) * r.h * 0.5);
+  }
+  for (let s = 40; s >= 0; s--) {
+    const fx = s / 40;
+    ctx.lineTo(r.x + fx * r.w, cy + spreadAt(fx) * r.h * 0.5);
+  }
+  ctx.closePath(); ctx.fill();
+  ctx.globalAlpha = fit; ctx.strokeStyle = C('--blue'); ctx.lineWidth = 1.6;
+  band(-1); ctx.stroke(); band(1); ctx.stroke();
+  ctx.restore();
+
+  text('±σ 特性曲線 = 相機模型', r.x + r.w, r.y + 12,
+       { size: 10, font: 'mono', color: '--blue', align: 'right', alpha: fit });
+}
+
+/* ---------- 第 2 幕:道路模型 ---------- */
+// 迴旋曲線的感覺:近處近乎直線,越遠曲率越大
+const roadX = (t, bend) => bend * t * t * (1.15 - t * 0.25);
+
+function drawRoad(p, k) {
+  const r = plotOf(p);
+  const cx = r.x + r.w * 0.42;
+  const bend = Math.min(52, r.w * 0.24);
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(r.x - 6, r.y - 4, r.w + 12, r.h + 8); ctx.clip();
+
+  const TR = 7, tr = clamp(k / 0.6 * TR, 0, TR);
+  ctx.strokeStyle = C('--amber'); ctx.lineWidth = 1.2;
+  ctx.setLineDash([2.5, 3]);
+  for (let i = 0; i < TR; i++) {
+    const a = clamp(tr - i, 0, 1);
+    if (a <= 0) continue;
+    const jit = (rnd(i + 5) - 0.5) * 24;
+    ctx.globalAlpha = a * 0.36;
+    ctx.beginPath();
+    for (let s = 0; s <= 30; s++) {
+      const t = s / 30;
+      ctx.lineTo(cx + roadX(t, bend) + jit * (0.35 + t * 0.65), r.y + r.h * (1 - t));
+    }
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  const fit = ease((k - 0.55) / 0.4);
+  if (fit > 0) {
+    ctx.globalAlpha = fit;
+    ctx.strokeStyle = C('--blue'); ctx.lineWidth = 2.6; ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (let s = 0; s <= 40; s++) {
+      const t = s / 40;
+      ctx.lineTo(cx + roadX(t, bend), r.y + r.h * (1 - t));
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  text('每條虛線 = 一趟路測的偵測點', r.x, r.y - 6,
+       { size: 9.5, font: 'mono', color: '--ink-3', alpha: clamp(k * 3, 0, 1) });
+  if (fit > 0)
+    text('統計後的路型 = 道路模型', r.x + r.w, r.y + r.h + 14,
+         { size: 10, font: 'mono', color: '--blue', align: 'right', alpha: fit });
+}
+
+/* ---------- 第 3 幕:場景合成 ---------- */
+function drawScene(p, k, time) {
+  const r = plotOf(p);
+  const cx = r.x + r.w * 0.5;
+  const bend = Math.min(40, r.w * 0.18);
+  const lw = Math.min(30, r.w * 0.13);         // 車道半寬
+  const laneAt = (t, lane) => cx + roadX(t, bend) + lane * lw;
+
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 10); ctx.clip();
+  ctx.fillStyle = '#f2f3f5'; ctx.fillRect(r.x, r.y, r.w, r.h);
+
+  // 車道線 —— 用相機模型的離散度加抖動:近處穩、遠處晃
+  const app = ease(k / 0.45);
+  for (const lane of [-1.5, -0.5, 0.5, 1.5]) {
+    const edge = Math.abs(lane) > 1;
+    ctx.globalAlpha = app * (edge ? 0.9 : 0.55);
+    ctx.strokeStyle = edge ? C('--ink-2') : C('--ink-3');
+    ctx.lineWidth = edge ? 2 : 1.4;
+    ctx.setLineDash(edge ? [] : [7, 7]);
+    ctx.beginPath();
+    for (let s = 0; s <= 36; s++) {
+      const t = s / 36;
+      const noise = Math.sin(time * 2.4 + s * 0.8 + lane) * spreadAt(t) * 9;
+      ctx.lineTo(laneAt(t, lane) + noise, r.y + r.h * (1 - t));
+    }
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // 合成車流
+  const cars = [
+    { lane: -1, base: 0.60, sp: 0.05, name: 'A' },
+    { lane:  0, base: 0.78, sp: 0.03, name: 'B' },
+    { lane:  1, base: 0.44, sp: 0.07, name: 'C' },
+  ];
+  const carIn = ease((k - 0.3) / 0.4);
+  cars.forEach((c, i) => {
+    const a = clamp(carIn * 3 - i, 0, 1);
+    if (a <= 0) return;
+    const t = (c.base + time * c.sp) % 0.86 + 0.08;
+    const px = laneAt(t, c.lane), py = r.y + r.h * (1 - t);
+    const sc = (0.55 + t * 0.55) * Math.min(1, r.w / 220);
+    ctx.globalAlpha = a;
+    ctx.fillStyle = '#5b6472';
+    ctx.beginPath();
+    ctx.roundRect(px - 7 * sc, py - 12 * sc, 14 * sc, 24 * sc, 3.5 * sc);
+    ctx.fill();
+    ctx.globalAlpha = a * 0.9;
+    text(c.name, px, py - 16 * sc, { size: 9, weight: 700, font: 'mono',
+         color: '--ink-2', align: 'center' });
+  });
+
+  ctx.globalAlpha = app;
+  ctx.fillStyle = C('--blue');
+  const ex = laneAt(0.06, 0), ey = r.y + r.h * 0.94;
+  ctx.beginPath(); ctx.roundRect(ex - 8, ey - 13, 16, 26, 4); ctx.fill();
+  ctx.restore();
+
+  text('本車', ex, r.y + r.h + 14,
+       { size: 10, weight: 700, color: '--blue', align: 'center', alpha: app });
+}
+
+/* ---------- 主迴圈 ---------- */
+const T1 = 3.2, T2 = 6.4, T3 = 11.4, TEND = 13.6;
+const t0 = performance.now();
+
+function frame(now) {
+  const time = ((now - t0) / 1000) % TEND;
+  const act = time < T1 ? 0 : time < T2 ? 1 : 2;
+  const P = L.panels;
+
+  ctx.save();
+  ctx.translate(offX, offY);
+  ctx.scale(scale, scale);
+  ctx.clearRect(0, 0, L.W, L.H);
+  ctx.fillStyle = C('--bg'); ctx.fillRect(0, 0, L.W, L.H);
+
+  text('資料驅動的車道線模擬環境', 22, L.headY, { size: 15, weight: 700 });
+  text('自研 MATLAB 腳本 · 用 Mini-FOT 實車資料建模,而非人工造場景',
+       22, L.headY + 18, { size: 11, color: '--ink-2' });
+
+  P.forEach((p, i) => panelChrome(p, i === act ? 1 : i < act ? 2 : 0));
+
+  drawCamera(P[0], act === 0 ? clamp(time / T1, 0, 1) : 1);
+  if (act >= 1) drawRoad(P[1], act === 1 ? clamp((time - T1) / (T2 - T1), 0, 1) : 1);
+  if (act >= 2) drawScene(P[2], clamp((time - T2) / (T3 - T2), 0, 1), time);
+
+  // 面板之間的箭頭:橫排指右、直排指下
+  for (let i = 0; i < 2; i++) {
+    const a = clamp((time - (i ? T2 : T1) + 0.5) * 2, 0, 1);
+    if (L.vertical)
+      arrow(P[i].x + P[i].w / 2, P[i].y + P[i].h + 3,
+            P[i].x + P[i].w / 2, P[i + 1].y - 3, a);
+    else
+      arrow(P[i].x + P[i].w + 8, P[i].y + P[i].h / 2,
+            P[i + 1].x - 8, P[i].y + P[i].h / 2, a);
+  }
+
+  const fin = ease((time - T3 + 0.6) / 1.1);
+  if (fin > 0) {
+    ctx.save();
+    ctx.globalAlpha = fin * 0.6;
+    ctx.strokeStyle = C('--line');
+    ctx.beginPath();
+    ctx.moveTo(22, L.footY - 22); ctx.lineTo(L.W - 22, L.footY - 22);
+    ctx.stroke();
+    ctx.restore();
+
+    const tail = '個問題以此定位與驗證';
+    if (L.vertical) {
+      text('路上只發生一次的狀況,這裡可以重跑、也可以生成變體', 22, L.footY - 4,
+           { size: 11, weight: 600, alpha: fin });
+      const nw = measure('50+', 15, 'mono');
+      text('50+', 22, L.footY + 16, { size: 15, weight: 700, font: 'mono',
+           color: '--blue', alpha: fin });
+      text(tail, 26 + nw, L.footY + 16,
+           { size: 11, color: '--ink-2', alpha: fin });
+    } else {
+      text('路上只發生一次的狀況,在這裡可以重跑、也可以改參數生成變體', 22, L.footY,
+           { size: 12, weight: 600, alpha: fin });
+      const tw = measure(tail, 11, 'sans');
+      text(tail, L.W - 22, L.footY, { size: 11, color: '--ink-2',
+           align: 'right', alpha: fin });
+      text('50+', L.W - 26 - tw, L.footY, { size: 17, weight: 700, font: 'mono',
+           color: '--blue', align: 'right', alpha: fin });
+    }
+  }
+
+  ctx.restore();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
