@@ -26,7 +26,7 @@
    資料驅動的車道線模擬環境 — 三段式流程動畫
 
      1 相機模型  Mini-FOT 取 100 km 統計相機偵測車道線的參數行為
-     2 道路模型  1,600 km 全程的偵測點統計成路型
+     2 道路模型  累積左右四條車道線的起點(C0),以本車動態補償還原路型
      3 場景合成  路型 + 相機模型 + 合成車流 → 產生沒發生過的情境
 
    自動循環,無控制項(與本專案其他 demo 一致)。
@@ -47,7 +47,7 @@ const rnd = s => { const x = Math.sin(s * 127.1) * 43758.5453; return x - Math.f
 /* ---------- 版面 ---------- */
 const META = [
   { n: '1', t: '相機模型', s: 'Mini-FOT 統計:車速 → 有效視野距離' },
-  { n: '2', t: '道路模型', s: '1,600 km 全程偵測點統計成路型' },
+  { n: '2', t: '道路模型', s: '累積左右車道線起點,以本車動態補償' },
   { n: '3', t: '場景合成', s: '加入合成車流,產生沒發生過的情境' },
 ];
 
@@ -240,53 +240,105 @@ function drawCamera(p, k) {
        { size: 9, font: 'mono', color: '--ink-2', alpha: fit });
 }
 
-/* ---------- 第 2 幕:道路模型 ---------- */
-// 迴旋曲線的感覺:近處近乎直線,越遠曲率越大
-const roadX = (t, bend) => bend * t * t * (1.15 - t * 0.25);
+/* ---------- 第 2 幕:道路模型 ----------
+   累積左右車道線的起點(C0)還原路型,分三段:
+
+     ① 記錄    本車在車道內左右晃,C0 量的是「車道線相對本車」,
+               所以直接疊起來的軌跡會跟著本車一起擺
+     ② 補償    用本車動態(車速、橫擺)把自身的晃動扣掉
+     ③ 路型    擺動消失,剩下的才是道路本身
+
+   車確實晃過,補償不會讓它沒晃過 —— 所以本車路徑全程維持波浪狀,
+   只有累積出來的車道線被拉直。                                */
+const roadX = (t, bend) => bend * t * t * (1.15 - t * 0.25);   // 迴旋曲線
+const swayAt = t => Math.sin(t * Math.PI * 5.2) * (1 - t * 0.15);
 
 function drawRoad(p, k) {
   const r = plotOf(p);
-  const cx = r.x + r.w * 0.42;
-  const bend = Math.min(52, r.w * 0.24);
+  const along = L.vertical ? 'x' : 'y';
+  // 沿行進方向 t(0=起點) 與橫向偏移 c(px) → 畫布座標
+  const A = (t, c) => along === 'y'
+    ? { x: r.x + r.w * 0.46 + roadX(t, Math.min(30, r.w * 0.16)) + c,
+        y: r.y + r.h * (1 - t) }
+    : { x: r.x + r.w * t,
+        y: r.y + r.h * 0.5 + roadX(t, Math.min(22, r.h * 0.16)) + c };
+
+  const span  = along === 'y' ? r.w : r.h;
+  const laneW = Math.min(20, span * 0.17);
+  const swayA = laneW * 0.42;
+  const LANES = [-1.5, -0.5, 0.5, 1.5];
+
+  const reveal = clamp(k / 0.40, 0, 1);              // ① 記錄進度
+  const comp   = ease((k - 0.62) / 0.23);            // ② → ③ 補償進度
 
   ctx.save();
-  ctx.beginPath(); ctx.rect(r.x - 6, r.y - 4, r.w + 12, r.h + 8); ctx.clip();
+  ctx.beginPath(); ctx.rect(r.x - 4, r.y - 4, r.w + 8, r.h + 8); ctx.clip();
 
-  const TR = 7, tr = clamp(k / 0.6 * TR, 0, TR);
-  ctx.strokeStyle = C('--amber'); ctx.lineWidth = 1.2;
-  ctx.setLineDash([2.5, 3]);
-  for (let i = 0; i < TR; i++) {
-    const a = clamp(tr - i, 0, 1);
-    if (a <= 0) continue;
-    const jit = (rnd(i + 5) - 0.5) * 24;
-    ctx.globalAlpha = a * 0.36;
-    ctx.beginPath();
-    for (let s = 0; s <= 30; s++) {
-      const t = s / 30;
-      ctx.lineTo(cx + roadX(t, bend) + jit * (0.35 + t * 0.65), r.y + r.h * (1 - t));
-    }
-    ctx.stroke();
+  // 本車實際走過的路徑:全程波浪,不因補償而改變
+  ctx.globalAlpha = 0.5; ctx.strokeStyle = C('--ink-3');
+  ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  for (let s = 0; s <= 60; s++) {
+    const t = (s / 60) * reveal;
+    const q = A(t, swayAt(t) * swayA);
+    ctx.lineTo(q.x, q.y);
   }
+  ctx.stroke();
   ctx.setLineDash([]);
 
-  const fit = ease((k - 0.55) / 0.4);
-  if (fit > 0) {
-    ctx.globalAlpha = fit;
-    ctx.strokeStyle = C('--blue'); ctx.lineWidth = 2.6; ctx.lineCap = 'round';
+  // 累積的四條車道線 —— 補償前跟著本車擺,補償後拉直
+  LANES.forEach((lane, i) => {
+    const edge = Math.abs(lane) > 1;
+    ctx.globalAlpha = comp > 0.05 ? 0.35 + comp * 0.6 : 0.75;
+    ctx.strokeStyle = comp > 0.5 ? C('--blue') : C('--amber');
+    ctx.lineWidth = edge ? 2 : 1.5;
+    ctx.setLineDash(edge ? [] : [6, 5]);
     ctx.beginPath();
-    for (let s = 0; s <= 40; s++) {
-      const t = s / 40;
-      ctx.lineTo(cx + roadX(t, bend), r.y + r.h * (1 - t));
+    for (let s = 0; s <= 60; s++) {
+      const t = (s / 60) * reveal;
+      const q = A(t, lane * laneW - swayAt(t) * swayA * (1 - comp));
+      ctx.lineTo(q.x, q.y);
     }
     ctx.stroke();
+  });
+  ctx.setLineDash([]);
+
+  // 記錄中的取樣點:本車位置 + 當下量到的四個 C0
+  if (reveal < 1) {
+    const t = reveal, ec = swayAt(t) * swayA;
+    const e = A(t, ec);
+    ctx.globalAlpha = 1;
+    LANES.forEach(lane => {
+      const q = A(t, lane * laneW - ec * (1 - comp));
+      ctx.fillStyle = C('--amber');
+      ctx.beginPath(); ctx.arc(q.x, q.y, 2.4, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 0.3; ctx.strokeStyle = C('--amber'); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+      ctx.globalAlpha = 1;
+    });
+    ctx.fillStyle = C('--blue');
+    ctx.beginPath(); ctx.arc(e.x, e.y, 3.4, 0, Math.PI * 2); ctx.fill();
   }
   ctx.restore();
 
-  text('每條虛線 = 一趟路測的偵測點', r.x, r.y - 6,
-       { size: 9.5, font: 'mono', color: '--ink-3', alpha: clamp(k * 3, 0, 1) });
-  if (fit > 0)
-    text('統計後的路型 = 道路模型', r.x + r.w, r.y + r.h + 14,
-         { size: 10, font: 'mono', color: '--blue', align: 'right', alpha: fit });
+  // 說明:三段各自的字
+  const cap = { size: 9.5, font: 'mono' };
+  if (reveal < 1)
+    text('本車左右晃 → 記錄的 C0 跟著晃', r.x, r.y - 6,
+         { ...cap, color: '--amber', alpha: clamp(k * 4, 0, 1) });
+  else if (comp < 0.9)
+    text('以本車動態扣掉自身晃動', r.x, r.y - 6,
+         { ...cap, color: '--ink-2', alpha: 1 });
+  else
+    text('擺動消失,剩下的是道路本身', r.x, r.y - 6, { ...cap, color: '--blue' });
+
+  // 底部只留一行 —— 兩行並排在窄面板會疊在一起
+  if (comp <= 0.4)
+    text('灰虛線 = 本車實際路徑,全程都在晃', r.x, r.y + r.h + 14,
+         { size: 9, font: 'mono', color: '--ink-3', alpha: 0.9 });
+  else
+    text('補償後的四條線 = 道路模型', r.x + r.w, r.y + r.h + 14,
+         { size: 10, font: 'mono', color: '--blue', align: 'right', alpha: comp });
 }
 
 /* ---------- 第 3 幕:場景合成 ---------- */
@@ -354,7 +406,8 @@ function drawScene(p, k, time) {
 }
 
 /* ---------- 主迴圈 ---------- */
-const T1 = 3.2, T2 = 6.4, T3 = 11.4, TEND = 13.6;
+// 第二幕有記錄/補償/路型三段,給它比較長的時間
+const T1 = 3.2, T2 = 8.4, T3 = 13.4, TEND = 15.6;
 const t0 = performance.now();
 
 function frame(now) {
