@@ -7,20 +7,25 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/tokens.css">
-<link rel="stylesheet" href="../assets/nav.css">
 <style>
 
-/* 本頁專屬 token(履歷用的深綠,與 LFS 頁的亮綠不同,勿合併) */
-:root{--green:#0a6b4d;--green-bg:#e8f7f0;--green-line:#c3e8d8}
-
+:root{
+  --bg:#ffffff;--bg-alt:#f5f5f7;--ink:#1d1d1f;--ink-2:#6e6e73;--ink-3:#86868b;
+  --line:#d2d2d7;--blue:#0071e3;--blue-d:#0066cc;
+  --grad:linear-gradient(118deg,#0a84ff 0%,#0071e3 42%,#28c6e8 100%);
+  --green:#0a6b4d;--green-bg:#e8f7f0;--green-line:#c3e8d8;
+  --sans:"SF Pro TC","SF Pro Display",-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth;overflow-x:hidden}
-body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 .wrap{max-width:980px;margin:0 auto;padding:0 22px}
+section{padding:clamp(48px,7vw,80px) 0}
 .eyebrow{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px}
 h1{font-size:clamp(26px,3.8vw,38px);font-weight:700;letter-spacing:-.015em;line-height:1.2}
 h1 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.lead{font-size:clamp(15px,1.9vw,17px);color:var(--ink-2);line-height:1.75;margin-top:18px;max-width:760px}
 .belief{margin-top:16px;font-size:15px;color:var(--ink);font-weight:600;border-left:3px solid var(--blue);padding-left:14px;line-height:1.6}
 
 /* reveal */
@@ -90,10 +95,21 @@ h1 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:tex
 .jump{color:var(--blue);text-decoration:none;font-weight:600;margin-left:6px}
 .jump:hover{text-decoration:underline}
 
-/* 以下為第二段樣式。原本重複的 :root / reset / .wrap / .eyebrow 已移除,
-   section 與 .lead 保留這一份(它們本來就覆蓋掉前面那份,是實際生效的值) */
+:root{
+  --bg:#ffffff;--bg-alt:#f5f5f7;--ink:#1d1d1f;--ink-2:#6e6e73;--ink-3:#86868b;
+  --line:#d2d2d7;--blue:#0071e3;--blue-d:#0066cc;
+  --grad:linear-gradient(118deg,#0a84ff 0%,#0071e3 42%,#28c6e8 100%);
+  --amber:#b45309;--amber-bg:#fff7ed;--amber-line:#fde3c8;
+  --sans:"SF Pro TC","SF Pro Display",-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.wrap{max-width:980px;margin:0 auto;padding:0 22px}
 section{padding:clamp(56px,9vw,104px) 0}
 .sec-head{max-width:900px;margin:0 auto clamp(28px,5vw,40px)}
+.eyebrow{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px}
 h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;line-height:1.22}
 h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .lead{font-size:clamp(15px,1.9vw,17px);color:var(--ink-2);line-height:1.7;margin-top:16px;max-width:680px}
@@ -240,30 +256,6 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 </head>
 <body>
 
-<!-- 固定導覽列(三頁共用元件,樣式見 assets/nav.css)
-     本頁是「履歷」,所以履歷這格帶 .cur;另兩格連到另外兩頁。 -->
-<nav class="pnav">
-  <div class="in">
-    <a href="index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
-    <div class="tabs">
-      <span class="tab-l cur">履歷</span>
-      <a class="tab-l" href="../trj_page/01_trj_page.html">TRJ 軌跡規劃</a>
-      <a class="tab-l" href="../lfs_page/lfs01.html">LFS 車道融合</a>
-    </div>
-  </div>
-</nav>
-
-<!-- 章節快速跳轉。data-sec 必須等於對應 <section> 的 id,捲動高亮才會生效。 -->
-<nav class="chnav" aria-label="章節導覽">
-  <div class="in">
-    <a href="#experience" data-sec="experience">工作經歷</a>
-    <a href="#skills"     data-sec="skills">技能</a>
-    <a href="#learning"   data-sec="learning">學習能力</a>
-    <a href="#education"  data-sec="education">學歷</a>
-    <a href="#patents"    data-sec="patents">發明專利</a>
-  </div>
-</nav>
-
 <section style="padding-bottom:clamp(24px,3.5vw,36px)">
 <div class="wrap">
   <div class="rez reveal">
@@ -285,18 +277,18 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 </div>
 </section>
 
-<section id="experience" style="padding-top:clamp(28px,4vw,44px)">
+<section style="padding-top:clamp(28px,4vw,44px)">
 <div class="wrap">
   <div class="sec-head reveal">
     <div class="eyebrow">工作經歷 · Experience</div>
     <h2 class="h">量產 ADAS 與工廠機器人,<span class="grad">兩邊都真的出過貨</span></h2>
-    <p class="lead">在自主系統的兩端都做過、也都上線:量產 ADAS(高速公路 L2.9)與工廠 AMR。最自豪的一件事——發現每個功能團隊都在各做一套軌跡邏輯,於是退一步看人到底怎麼開車,把整套橫向規劃收斂成一個共用模組(TRJ):新功能只需定義參考線與偏移量,開發時間從 4 個月縮到 2~3 天。同一套「找結構性根因、以簡馭繁」的做法,現在正搬到工廠機器人上。</p>
+    <p class="lead">在自主系統的兩端都做過、也都上線:量產 ADAS(高速公路 L2.9)與工廠 AMR。最自豪的一件事——發現每個功能團隊都在各做一套軌跡邏輯,於是退一步看人到底怎麼開車,把整套橫向規劃收斂成一個共用模組(TRJ):新功能只需定義參考線與偏移量,開發時間從 7–8 個月縮到 1 天。同一套「找結構性根因、以簡馭繁」的做法,現在正搬到工廠機器人上。</p>
     <p class="belief">穩定的路徑感知,才能支撐無震盪的軌跡決策。</p>
 
     <div class="stats">
       <div class="chip"><div class="v">ADAS → AMR</div><div class="l">量產與工廠機器人</div></div>
       <div class="chip"><div class="v m">5 款</div><div class="l">量產車 · L2.9 上路</div></div>
-      <div class="chip"><div class="v m">2~3 天</div><div class="l">新功能開發(原 4 個月+)</div></div>
+      <div class="chip"><div class="v m">1 天</div><div class="l">新功能開發(原 7–8 月)</div></div>
       <div class="chip"><div class="v m">4 項</div><div class="l">發明專利 · 3 已獲證</div></div>
     </div>
   </div>
@@ -345,15 +337,15 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     </div>
 
     <div class="xp">
-      <div class="xp-m"><div class="big">40→~100<span style="font-size:12px">%</span></div><div class="unit">場景成功率</div></div>
+      <div class="xp-m"><div class="big">70→96<span style="font-size:12px">%</span></div><div class="unit">任務層級成功率</div></div>
       <div class="xp-c">
         <h4>Isaac Sim 無人值守導航壓力測試框架</h4>
-        <p class="xp-sum">把<span class="hl">偶發、難重現的導航失效</span>變成可重跑、可統計的資料;每晚自動跑 <span class="hl">300 個場景</span>,場景成功率自 <span class="hl">40% 提升至 ~100%</span></p>
+        <p class="xp-sum">把<span class="hl">偶發、難重現的導航失效</span>變成可重跑、可統計的資料;每晚自動跑 <span class="hl">300 個場景</span>,任務成功率自 <span class="hl">70% 提升至 96%</span></p>
         <div class="xp-detail">
         <ul>
           <li>導航卡住多為偶發且難以重現,改以<b>自 SLAM 地圖自動採樣可通行目標</b>的方式量產測試場景,單批 300 個站點與任意座標任務,並可固定隨機種子重跑同一批做前後比較</li>
           <li>讓測試<b>整夜無人值守</b>:系統自行判定任務完成、卡住或逾時,卡住先嘗試退避脫困,仍失敗則遠端重啟模擬器與整個導航堆疊後自動重試,不需工程師守在旁邊</li>
-          <li>每批結束<b>自動分類失敗原因並產出成功率報表</b>,使導航品質從「工程師的印象」變成<span class="out">可追蹤的趨勢</span>;同一批 300 場景基準下,場景成功率自 40% 提升至 ~100%</li>
+          <li>每批結束<b>自動分類失敗原因並產出成功率報表</b>,使導航品質從「工程師的印象」變成<span class="out">可追蹤的趨勢</span>;同一批 178 場景基準下,任務層級成功率自 70% 提升至 96%</li>
         </ul>
         </div>
       </div>
@@ -403,15 +395,15 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     <p class="co-scope">量產 ADAS 橫向控制框架;技術交付 <b>6+ 整車客戶</b>(BYD 比亞迪、Windrose 葦渡、CMC 中華汽車),成果上 <b>5 款量產車 · L2.9</b> 高速公路自駕。</p>
 
     <div class="xp">
-      <div class="xp-m"><div class="big">2~3 天</div><div class="unit">原 4 個月+</div></div>
+      <div class="xp-m"><div class="big">1 天</div><div class="unit">原 7–8 個月</div></div>
       <div class="xp-c">
-        <h4>TRJ 通用型軌跡規劃架構<a class="jump" href="../trj_page/01_trj_page.html">看完整專案 →</a></h4>
-        <p class="xp-sum">主導架構收斂:開發週期 <span class="hl">4 個月+ → 2~3 天</span>、運算量降至原 <span class="hl">37%</span>|專利 <a class="pt-link" href="https://patents.google.com/patent/TW202426860A/zh" target="_blank" rel="noopener"><span class="hl">TW202426860A</span></a></p>
+        <h4>TRJ 通用型軌跡規劃架構</h4>
+        <p class="xp-sum">主導架構收斂:開發週期 <span class="hl">7–8 個月 → 1 天</span>、運算量降至原 <span class="hl">30–40%</span>|專利 <a class="pt-link" href="https://patents.google.com/patent/TW202426860A/zh" target="_blank" rel="noopener"><span class="hl">TW202426860A</span></a></p>
         <div class="xp-detail">
         <ul>
           <li>各橫向功能長期各自實作一套軌跡邏輯,是開發成本與驗證負擔的結構性來源;由<b>人類駕駛行為回推</b>,歸納出橫向操作僅有兩種原型——沿參考線行駛、或相對參考線偏移——據此將所有橫向功能收斂為單一共用規劃模組</li>
           <li>主導架構設計與跨功能導入,<span class="out">新增功能僅需定義參考線與偏移量,無須重寫軌跡邏輯</span>;驗證週期亦由 1 年縮短至 1 個月</li>
-          <li>已於該架構上實現自動變道、取消變道、上/下匝道、緊急逃生車道、人機共駕、大車偏移等 <b>9 項橫向功能</b>;其中 <b>5 項由我獨立落地</b>,另 <b>4 項由同事各以約 2 天接入</b>——<span class="out">別人能在兩天內接上,才證明它真的是共用模組</span></li>
+          <li>已於該架構上實現自動變道、取消變道、上/下匝道、緊急逃生車道、人機共駕、大車偏移等 <b>6 項橫向功能</b></li>
         </ul>
         </div>
       </div>
@@ -421,27 +413,27 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
       <div class="xp-m"><div class="big">5 款車</div><div class="unit">台 3 · 中 2 · L2.9</div></div>
       <div class="xp-c">
         <h4>L2.9 高速公路自駕量產 · 中國現場技術整合與展示</h4>
-        <p class="xp-sum">與<span class="hl">覺非科技</span>合作導入地圖資訊實現<span class="hl">自動上下匝道</span>達 <span class="hl">L2.9</span>,向 <span class="hl">6 家</span>一線車廠與 Tier 1 現場展示</p>
+        <p class="xp-sum">與<span class="hl">覺非科技</span>合作導入地圖資訊實現<span class="hl">自動上下匝道</span>達 <span class="hl">L2.9</span>,向 <span class="hl">4 家</span>一線車廠與 Tier 1 現場展示</p>
         <div class="xp-detail">
         <ul>
           <li>赴中國與地圖廠商<b>覺非科技</b>合作,<b>HD map 與 ADAS/SD map 兩種規格皆完成導入</b>,實現<b>自動上下匝道</b>,將系統能力提升至 <b>L2.9</b>(高速公路點到點);匝道軌跡由自研 TRJ 架構規劃</li>
           <li>導入 <b>Free Space</b>(可行駛區域)資訊,擴充<b>市區</b>自動駕駛能力</li>
-          <li>於<b>深圳、南京、上海、蘇州 4 地</b>進行現場整合;向<b>一汽、BYD、合眾、CMC 中華汽車、Lexgen 納智捷</b>等整車廠與 <b>BOSCH</b> 等 Tier 1 共 <b>6 家</b>現場展示系統能力(台灣、中國兩地);<span class="out">成果上 5 款量產車(台灣 3、中國 2)</span></li>
+          <li>於<b>深圳、南京、上海、蘇州 4 地</b>進行現場整合,並向<b>一汽、BYD、合眾</b>等整車廠與 <b>BOSCH</b> 等 Tier 1 共 4 家現場展示系統能力;<span class="out">成果上 5 款量產車(台灣 3、中國 2)</span></li>
         </ul>
         </div>
       </div>
     </div>
 
     <div class="xp">
-      <div class="xp-m"><div class="big sm">4 家供應商</div><div class="unit">感知品質橫向評測</div></div>
+      <div class="xp-m"><div class="big sm">3 家供應商</div><div class="unit">感知品質橫向評測</div></div>
       <div class="xp-c">
-        <h4>Mini-FOT 車道感知驗證框架<a class="jump" href="../lfs_page/lfs01.html#influence">看完整專案 →</a></h4>
+        <h4>Mini-FOT 車道感知驗證框架</h4>
         <p class="xp-sum">建立<span class="hl">自動失敗擷取</span>與<span class="hl">場景重播</span>機制,執行深圳 → 上海 <span class="hl">1,600 km</span> 長途實車驗證</p>
         <div class="xp-detail">
         <ul>
           <li>執行深圳至上海 1,600 km <b>Mini-FOT</b>(Field Operational Test),開發<b>自動失敗擷取工具</b>,自長里程 log 中自動篩出車道偵測失效案例,取代人工逐段檢視</li>
           <li>建立<b>場景重播機制</b>,重建失效當下之環境條件以執行變道與橫向控制回歸測試,用於驗證 TRJ 通用型軌跡規劃架構的系統穩定性</li>
-          <li>以<span class="out">同一套框架與判準</span>對 Mobileye、StradVision、Horizon Robotics、PCT(FIH) 進行橫向評測,建立跨供應商的品質比較基準;並將評測方法與失效案例回饋新創供應商,支援其車道偵測演算法研發</li>
+          <li>以<span class="out">同一套框架與判準</span>對 Mobileye、StradVision、Horizon Robotics 進行橫向評測,建立跨供應商的品質比較基準;並將評測方法與失效案例回饋新創供應商,支援其車道偵測演算法研發</li>
         </ul>
         </div>
       </div>
@@ -478,7 +470,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     <div class="xp">
       <div class="xp-m"><div class="big sm">12 個月</div><div class="unit">Siemens 共同開發</div></div>
       <div class="xp-c">
-        <h4>車道融合模組(Lane Fusion)功能安全與實車標定<a class="jump" href="../lfs_page/lfs01.html">看完整專案 →</a></h4>
+        <h4>車道融合模組(Lane Fusion)功能安全與實車標定</h4>
         <p class="xp-sum">我方技術主責,依 <span class="hl">ISO 26262</span> 推進自開發至量產,導入 <span class="hl">2 款量產車型</span></p>
         <div class="xp-detail">
         <ul>
@@ -493,26 +485,26 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     <div class="xp">
       <div class="xp-m"><div class="big sm">3 款車型</div><div class="unit">客訴為零</div></div>
       <div class="xp-c">
-        <h4>C1 Bias 估測器(攝影機光軸偏航偵測)<a class="jump" href="../lfs_page/lfs01.html#architecture">看完整專案 →</a></h4>
-        <p class="xp-sum">自建驗證工具,偏差補償率 <span class="hl">86.81%</span>;後續產品化為量產功能,獲 <span class="hl">2025 量產計畫</span>採用</p>
+        <h4>C1 Bias 估測器(攝影機光軸偏航偵測)</h4>
+        <p class="xp-sum">自建驗證工具,偏差補償率 <span class="hl">86.8%</span>;後續產品化為量產功能,獲 <span class="hl">2025 量產計畫</span>採用</p>
         <div class="xp-detail">
         <ul>
           <li>針對相機校正不完全導致車道線係數系統性偏差,自建工具以<b>車輛已行駛過的車道軌跡為參考基準</b>反推當下偏差,無需額外量測設備即可即時判定校正結果</li>
           <li>供驗證團隊(VV Team)即時檢核相機校正結果,並協助其自我檢視 <b>EOL</b>(產線)與 <b>ONL</b>(行車中)校正流程</li>
-          <li>工具於本期間建立,補償率達 <span class="out">86.81%</span>;<b>後續經穩定性與可靠性驗證後產品化</b>為具即時修正能力之量產功能,獲 2025 量產計畫採用、導入 3 款量產車型,<span class="out">上線後未再發生車道線校正不完全之客訴</span></li>
+          <li>工具於本期間建立,補償率達 <span class="out">86.8%</span>;<b>後續經穩定性與可靠性驗證後產品化</b>為具即時修正能力之量產功能,獲 2025 量產計畫採用、導入 3 款量產車型,<span class="out">上線後未再發生車道線校正不完全之客訴</span></li>
         </ul>
         </div>
       </div>
     </div>
 
     <div class="xp">
-      <div class="xp-m"><div class="big sm">$470–625K</div><div class="unit">替代供應商開發案</div></div>
+      <div class="xp-m"><div class="big sm">$500–700K</div><div class="unit">替代供應商開發案</div></div>
       <div class="xp-c">
-        <h4>車道線後處理演算法<a class="jump" href="../lfs_page/lfs01.html#decision-1">看完整專案 →</a></h4>
+        <h4>車道線後處理演算法</h4>
         <p class="xp-sum">以自研軟體後處理取代感知供應商重新開發,零硬體成本,沿用至 <span class="hl">4 款量產車型</span></p>
         <div class="xp-detail">
         <ul>
-          <li>追查根因為<b>模型複雜度超出有效偵測距離所能支撐</b>,短距下高階項外推被放大,造成遠端車道線甩動;原規劃由供應商重新開發感知(報價 USD 470–625K)</li>
+          <li>追查根因為<b>模型複雜度超出有效偵測距離所能支撐</b>,短距下高階項外推被放大,造成遠端車道線甩動;原規劃由供應商重新開發感知(報價 USD 500–700K)</li>
           <li>設計依有效距離動態調整多項式階數的演算法(區間內重新 least-square 擬合、階數間加權內插),消除模型切換造成的不連續,並以進彎前曲率預判維持彎道性能</li>
           <li>不動感知韌體、不加硬體,<span class="out">單幀運算開銷可忽略</span>,獲採納為標準做法</li>
         </ul>
@@ -523,7 +515,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     <div class="xp">
       <div class="xp-m"><div class="big sm">4 款量產車</div><div class="unit">彎道誤報零回報</div></div>
       <div class="xp-c">
-        <h4>道路曲率估算公式根因修正<a class="jump" href="../lfs_page/lfs01.html#decision-2">看完整專案 →</a></h4>
+        <h4>道路曲率估算公式根因修正</h4>
         <p class="xp-sum">修正跨系統長期沿用的曲率公式,消除 LKA <span class="hl">彎道誤報</span>,同步導入 <span class="hl">4 款量產車型</span></p>
         <div class="xp-detail">
         <ul>
@@ -694,7 +686,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 </div>
 </section>
 
-<section id="learning">
+<section>
 <div class="wrap">
 
   <div class="sec-head reveal">
@@ -983,8 +975,6 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
   </div>
 </div>
 </section>
-
-<script src="../assets/nav.js"></script>
 
 </body>
 </html>
