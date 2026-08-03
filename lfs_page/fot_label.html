@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mini-FOT 逐幀人工標註 — 三人分段包乾 → Excel</title>
+<style>
+  :root{
+    --bg:#fbfcfd;--bg-alt:#f5f7f9;--ink:#1d1d1f;--ink-2:#6e6e73;--ink-3:#86868b;--line:#d2d2d7;
+    --grid:#eaeef3;
+    /* 四類路況沿用 fot_drive 的類別色(同一段紀錄,顏色必須一致,
+       否則讀者會以為上下兩張圖講的是不同東西)。 */
+    --blue:#0071e3;--green:#12a06e;--amber:#c2760b;--magenta:#a3277a;
+    --green-bg:#eaf7f1;--green-line:#bfe6d6;
+    --sans:"SF Pro TC",-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden}
+  canvas{display:block;width:100%;height:100%}
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<script>
+/* ============================================================
+   Mini-FOT 逐幀人工標註 — 三人分段包乾 → Excel
+
+   補的是 STEP 01(跑)和 STEP 02(析)中間被跳過的那一段:腳本不是
+   直接吃影片,而是吃一份人標出來的 Excel。中間有三個驗證部門的
+   工程師,把 100 km 切三段各自包乾。
+
+   這張是示意圖,不是資料圖 —— 所以表格裡只有「欄位名稱」是真的,
+   格子一律畫成抽象色條。填上看似真實的幀號與數值只會讓人以為
+   那是量測結果,反而要去追它從哪來。
+
+   版面刻意上下三層:素材 → 人 → 產出,是一條有方向的加工鏈。
+   橫排會讓三者看起來是並列的三件事,那就講錯了。
+   (例外:compact 版只畫產出那一層,理由見 buildLayout。)
+
+   自動循環,無控制項(與本專案其他 demo 一致)。
+   ============================================================ */
+
+const cv  = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const CSS = getComputedStyle(document.documentElement);
+const C = n => CSS.getPropertyValue(n).trim();
+const col = v => v.startsWith('--') ? C(v) : v;
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const ease  = t => t <= 0 ? 0 : t >= 1 ? 1 : 1 - Math.pow(1 - t, 3);
+
+/* ---------- 資料 ---------- */
+const CLASS = [
+  { k: '市區', c: '--blue'    },
+  { k: '高速', c: '--green'   },
+  { k: '匝道', c: '--amber'   },
+  { k: '壅塞', c: '--magenta' },
+];
+
+/* 與 fot_drive.html 同一份組成 —— 兩張圖講的是同一段 100 km */
+const SEG = [
+  [0, 6.2], [2, 1.4], [1, 12.5], [3, 3.1], [1, 9.8], [2, 1.1], [0, 4.6],
+  [3, 2.4], [0, 5.3], [2, 1.6], [1, 14.2], [3, 4.8], [1, 7.9], [2, 1.3],
+  [0, 7.1], [3, 2.2], [1, 8.4], [2, 1.0], [0, 5.1],
+];
+const TOTAL = SEG.reduce((s, [, d]) => s + d, 0);
+
+function classAt(km) {
+  let acc = 0;
+  for (const [ci, len] of SEG) { acc += len; if (km <= acc) return ci; }
+  return SEG[SEG.length - 1][0];
+}
+
+/* 分段包乾:三人各負責一段,同時進行。
+   pace 是速度差 —— 三條進度條完全同步反而假。 */
+const WORKERS = [
+  { id: 'A', from: 0,    to: 33.4, pace: 1.00 },
+  { id: 'B', from: 33.4, to: 66.7, pace: 0.90 },
+  { id: 'C', from: 66.7, to: TOTAL, pace: 1.08 },
+];
+
+/* 表格:只有欄名是內容,格子是示意。
+   欄名就是 STEP 02 三張分析圖的來源 —— 路況怎麼分、車道線什麼狀態、
+   看得到多遠、旁邊那條線是什麼。                                    */
+const COLS = [
+  { t: '幀 #',       w: 96,  narrow: 66, mini: 52, kind: 'bar', bw: .55 },
+  { t: '路況',       w: 138, narrow: 82, mini: 62, kind: 'dot' },
+  { t: '車道線狀態', w: 176, narrow: 84, mini: 62, kind: 'bar', bw: .48 },
+  { t: '視距 (m)',   w: 116, narrow: 56, mini: 54, kind: 'bar', bw: .38 },
+  { t: '旁車道類型', w: 174, narrow: 0,  mini: 0,  kind: 'bar', bw: .5  },
+];
+// 寬度 0 = 這個版面不放這一欄
+const colW = c => L.compact ? c.mini : L.vertical ? c.narrow : c.w;
+const N_ROWS = 14;  // 表格總列數(視窗放不下,會往上捲)
+
+/* ---------- 版面 ---------- */
+let L = null, scale = 1, offX = 0, offY = 0;
+
+function buildLayout(cssW, cssH) {
+  /* 小格子嵌入(母頁面總覽那三格,高度 340)。用高度判斷就好 ——
+     桌機約 270 寬、手機約 330,兩種走同一套。
+
+     compact 一併帶 vertical:true:窄版該做的取捨(砍掉最後一欄、字級縮小、
+     頁尾換短句)在小格子裡完全一樣,只是尺寸再小一號,所以只換數字。
+     三層的上下關係仍然不變 —— 那是這張圖的論點,再小也不能攤平。      */
+  if (cssH < 520) {
+    /* compact 只剩一層:那份表。
+
+       影格帶、三個人形、進度條、流向線全部不畫。母頁面那一格的標題已經
+       寫著「我定義欄位,3 人分頭標成一份 Excel」—— 誰做的、幾個人做的,
+       文字講得比圖清楚,圖再演一次只是把同一件事說第二遍,而且是在一個
+       271x225 的格子裡跟表格搶空間。表格才是這一步不可取代的產出:
+       腳本吃的是它,STEP 03 三張分析圖的每一個軸都來自它的欄位。
+
+       畫布比例跟著改成 270x235(≈1.15)。原本是 270x336 的直式,擺進橫式
+       的格子裡等比縮放只用得到 67% —— 兩側各空 38px,表格被縮到讀不出
+       欄名。改成貼合格子的比例後 scale 從 0.67 回到 0.96,同一張表大了
+       四成,可見列數還從 6 增到 7。
+
+       也不畫自己的標題:母頁面的格子已經有一組標題與說明。            */
+    /* 三支 compact 面板(drive / label / analysis)共用同一組幾何:
+       畫布 270x224、內容框 (10,10,250,194)、下緣留 20。母頁面三格並排,
+       比例一致 scale 才會一致(三張都 ≈1.004),三塊內容的上下緣才對得齊。
+       改這裡要連另外兩支一起改。
+       表高剛好 194 是湊出來的:tab 24 + head 23 + rowH 20 x 7 + 7 = 194。 */
+    const W = 270, H = 224, pad = 10;
+    return {
+      W, H, vertical: true, compact: true, pad,
+      headY: 0, subY: 0,
+      sheet: { x: pad, y: pad, w: W - pad * 2, tab: 24, head: 23, rowH: 20, vis: 7, inset: 10 },
+      footY: 0,
+    };
+  }
+
+  // 這張圖天生是直的,比例 1.3 以下換窄版:砍掉最後一欄、人縮小,
+  // 但三層的上下關係不變 —— 那是這張圖的論點。
+  const vertical = cssW / cssH < 1.3;
+
+  if (vertical) {
+    const W = 340, H = 410, pad = 14;
+    return {
+      W, H, vertical, pad,
+      headY: 24, subY: 41,
+      strip: { x: pad, y: 60, w: W - pad * 2, h: 20 }, axisY: 93,
+      flow1: [100, 126],
+      person: { cy: 139, r: 9, nameY: 178, rangeY: 191, barY: 198, barW: 66, barH: 4 },
+      flow2: [208, 228],
+      sheet: { x: pad, y: 228, w: W - pad * 2, tab: 24, head: 22, rowH: 21, vis: 4, inset: 10 },
+      footY: H - 14,
+    };
+  }
+
+  const W = 920, H = 440, pad = 26;
+  return {
+    W, H, vertical, pad,
+    headY: 28, subY: 46,
+    strip: { x: pad, y: 68, w: W - pad * 2, h: 24 }, axisY: 106,
+    flow1: [114, 140],
+    person: { cy: 154, r: 11, nameY: 200, rangeY: 214, barY: 222, barW: 104, barH: 5 },
+    flow2: [232, 252],
+    sheet: { x: pad, y: 252, w: W - pad * 2, tab: 26, head: 24, rowH: 22, vis: 4, inset: 14 },
+    footY: H - 16,
+  };
+}
+
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  const r = cv.getBoundingClientRect();
+  cv.width  = Math.round(r.width  * dpr);
+  cv.height = Math.round(r.height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  L = buildLayout(r.width, r.height);
+  L.w3 = (L.W - L.pad * 2) / 3;          // 三段／三人共用的欄寬
+  scale = Math.min(r.width / L.W, r.height / L.H);
+  offX = (r.width  - L.W * scale) / 2;
+  offY = (r.height - L.H * scale) / 2;
+}
+new ResizeObserver(resize).observe(cv);
+resize();
+
+/* ---------- 繪圖小工具 ---------- */
+function text(s, x, y, { size = 12, weight = 400, color = '--ink',
+                        font = 'sans', align = 'left', alpha = 1 } = {}) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = col(color);
+  ctx.font = `${weight} ${size}px ${font === 'mono' ? C('--mono') : C('--sans')}`;
+  ctx.textAlign = align;
+  ctx.fillText(s, x, y);
+  ctx.restore();
+}
+
+function rrect(x, y, w, h, r, fill, alpha = 1) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = col(fill);
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fill();
+  ctx.restore();
+}
+
+/* ---------- 第一層:影格帶 ----------
+   畫成一格一格而不是連續帶子 —— 這裡要講「逐幀」,格子本身就是
+   「一幀就是一列」的視覺根據。段與段之間留大縫,那是分工界線。   */
+// compact 版格子少一半:246px 寬切 63 格,每格只剩 1.9px,縫比格子還寬,
+// 讀起來會變成一條虛線而不是一排影格。
+const CELLS = 63, CELLS_MINI = 42;
+
+function drawStrip(s, p) {
+  const n = L.compact ? CELLS_MINI : CELLS;
+  const gap = L.compact ? 8 : 12, per = n / 3, segW = (s.w - gap * 2) / 3;
+  for (let g = 0; g < 3; g++) {
+    const x0 = s.x + g * (segW + gap), cw = segW / per;
+    for (let i = 0; i < per; i++) {
+      const idx = g * per + i;
+      if (idx / n > p) return;                      // 由左往右長出來
+      const km = (idx + 0.5) / n * TOTAL;
+      rrect(x0 + i * cw, s.y, Math.max(1, cw - 1.6), s.h, 1.5, CLASS[classAt(km)].c, .92);
+    }
+  }
+}
+
+/* ---------- 流向線 ----------
+   線很淡,方向由那顆往下跑的點帶。三條相位錯開,才像三個人各做各的。*/
+function drawFlow(x, y0, y1, phase, on) {
+  ctx.save();
+  ctx.globalAlpha = .3;
+  ctx.strokeStyle = C('--line'); ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+  ctx.restore();
+  if (!on) return;
+  const t = phase % 1;
+  ctx.save();
+  ctx.globalAlpha = Math.sin(t * Math.PI) * .9;
+  ctx.fillStyle = C('--blue');
+  ctx.beginPath(); ctx.arc(x, y0 + (y1 - y0) * t, 2.6, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+/* ---------- 第二層:三個人(僅一般版與窄版;compact 不畫) ----------
+   人形用中性 ink,不給類別色 —— 這一層講「誰做的」,不是分類。
+   四個類別色在這張圖裡只屬於路況,借出去會讓兩層讀起來像同一種軸。*/
+function personMark(cx, cy, r, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = C('--ink-2');
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  const bw = r * 1.42, top = cy + r * 1.25, bot = cy + r * 2.65;
+  ctx.beginPath();
+  ctx.moveTo(cx - bw, bot);
+  ctx.quadraticCurveTo(cx - bw, top, cx, top);
+  ctx.quadraticCurveTo(cx + bw, top, cx + bw, bot);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+function drawPeople(p, appear) {
+  const P = L.person;
+
+  WORKERS.forEach((w, i) => {
+    const cx = L.pad + L.w3 * (i + 0.5);
+    const a  = clamp((appear - i * .12) / .6, 0, 1);
+    if (a <= 0) return;
+
+    personMark(cx, P.cy, P.r, a * .92);
+    text(`驗證工程師 ${w.id}`, cx, P.nameY,
+         { size: L.vertical ? 10.5 : 12.5, weight: 600, align: 'center', alpha: a });
+    text(`${Math.round(w.from)} – ${Math.round(w.to)} km`, cx, P.rangeY,
+         { size: L.vertical ? 9 : 10, font: 'mono', color: '--ink-3', align: 'center', alpha: a });
+
+    // 進度條:三人同時在標,所以三條一起長,只有速度不同。
+    // pace 只影響中途的落差,收尾一定拉回 1 —— 讓某個人永遠停在 90%,
+    // 讀起來會變成「他沒做完」,那不是這張圖要講的事。
+    const pct = clamp(p * (w.pace + (1 - w.pace) * p), 0, 1);
+    const bx  = cx - P.barW / 2;
+    rrect(bx, P.barY, P.barW, P.barH, P.barH / 2, '--grid', a);
+    if (pct > 0) rrect(bx, P.barY, P.barW * pct, P.barH, P.barH / 2, '--blue', a);
+  });
+}
+
+/* ---------- 第三層:Excel ----------
+   欄名是內容,格子是示意 —— 讀者要帶走的是「標了哪四件事」,
+   不是任何一格的值。                                          */
+function drawSheet(s, shown) {
+  const headTop = s.y + s.tab, rowsTop = headTop + s.head;
+  // 底下多留一點白:不留的話最後一列會貼著圓角外框,看起來像被切掉
+  const H = s.tab + s.head + s.rowH * s.vis + 7;
+
+  rrect(s.x, s.y, s.w, H, 12, '#ffffff');
+  ctx.save();
+  ctx.strokeStyle = C('--line'); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(s.x + .5, s.y + .5, s.w - 1, H - 1, 12); ctx.stroke();
+  ctx.restore();
+
+  // 檔名列:綠底 —— 綠在這頁的語意是「產出」(STEP 03 出口 B 也是綠)
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(s.x, s.y, s.w, s.tab + 12, 12); ctx.clip();
+  rrect(s.x, s.y, s.w, s.tab, 0, '--green-bg');
+  ctx.restore();
+  ctx.save();
+  ctx.strokeStyle = C('--green-line'); ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(s.x, s.y + s.tab - .5); ctx.lineTo(s.x + s.w, s.y + s.tab - .5);
+  ctx.stroke();
+  ctx.restore();
+
+  // 試算表小圖示
+  const ix = s.x + s.inset, iy = s.y + s.tab / 2;
+  rrect(ix, iy - 6, 12, 12, 2.5, '--green', .9);
+  ctx.save();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(ix, iy - 1.5); ctx.lineTo(ix + 12, iy - 1.5);
+  ctx.moveTo(ix + 4.5, iy - 6); ctx.lineTo(ix + 4.5, iy + 6);
+  ctx.stroke();
+  ctx.restore();
+  // compact 的字級跟一般版看齊:畫布比例貼合格子之後 scale 回到 0.96,
+  // 再用窄版的 9/10px 就是白白把讀得到的字縮小
+  text('lane_label.xlsx', ix + 18, iy + 4,
+       { size: L.compact ? 11 : L.vertical ? 10 : 11.5, weight: 700, font: 'mono' });
+  if (!L.vertical) {
+    text('三段合併 · 逐幀一列', s.x + s.w - s.inset, iy + 4,
+         { size: 10, color: '--ink-3', align: 'right' });
+  }
+
+  // 標題列 —— 整張圖唯一要讀的字
+  rrect(s.x, headTop, s.w, s.head, 0, '--bg-alt', .85);
+  let x = s.x + s.inset;
+  const hy = headTop + s.head / 2 + 3.5;
+  for (const c of COLS) {
+    if (colW(c) === 0) continue;
+    text(c.t, x, hy, { size: L.compact ? 10 : L.vertical ? 9 : 10.5, weight: 700, font: 'mono', color: '--ink-2' });
+    x += colW(c);
+  }
+
+  // 資料列:視窗放不下,新的一列從下面推進來
+  ctx.save();
+  ctx.beginPath(); ctx.rect(s.x, rowsTop, s.w, s.rowH * s.vis); ctx.clip();
+  const startF = Math.max(0, shown - s.vis);
+  for (let i = Math.floor(startF); i < Math.min(N_ROWS, startF + s.vis + 1); i++) {
+    const a = clamp(shown - i, 0, 1);
+    if (a <= 0) break;
+    drawRow(i, rowsTop + (i - startF) * s.rowH, s, a);
+  }
+  ctx.restore();
+}
+
+function drawRow(i, y, s, a) {
+  const cy = y + s.rowH / 2;
+  const ci = classAt((i + 0.5) / N_ROWS * TOTAL);
+
+  ctx.save();
+  ctx.globalAlpha = a * .7;
+  ctx.strokeStyle = C('--grid'); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(s.x + 8, y + .5); ctx.lineTo(s.x + s.w - 8, y + .5); ctx.stroke();
+  ctx.restore();
+
+  let x = s.x + s.inset;
+  for (const c of COLS) {
+    const w = colW(c);
+    if (w === 0) continue;
+    if (c.kind === 'dot') {
+      // 路況這欄給真的類別色 —— 這是表格裡唯一有語意的顏色
+      rrect(x, cy - 4, 8, 8, 2, CLASS[ci].c, a * .95);
+      rrect(x + 14, cy - 2.5, (w - 30) * .62, 5, 2.5, '--grid', a);
+    } else {
+      // 其餘一律抽象色條:寬度固定變化,看得出「有填東西」就夠了
+      const jitter = .82 + ((i * 7 + c.bw * 31) % 5) * .07;
+      rrect(x, cy - 2.5, (w - 16) * c.bw * jitter, 5, 2.5, '--grid', a);
+    }
+    x += w;
+  }
+}
+
+/* ---------- 主迴圈 ----------
+   節奏對齊 fot_drive:跑 7 秒、停 1.6 秒再重來。兩張圖在同一頁上下
+   相鄰,週期一致才不會互相打架。                                    */
+const TEND = 8.6;
+const t0 = performance.now();
+
+function frame(now) {
+  const time = ((now - t0) / 1000) % TEND;
+
+  const pStrip  = ease(clamp(time / 1.3, 0, 1));
+  const pPeople = ease(clamp((time - 1.0) / 1.0, 0, 1));
+  // compact 只有表格,前面沒有東西要等 —— 幾乎立刻開始填,不然一格空白
+  // 一秒半,在三格並排的總覽裡看起來像壞掉
+  const pWork   = clamp((time - (L.compact ? .25 : 1.5)) / (L.compact ? 6.2 : 4.9), 0, 1);
+  const pFoot   = ease(clamp((time - 6.3) / .7, 0, 1));
+
+  ctx.save();
+  ctx.translate(offX, offY);
+  ctx.scale(scale, scale);
+  ctx.clearRect(0, 0, L.W, L.H);
+  ctx.fillStyle = C('--bg'); ctx.fillRect(0, 0, L.W, L.H);
+
+  if (!L.compact) {
+    text('逐幀人工標註 → Excel', L.pad, L.headY, { size: L.vertical ? 13 : 15, weight: 700 });
+    text(L.vertical ? '三人分段包乾 · 判讀成結構化資料'
+                    : '驗證部門三位工程師,把 100 km 切成三段各自包乾,逐幀判讀成腳本讀得動的資料',
+         L.pad, L.subY, { size: L.vertical ? 9.5 : 11, color: '--ink-2' });
+  }
+
+  if (!L.compact) {
+    drawStrip(L.strip, pStrip);
+    text('0', L.strip.x, L.axisY, { size: 9.5, font: 'mono', color: '--ink-3' });
+    text('100 km 連續紀錄 · 逐幀影像', L.strip.x + L.strip.w / 2, L.axisY,
+         { size: 9.5, font: 'mono', color: '--ink-3', align: 'center' });
+    text('100', L.strip.x + L.strip.w, L.axisY,
+         { size: 9.5, font: 'mono', color: '--ink-3', align: 'right' });
+
+    // 影格 → 人:每段的中線落在該段人形的正上方
+    WORKERS.forEach((w, i) => {
+      const cx = L.pad + L.w3 * (i + 0.5);
+      drawFlow(cx, L.flow1[0], L.flow1[1], time * 1.1 + i * .33, pPeople > .3);
+    });
+  }
+
+  // 人與流向線都是 compact 沒有的層
+  if (!L.compact) {
+    drawPeople(pWork, pPeople);
+    // 人 → 表:三條同時在流,因為三個人是並行的
+    WORKERS.forEach((w, i) => {
+      const cx = L.pad + L.w3 * (i + 0.5);
+      drawFlow(cx, L.flow2[0], L.flow2[1], time * 1.3 + i * .27, pWork > 0 && pWork < 1);
+    });
+  }
+
+  drawSheet(L.sheet, pWork * N_ROWS);
+
+  // 頁尾。compact 不畫分隔線:它離表格下緣只剩 4px,讀起來像卡片多長了
+  // 一條邊,而表格自己的外框已經把內容收乾淨了。
+  if (!L.compact) {
+    ctx.save();
+    ctx.globalAlpha = .6;
+    ctx.strokeStyle = C('--line');
+    ctx.beginPath();
+    ctx.moveTo(L.pad, L.footY - 17); ctx.lineTo(L.W - L.pad, L.footY - 17);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // compact 不畫頁尾:格子裡只剩那份表,而「這一步在做什麼」母頁面的格子
+  // 標題已經寫了(產生標準化標註流程 / 快速標註 Ground Truth),
+  // 表格自己的檔名列與四個欄名也講得夠清楚,再加一行是第三遍。
+  if (!L.compact) {
+    text(L.vertical ? '欄位定義一致,三段才接得回同一份表'
+                    : '100 km 切三段、三人同時標;欄位定義一致,三段才接得回同一份表',
+         L.pad, L.footY, { size: L.vertical ? 9.5 : 11, weight: 600, alpha: pFoot });
+  }
+
+  ctx.restore();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

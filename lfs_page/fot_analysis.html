@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mini-FOT 實車資料統計 — 場景分類 · 下一車道類型 · 有效視野</title>
+<style>
+  :root{
+    --bg:#fbfcfd;--ink:#1d1d1f;--ink-2:#6e6e73;--ink-3:#86868b;--line:#d2d2d7;
+    --blue:#0071e3;--green:#0a8a5c;--amber:#c2760b;--grid:#eaeef3;
+    --neutral:#8b93a1;
+    --sans:"SF Pro TC",-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden}
+  canvas{display:block;width:100%;height:100%}
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<script>
+/* ============================================================
+   Mini-FOT 實車資料統計 — 三張圖疊成一疊
+
+     1 場景分類    四類路況各自的車道線可用距離
+     2 下一車道類型 相鄰車道接下來會變成什麼
+     3 有效視野     車速 → 可用距離,也就是模擬環境的相機模型
+
+   為什麼疊成一疊而不是並排:這三張是同一批資料的三個切面,
+   最後一張(有效視野)才是要交出去的結論 —— 前兩張是它的來歷。
+   前兩張不需要被讀懂,只需要被看見「有這些分析」,所以蓋得很深:
+   每張只往右下錯開 76 × 42,露出的剛好是標題列與最左邊那一欄。
+   省下來的版面全部給最前面那張,它才是要讀的。
+
+   蓋住的那兩張連副標與圖例都不畫 —— 半截字露在邊緣看起來像出錯,
+   而且既然讀者不需要細節,那一行就是純粹的雜訊。
+
+   唯一的動作是開場:三張一張接一張疊上去,每張 1.5 秒,共 4.5 秒,
+   然後定格。疊的順序本身就是這頁要講的話 —— 先有前兩張的來歷,
+   最後那張結論才蓋得上去 —— 所以值得用動作講一次。
+   播完就是一張靜態圖:不循環、無控制項,改視窗大小才重畫。
+   ============================================================ */
+
+const cv  = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const CSS = getComputedStyle(document.documentElement);
+const C = n => CSS.getPropertyValue(n).trim();
+// 顏色參數同時吃 CSS 變數名與直接的色碼
+const col = v => v.startsWith('--') ? C(v) : v;
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+// 開場動畫用。尾段放慢(out-cubic),卡片才像「落定」而不是「停住」
+const ease = t => t <= 0 ? 0 : t >= 1 ? 1 : 1 - Math.pow(1 - t, 3);
+const STEP = 1.5;                       // 每張卡片疊上去要多久(秒)
+// 固定亂數:散點的位置由種子決定,重新整理也不會變 —— 它是一張圖,不是每次重擲
+const rnd = s => { const x = Math.sin(s * 127.1) * 43758.5453; return x - Math.floor(x); };
+// 三個均勻亂數相加 ≈ 常態,散點才不會是方方正正的一塊
+const gauss = s => (rnd(s) + rnd(s + 17.3) + rnd(s + 41.7) - 1.5) * 0.82;
+
+/* ---------- 版面 ---------- */
+const META = [
+  { n: '1', t: '場景分類',    s: '四類路況 · 車道線可用距離隨時間' },
+  { n: '2', t: '下一車道類型', s: '相鄰車道接下來變成什麼' },
+  { n: '3', t: '有效視野',    s: 'Horizon:車速 → 可用距離' },
+];
+
+let L = null, scale = 1, offX = 0, offY = 0;
+
+// 錯開量。改這兩個數就等於改「後面兩張露出多少」——
+// 露出的寬高剛好就是 DX 與 DY。DY 只夠放標題那一行(基線在 +25),
+// 再多就會露出半截副標;DX 要留得住座標軸標籤再加一點圖形,
+// 不然露出來的那條會是空白,看不出下面壓著一張圖。
+const DX = 76, DY = 42;
+
+function buildLayout(cssW, cssH) {
+  /* 小格子嵌入(母頁面總覽那三格,桌機約 270 寬、手機約 330,高度都是 340)。
+     用高度判斷就夠了 —— 兩種寬度走同一套版面。
+
+     這個尺寸下疊放和直排都不成立:260px 寬的卡片錯開 76px 之後只剩
+     116px,連座標軸都畫不下;直排要 980px 高,格子只有 340。
+     所以改成一次放一張、三張輪播 —— 同一個論點的小尺寸說法。
+     一次讀一張、三張都讀得到,好過三張都讀不到。                      */
+  if (cssH < 520) {
+    // 不畫自己的標題:母頁面的格子已經有一組。卡片自己的「1 場景分類」
+    // 要留 —— 輪播時那是唯一能分辨現在是哪一張的東西。
+    /* 三支 compact 面板(drive / label / analysis)共用同一組幾何:
+       畫布 270x224、內容框 (10,10,250,194)、下緣留 20。母頁面三格並排,
+       比例一致 scale 才會一致(三張都 ≈1.004),三塊內容的上下緣才對得齊。
+       改這裡要連另外兩支一起改。
+
+       這一支原本是 280x300(直式),在 271x225 的橫格子裡 scale 只有 0.75,
+       兩側各空 30px —— 三格並排時就它一格明顯比較小。改成橫式之後卡片
+       從 260x264 變 250x194,裡面三張圖(散點、堆疊長條、有效視野)本來
+       就是橫向的圖,攤寬只會更好讀。
+       下緣那 20 給輪播進度點。                                       */
+    const W = 270, H = 224, pad = 10;
+    const card = { x: pad, y: pad, w: W - pad * 2, h: 194 };
+    return {
+      W, H, compact: true, vertical: false, pad, headY: 19, footY: H - 12,
+      dotsY: 212,
+      cards: META.map(m => ({ ...m, ...card, covered: false })),
+    };
+  }
+
+  // 疊放版面本身是 920x640(≈1.44)。比 1.05 更瘦就沒有錯開的餘裕,
+  // 改成三張各自攤平直排 —— 縮小同一份版面在手機上會完全看不清。
+  const vertical = cssW / cssH < 1.05;
+
+  if (vertical) {
+    const W = 380, H = 980, pad = 16, top = 64, gap = 18;
+    const avail = H - top - 78 - gap * 2;
+    const h = Math.floor(avail / 3);
+    // 直排時三張各自攤平,誰也沒蓋到誰,所以都是完整版
+    return {
+      W, H, vertical, pad, headY: 28, footY: H - 42,
+      cards: META.map((m, i) => ({ ...m, x: pad, y: top + i * (h + gap),
+                                   w: W - pad * 2, h, covered: false })),
+    };
+  }
+
+  // 標題、頁尾與整疊卡片切齊同一條左緣(x0),版面才不會看起來各走各的。
+  // 卡片尺寸是由 x0/y0 與錯開量反推出來的:蓋得越深,同樣一塊畫布
+  // 就能給每張卡片越大的面積。
+  const W = 920, H = 640, x0 = 44, y0 = 72;
+  const w = W - x0 * 2 - DX * 2, h = 578 - y0 - DY * 2;
+  return {
+    W, H, vertical, pad: x0, headY: 30, footY: H - 20,
+    cards: META.map((m, i) => ({ ...m, x: x0 + i * DX, y: y0 + i * DY, w, h,
+                                 covered: i < META.length - 1 })),
+  };
+}
+
+// 只算版面,不畫 —— 這支在 SCN / ROAD 那些常數之前就會跑到一次
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  const r = cv.getBoundingClientRect();
+  cv.width  = Math.round(r.width  * dpr);
+  cv.height = Math.round(r.height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  L = buildLayout(r.width, r.height);
+  scale = Math.min(r.width / L.W, r.height / L.H);
+  offX = (r.width  - L.W * scale) / 2;
+  offY = (r.height - L.H * scale) / 2;
+}
+new ResizeObserver(() => { resize(); redraw(); }).observe(cv);
+resize();
+
+/* ---------- 繪圖小工具 ---------- */
+function text(s, x, y, { size = 12, weight = 400, color = '--ink',
+                        font = 'sans', align = 'left', alpha = 1 } = {}) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = col(color);
+  ctx.font = `${weight} ${size}px ${font === 'mono' ? C('--mono') : C('--sans')}`;
+  ctx.textAlign = align;
+  ctx.fillText(s, x, y);
+  ctx.restore();
+}
+
+function measure(s, size, font) {
+  ctx.save();
+  ctx.font = `400 ${size}px ${font === 'mono' ? C('--mono') : C('--sans')}`;
+  const w = ctx.measureText(s).width;
+  ctx.restore();
+  return w;
+}
+
+// 卡片內的繪圖區(扣掉標題列)。三張卡片共用同一個上緣,
+// 疊起來時每張露出的那一條才會等高。
+// 左邊留 34 是給座標軸標籤的:它們畫在 r.x 左側,留 16 會被卡片切掉。
+// compact 版標題列只有一行(沒有副標),上緣與左邊的留白都跟著縮
+// 左邊留 32:軸標籤(100%、120、樣本量)畫在 r.x 左側,留 27 會被卡片邊緣切掉
+const plotOf = c => L.compact
+  ? { x: c.x + 32, y: c.y + 42, w: c.w - 32 - 12, h: c.h - 42 - 16 }
+  : { x: c.x + 34, y: c.y + 66, w: c.w - 34 - 16, h: c.h - 66 - 16 };
+
+/* 圖例:靠右排,由右往左量好總寬再由左往右畫。
+   三張圖各有自己的圖例,而且都放在標題列 —— 疊起來之後
+   只有標題列露得出來,圖例放在圖下方就等於沒有。
+   maxW 是窄版面的保險:排不下就縮字級,而不是壓到副標上面。 */
+function legend(items, rx, y, size = 8.5, maxW = 1e4) {
+  const SW = 11, GAP = 4;
+  const widthAt = (sz, item) => {
+    let t = 0;
+    for (const it of items) t += SW + GAP + measure(it.l, sz, 'mono') + item;
+    return t;
+  };
+  let ITEM = 13, total = widthAt(size, ITEM);
+  while (total > maxW && size > 6.5) { size -= 0.5; ITEM = Math.max(7, ITEM - 1); total = widthAt(size, ITEM); }
+  let x = rx - total + ITEM;
+  for (const it of items) {
+    ctx.save();
+    ctx.strokeStyle = ctx.fillStyle = col(it.c);
+    if (it.k === 'dot') {
+      ctx.beginPath(); ctx.arc(x + SW / 2, y - 3, 2.4, 0, Math.PI * 2); ctx.fill();
+    } else if (it.k === 'dash') {
+      ctx.lineWidth = 1.8; ctx.setLineDash(it.d || [4, 3]);
+      ctx.beginPath(); ctx.moveTo(x, y - 3); ctx.lineTo(x + SW, y - 3); ctx.stroke();
+    } else {
+      ctx.beginPath(); ctx.roundRect(x, y - 7.5, SW, 7.5, 1.5); ctx.fill();
+    }
+    ctx.restore();
+    text(it.l, x + SW + GAP, y, { size, font: 'mono', color: '--ink-2' });
+    x += SW + GAP + measure(it.l, size, 'mono') + ITEM;
+  }
+}
+
+/* 卡片外框:白底 + 一層很淡的投影。
+   投影存在的理由只有一個 —— 讓「哪張在前面」不必靠顏色深淺去猜,
+   所以只有疊放版需要它。
+
+   compact 是一次一張的輪播(見 drawCarousel),沒有誰疊在誰上面,投影
+   沒有工作可做;而這格的縮放只有 0.67,18px 的柔邊糊過去就變成卡片
+   四周一圈髒灰邊,在母頁面的小格子裡看起來像圖被框起來了。
+   卡片和背景的分界交給那條 --line 細邊就夠。                */
+function cardChrome(c) {
+  ctx.save();
+  if (!L.compact) {
+    ctx.shadowColor = 'rgba(26,38,58,0.13)';
+    ctx.shadowBlur = 18; ctx.shadowOffsetY = 6;
+  }
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.roundRect(c.x, c.y, c.w, c.h, 12); ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.strokeStyle = C('--line'); ctx.globalAlpha = 0.75; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(c.x, c.y, c.w, c.h, 12); ctx.stroke();
+  ctx.restore();
+
+  // compact 版不畫副標:260px 寬要同時容下副標與圖例,兩邊一定撞在一起。
+  // 拿掉的是說明,留下的是圖例 —— 圖例是讀圖的必要條件,副標不是。
+  if (L.compact) {
+    text(c.n, c.x + 11, c.y + 19, { size: 9.5, weight: 700, font: 'mono', color: '--ink-3' });
+    text(c.t, c.x + 24, c.y + 19, { size: 11.5, weight: 700 });
+    return;
+  }
+
+  text(c.n, c.x + 16, c.y + 25, { size: 11, weight: 700, font: 'mono', color: '--ink-3' });
+  text(c.t, c.x + 32, c.y + 25, { size: 13, weight: 700 });
+  if (!c.covered)
+    text(c.s, c.x + 16, c.y + 43, { size: 9.5, font: 'mono', color: '--ink-3', alpha: 0.95 });
+}
+
+/* 圖例位置:compact 版擠在標題列右邊(副標那一行已經空出來了),
+   一般版維持原本的副標同高。三張圖共用,免得三處各寫一份。 */
+const legendAt = c => L.compact
+  ? { rx: c.x + c.w - 11, y: c.y + 33, size: 7.5, room: c.w - 22 }
+  : { rx: c.x + c.w - 16, y: c.y + 43, size: 8.5,
+      room: c.w - 32 - measure(c.s, 9.5, 'mono') - 12 };
+
+/* ---------- 第 1 張:場景分類 ----------
+   四類路況,每一類都是一段時間內「車道線還看得到多遠」的散點。
+   三條線各自成帶,分開讀:左線最穩、右線次之、相鄰車道線最早斷。
+   四張並排是為了比形狀,不是比數字 —— 壅塞與停走的帶明顯往下掉、
+   洞也多(前車擋住),匝道則是整條帶在飄(曲率大,遠端先失效)。
+   這四種形狀就是模擬環境要能重現的四種輸入。               */
+const RMAX = 120;                                  // 距離上限 (m)
+const SCN = [
+  { n: '一般',  en: 'Normal',        mu: [96, 88, 64], sd: [ 7,  8, 13], drop: 0.05, wob: 0.10 },
+  { n: '壅塞',  en: 'Heavy Traffic', mu: [72, 66, 36], sd: [13, 14, 16], drop: 0.26, wob: 0.20 },
+  { n: '匝道',  en: 'Ramp',          mu: [80, 58, 30], sd: [15, 17, 15], drop: 0.17, wob: 0.62 },
+  { n: '停走',  en: 'Traffic Jam',   mu: [42, 36, 16], sd: [10, 10, 10], drop: 0.46, wob: 0.12 },
+];
+const SERIES = [
+  { c: '--green',   l: '左線' },
+  { c: '--blue',    l: '右線' },
+  { c: '--amber',   l: '相鄰線' },
+];
+
+function drawScatterCell(r, si) {
+  const s = SCN[si];
+  const py = m => r.y + r.h - (m / RMAX) * r.h;
+
+  ctx.save();
+  ctx.strokeStyle = C('--grid'); ctx.lineWidth = 1;
+  for (const m of [40, 80]) {
+    ctx.beginPath(); ctx.moveTo(r.x, py(m)); ctx.lineTo(r.x + r.w, py(m)); ctx.stroke();
+  }
+  ctx.strokeStyle = C('--line'); ctx.globalAlpha = 0.8; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(r.x, r.y); ctx.lineTo(r.x, r.y + r.h); ctx.lineTo(r.x + r.w, r.y + r.h);
+  ctx.stroke();
+  ctx.restore();
+
+  const N = 130;
+  ctx.save();
+  for (let k = 0; k < 3; k++) {
+    ctx.fillStyle = C(SERIES[k].c);
+    ctx.globalAlpha = 0.42;
+    for (let i = 0; i < N; i++) {
+      const t = i / N;
+      const sd = si * 733 + k * 211 + i + 1;
+      if (rnd(sd) < s.drop) continue;                     // 偵測不到的那些幀
+      const base = s.mu[k] * (1 + Math.sin(t * 7.4 + k * 1.9 + si) * s.wob * 0.42);
+      const m = clamp(base + gauss(sd + 0.31) * s.sd[k], 2, RMAX - 2);
+      ctx.beginPath();
+      ctx.arc(r.x + t * r.w, py(m), 1.25, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function drawScenes(c) {
+  const r = plotOf(c);
+  const GAP = 9, cw = (r.w - GAP * 3) / 4;
+  const body = { y: r.y + 4, h: r.h - 16 };
+
+  // 英文名要嘛四欄都有、要嘛四欄都沒有 —— 只有部分欄位放得下時就整排拿掉,
+  // 免得看起來像漏排。最長的是 Heavy Traffic,拿它當門檻。
+  // 被蓋住時也不畫:露出來的那一欄會在字中間被切斷,看起來像壞掉。
+  const withEn = !c.covered && SCN.every(s =>
+    measure(s.n, 10, 'sans') + 5 + measure(s.en, 8, 'mono') <= cw - 3);
+
+  SCN.forEach((s, i) => {
+    const x = r.x + i * (cw + GAP);
+    // compact 的 44 不能再往上:圖例的基線在 c.y+33,再靠近就會和
+    // 右邊那兩欄的標籤疊在一起。
+    text(s.n, x, c.y + (L.compact ? 44 : 60), { size: 10, weight: 700, color: '--ink' });
+    if (withEn)
+      text(s.en, x + measure(s.n, 10, 'sans') + 5, c.y + 60,
+           { size: 8, font: 'mono', color: '--ink-3' });
+    drawScatterCell({ x, y: body.y, w: cw, h: body.h }, i);
+  });
+
+  if (!c.covered) {
+    text('可用距離 (m)', r.x, r.y + r.h + 11, { size: 8.5, font: 'mono', color: '--ink-3' });
+    text('時間 →', r.x + r.w, r.y + r.h + 11,
+         { size: 8.5, font: 'mono', color: '--ink-3', align: 'right' });
+    const g = legendAt(c);
+    legend(SERIES.map(s => ({ ...s, k: 'dot' })), g.rx, g.y, g.size, g.room);
+  }
+}
+
+/* ---------- 第 2 張:下一車道類型 ----------
+   「本車道旁邊那條,再往外是什麼」——決定了偵測到的線能不能當成
+   可借用的車道。堆疊長條刻意做成 100%:比的是比例不是里程,
+   各類路段的取樣長度本來就不一樣,所以另外用上面那排細灰條標樣本量。
+
+   顏色順序(藍→綠→灰→琥珀)是驗過的:綠與琥珀直接相鄰時,
+   紅綠色盲下幾乎分不開,中間隔開才過關。堆疊段之間留 2px 白縫。   */
+// s = 窄版面用的短標籤:四個項目的全名排不進標題列
+const LANE_KIND = [
+  { c: '--blue',    l: '同向車道',  s: '同向' },
+  { c: '--green',   l: '路肩·邊界', s: '路肩' },
+  { c: '--neutral', l: '對向·無',   s: '對向' },
+  { c: '--amber',   l: '匝道·分岔', s: '分岔' },
+];
+const ROAD = [
+  { n: '直行',  v: [72, 14,  6,  8], w: 1.00 },
+  { n: '微彎',  v: [68, 15,  7, 10], w: 0.88 },
+  { n: '大彎',  v: [55, 18, 11, 16], w: 0.54 },
+  // s = compact 用的短名。八根長條分 206px,一格只有 25.7px,而三個中文字
+  // 在 8.5px mono 就要 25.5px —— 兩個三字標籤並排一定黏在一起。
+  { n: '匝道入', s: '匝入', v: [41, 16, 10, 33], w: 0.36 },
+  { n: '匝道出', s: '匝出', v: [38, 15, 11, 36], w: 0.33 },
+  { n: '分流',  v: [29, 13, 12, 46], w: 0.24 },
+  { n: '匯流',  v: [46, 19,  9, 26], w: 0.31 },
+  { n: '路口',  v: [50, 12, 23, 15], w: 0.44 },
+];
+
+function drawLaneType(c) {
+  const r = plotOf(c);
+  const CNT = 12, CGAP = 12;                        // 上面那排樣本量細條
+  const top = r.y + CNT + CGAP, bh = r.h - CNT - CGAP - 20;
+  const py = p => top + (1 - p / 100) * bh;
+
+  ctx.save();
+  ctx.strokeStyle = C('--grid'); ctx.lineWidth = 1;
+  for (const p of [25, 50, 75, 100]) {
+    ctx.beginPath(); ctx.moveTo(r.x, py(p)); ctx.lineTo(r.x + r.w, py(p)); ctx.stroke();
+  }
+  ctx.strokeStyle = C('--line'); ctx.globalAlpha = 0.8; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(r.x, top); ctx.lineTo(r.x, top + bh); ctx.lineTo(r.x + r.w, top + bh);
+  ctx.stroke();
+  ctx.restore();
+
+  for (const p of [0, 50, 100]) {
+    text(p + '%', r.x - 5, py(p) + 3,
+         { size: 8, font: 'mono', color: '--ink-3', align: 'right' });
+  }
+
+  const slot = r.w / ROAD.length, bw = Math.min(34, slot * 0.62);
+  ROAD.forEach((d, i) => {
+    const x = r.x + slot * i + (slot - bw) / 2;
+
+    // 樣本量:同一條時間軸上取到多少資料,和比例分開講
+    ctx.save();
+    ctx.fillStyle = C('--ink-3'); ctx.globalAlpha = 0.28;
+    const cw2 = bw * d.w;
+    ctx.beginPath();
+    ctx.roundRect(x + (bw - cw2) / 2, r.y + 2, cw2, CNT - 4, 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 堆疊:段與段之間留 2px 白縫,顏色之外多一層分界
+    let acc = 0;
+    d.v.forEach((v, k) => {
+      const y0 = py(acc + v), y1 = py(acc);
+      acc += v;
+      const h = Math.max(0, y1 - y0 - 2);
+      if (h <= 0) return;
+      ctx.save();
+      ctx.fillStyle = C(LANE_KIND[k].c);
+      ctx.globalAlpha = 0.9;
+      ctx.beginPath();
+      // 只有最上與最下的段落收圓角,中間保持方的 —— 堆疊才不會散開
+      const rTop = k === d.v.length - 1 ? 3 : 0, rBot = k === 0 ? 3 : 0;
+      ctx.roundRect(x, y0, bw, h, [rTop, rTop, rBot, rBot]);
+      ctx.fill();
+      ctx.restore();
+    });
+
+    if (!c.covered)
+      text(L.compact && d.s ? d.s : d.n, x + bw / 2, top + bh + 13,
+           { size: 8.5, font: 'mono', color: '--ink-2', align: 'center' });
+  });
+
+  text('樣本量', r.x - 5, r.y + CNT - 3,
+       { size: 7.5, font: 'mono', color: '--ink-3', align: 'right' });
+  if (!c.covered) {
+    const g = legendAt(c);
+    // compact 也用短標籤:四個全名在 260px 寬只會被 legend() 一路縮到 6.5px
+    legend(LANE_KIND.map(d => ({ c: d.c, l: L.vertical || L.compact ? d.s : d.l, k: 'box' })),
+           g.rx, g.y, Math.min(g.size, 8), g.room);
+  }
+}
+
+/* ---------- 第 3 張:有效視野 Horizon ----------
+   前兩張的結論收在這一張:把所有場景的資料攤在「車速 vs 可用距離」
+   這個平面上,散點自己長出一個形狀 —— 低速時卡在一個定值(不是相機
+   不行,是路上根本沒那麼遠的線可看),超過約 40 kph 之後隨車速線性
+   成長。取上下界的那兩條折線就是餵給模擬環境的相機模型。
+
+   模型函式與 sim_env.html 的 rangeAt 同一條,兩頁講的是同一個東西。 */
+const VMAX = 120, KNEE = 40;
+
+function rangeAt(v, hi) {
+  const flat = hi ? 42 : 30;
+  if (v <= KNEE) return flat;
+  const t = (v - KNEE) / (VMAX - KNEE);
+  return flat + t * (hi ? 70 : 55);
+}
+
+function drawHorizon(c) {
+  const r = plotOf(c);
+  const bh = r.h - 20;
+  const px = v => r.x + (v / VMAX) * r.w;
+  const py = m => r.y + bh - (m / RMAX) * bh;
+
+  ctx.save();
+  ctx.strokeStyle = C('--grid'); ctx.lineWidth = 1;
+  for (const m of [20, 40, 60, 80, 100, 120]) {
+    ctx.beginPath(); ctx.moveTo(r.x, py(m)); ctx.lineTo(r.x + r.w, py(m)); ctx.stroke();
+  }
+  for (const v of [20, 40, 60, 80, 100, 120]) {
+    ctx.beginPath(); ctx.moveTo(px(v), r.y); ctx.lineTo(px(v), r.y + bh); ctx.stroke();
+  }
+  ctx.strokeStyle = C('--line'); ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(r.x, r.y); ctx.lineTo(r.x, r.y + bh); ctx.lineTo(r.x + r.w, r.y + bh);
+  ctx.stroke();
+  ctx.restore();
+
+  for (const m of [40, 80, 120]) {
+    text(String(m), r.x - 5, py(m) + 3,
+         { size: 8.5, font: 'mono', color: '--ink-3', align: 'right' });
+  }
+  // compact 版跳過 40 這個刻度:它落在 x 軸標題的正上方,兩個會疊在一起。
+  // 40 kph 那個轉折另外有虛線與文字標,少一個刻度讀不掉任何東西。
+  for (const v of L.compact ? [80, 120] : [40, 80, 120]) {
+    text(String(v), px(v), r.y + bh + 13,
+         { size: 8.5, font: 'mono', color: '--ink-3', align: 'center' });
+  }
+  text('可用距離 (m)', r.x, r.y - 5, { size: 9.5, font: 'mono', color: '--ink-3' });
+  // 軸標題靠左:靠右會和 120 這個刻度撞在一起
+  text('車速 (kph) →', r.x, r.y + bh + 13, { size: 9.5, font: 'mono', color: '--ink-3' });
+
+  // 實車量測散點:低速端集中在定值以下,轉折後跟著上界一起抬升
+  const N = 900;
+  ctx.save();
+  ctx.fillStyle = C('--green'); ctx.globalAlpha = 0.4;
+  for (let i = 0; i < N; i++) {
+    const v = rnd(i + 1) * VMAX;
+    const cap = rangeAt(v, true) * 1.05;
+    const m = cap * (0.12 + 0.88 * Math.pow(rnd(i + 90), 0.72));
+    ctx.beginPath(); ctx.arc(px(v), py(m), 1.5, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+
+  ctx.save();
+  // 上下界之間的模型帶
+  ctx.globalAlpha = 0.15; ctx.fillStyle = C('--blue');
+  ctx.beginPath();
+  for (let v = 0; v <= VMAX; v += 4) ctx.lineTo(px(v), py(rangeAt(v, true)));
+  for (let v = VMAX; v >= 0; v -= 4) ctx.lineTo(px(v), py(rangeAt(v, false)));
+  ctx.closePath(); ctx.fill();
+
+  // 上界(琥珀點劃線)與下界(藍虛線)
+  for (const hi of [true, false]) {
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = hi ? C('--amber') : C('--blue');
+    ctx.lineWidth = 2;
+    ctx.setLineDash(hi ? [7, 3, 2, 3] : [6, 4]);
+    ctx.beginPath();
+    for (let v = 0; v <= VMAX; v += 2) ctx.lineTo(px(v), py(rangeAt(v, hi)));
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // 轉折點
+  ctx.globalAlpha = 0.5;
+  ctx.strokeStyle = C('--ink-3'); ctx.lineWidth = 1;
+  ctx.setLineDash([2, 3]);
+  ctx.beginPath();
+  ctx.moveTo(px(KNEE), r.y + bh); ctx.lineTo(px(KNEE), py(104)); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // 兩個標註都在左上 —— 那塊區域沒有散點也沒有模型帶
+  text('上下界折線 = 相機模型', r.x + 8, r.y + (L.compact ? 12 : 14),
+       { size: L.compact ? 9 : 10.5, font: 'mono', color: '--blue' });
+  // compact 版這句省成關鍵的那一半 —— 全句在 220px 寬會壓到右邊的散點上
+  text(L.compact ? '≈40 kph 起線性成長' : '≈40 kph 起隨車速線性成長', px(KNEE) + 7, py(100),
+       { size: L.compact ? 7.5 : 9, font: 'mono', color: '--ink-2' });
+
+  if (!c.covered) {
+    const g = legendAt(c);
+    legend([
+      { c: '--green', l: '實車量測', k: 'dot' },
+      { c: '--amber', l: '上界',     k: 'dash', d: [5, 2, 1.5, 2] },
+      { c: '--blue',  l: '下界',     k: 'dash', d: [4, 3] },
+    ], g.rx, g.y, g.size, g.room);
+  }
+}
+
+/* ---------- 畫一次 ----------
+   由後往前畫,後面那張被前面那張的白底直接蓋掉 ——
+   遮擋就是這樣做出來的,不必另外算裁切區。                  */
+const DRAW = [drawScenes, drawLaneType, drawHorizon];
+
+/* ---------- compact 版:三張輪播 ----------
+   每張停 3.6 秒(含 0.5 秒淡入),一輪 10.8 秒。比疊放版的 1.5 秒久很多,
+   因為那是「看見有這些分析」,這是「真的要讀完一張」。            */
+const CSTEP = 3.6;
+
+function drawCarousel(t) {
+  const round = Math.floor(t / CSTEP);
+  const i = round % META.length;
+  // 第一張不淡入。這頁捲進畫面才開始播(見下方 IntersectionObserver),
+  // 播放前畫的是 draw(0) —— 那一刻若還在淡入,整格就是全白的,
+  // 讀者在捲到之前只會看到一個空盒子。換場才需要淡入。
+  const a = round === 0 ? 1 : ease(clamp((t % CSTEP) / 0.5, 0, 1));
+  const c = L.cards[i];
+
+  ctx.save();
+  ctx.globalAlpha = a;
+  ctx.translate(0, -(1 - a) * 10);
+  cardChrome(c);
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(c.x, c.y, c.w, c.h, 12); ctx.clip();
+  DRAW[i](c);
+  ctx.restore();
+  ctx.restore();
+
+  // 進度點:輪播一定要讓人知道「還有幾張」,不然會以為圖自己在跳。
+  // 這是卡片外唯一的東西 —— 底下原本那行說明已經拿掉。
+  const gap = 13, x0 = L.W / 2 - (META.length - 1) * gap / 2;
+  META.forEach((m, k) => {
+    ctx.save();
+    ctx.fillStyle = C(k === i ? '--blue' : '--line');
+    ctx.beginPath();
+    ctx.arc(x0 + k * gap, L.dotsY, k === i ? 3.4 : 2.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
+// time 是開場動畫走到第幾秒;不給就是「全部畫滿」的那張靜態圖
+function draw(time) {
+  ctx.save();
+  ctx.translate(offX, offY);
+  ctx.scale(scale, scale);
+  ctx.clearRect(0, 0, L.W, L.H);
+  ctx.fillStyle = C('--bg'); ctx.fillRect(0, 0, L.W, L.H);
+
+  if (L.compact) {
+    drawCarousel(time === undefined ? 0 : time);
+    ctx.restore();
+    return;
+  }
+
+  text('Mini-FOT 實車資料統計', L.pad, L.headY, { size: 15, weight: 700 });
+  text('自研 MATLAB 腳本 · 100 km 連續紀錄逐幀標記後統計,不是人工造的場景',
+       L.pad, L.headY + 18, { size: 11, color: '--ink-2' });
+
+  L.cards.forEach((c, i) => {
+    // 第 i 張在 i*0.5 秒開始、(i+1)*0.5 秒落定 —— 一張接一張,不重疊
+    const t = time === undefined ? 1 : (time - i * STEP) / STEP;
+    if (t <= 0) return;                 // 還沒輪到它,整張不畫
+    const a = ease(t);
+    // 不透明度比位移早一步到位:半透明的卡片會讓下面那張的線透出來,
+    // 看起來像疊印失敗,而不是一張蓋在另一張上面
+    const o = ease(clamp(t * 1.7, 0, 1));
+
+    ctx.save();
+    ctx.globalAlpha = o;
+    ctx.translate(0, -(1 - a) * 16);    // 從上方落下 16px,只夠讓人看見它「來了」
+    cardChrome(c);
+    ctx.save();
+    ctx.beginPath(); ctx.roundRect(c.x, c.y, c.w, c.h, 12); ctx.clip();
+    DRAW[i](c);
+    ctx.restore();
+    ctx.restore();
+  });
+
+  ctx.save();
+  ctx.globalAlpha = 0.6;
+  ctx.strokeStyle = C('--line');
+  ctx.beginPath();
+  ctx.moveTo(L.pad, L.footY - 22); ctx.lineTo(L.W - L.pad, L.footY - 22);
+  ctx.stroke();
+  ctx.restore();
+
+  const tail = '連續實車資料,支撐上面三張圖';
+  if (L.vertical) {
+    text('三張圖同一批資料:場景怎麼分、車道怎麼接、相機看多遠', L.pad, L.footY - 4,
+         { size: 11, weight: 600 });
+    const nw = measure('100 km', 15, 'mono');
+    text('100 km', L.pad, L.footY + 16,
+         { size: 15, weight: 700, font: 'mono', color: '--blue' });
+    text(tail, L.pad + 4 + nw, L.footY + 16, { size: 11, color: '--ink-2' });
+  } else {
+    text('三張圖同一批資料:場景怎麼分、車道怎麼接、相機看多遠', L.pad, L.footY,
+         { size: 12, weight: 600 });
+    const tw = measure(tail, 11, 'sans');
+    text(tail, L.W - L.pad, L.footY, { size: 11, color: '--ink-2', align: 'right' });
+    text('100 km', L.W - L.pad - 4 - tw, L.footY,
+         { size: 17, weight: 700, font: 'mono', color: '--blue', align: 'right' });
+  }
+
+  ctx.restore();
+}
+
+/* ---------- 開場:把三張疊上去 ----------
+   捲進畫面才開始播。這頁多半是被 <iframe> 嵌在長頁面裡,
+   在讀者還沒捲到的地方播完,就等於沒播過。IntersectionObserver
+   在 iframe 內看到的正好是「這個 iframe 在母頁面露出來了沒」。 */
+const TOTAL = STEP * META.length;       // 1.5 × 3 = 4.5 秒
+let started = false, done = false, t0 = null;
+
+function frame(now) {
+  if (t0 === null) t0 = now;
+  const time = (now - t0) / 1000;
+  // compact 是輪播,永遠不會「播完」
+  if (L.compact) { draw(time); requestAnimationFrame(frame); return; }
+  if (time < TOTAL) { draw(time); requestAnimationFrame(frame); }
+  else { done = true; draw(); }         // 收尾直接用靜態那份,不留最後一幀的零頭
+}
+
+function play() { if (!started) { started = true; requestAnimationFrame(frame); } }
+
+// 播放中不插手(rAF 每幀本來就重畫);其餘狀態各自畫自己的那一版
+function redraw() { if (done) draw(); else if (!started) draw(0); }
+
+draw(0);                                // 先擺好舞台(標題、頁尾),卡片等播放
+// 字體換掉會讓量到的字寬失效,所以載完再補畫一次
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
+
+if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  done = true; started = true; draw();  // 不想看動畫的人直接拿結果
+} else if ('IntersectionObserver' in window) {
+  const io = new IntersectionObserver(es => {
+    if (es.some(e => e.isIntersecting)) { io.disconnect(); play(); }
+  }, { threshold: 0.25 });
+  io.observe(cv);
+} else play();
+</script>
+</body>
+</html>

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>co-Drive — 協同駕駛輔助</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #ffffff; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+    #canvas-container { width: 100vw; height: 100vh; }
+
+    #title-label {
+      position: absolute; top: 22px; left: 24px;
+      pointer-events: none;
+    }
+    #title-label .t1 {
+      font-size: 15px; font-weight: 700; color: #1a1a1e;
+      letter-spacing: 0.04em; line-height: 1;
+      display: flex; align-items: center; gap: 8px;
+    }
+    #title-label .t1::before {
+      content: ''; display: block;
+      width: 3px; height: 16px; border-radius: 2px;
+      background: #ff6600;
+    }
+    #title-label .t2 {
+      font-size: 10.5px; color: #888; font-weight: 400;
+      letter-spacing: 0.02em; margin-top: 5px; padding-left: 11px;
+    }
+
+    /* 嵌進 sim_env 面板時用的小角標，取代整組 title-label */
+    #embed-label {
+      position: absolute; top: 8px; left: 10px; pointer-events: none;
+      display: none; white-space: nowrap;
+    }
+    #embed-label b { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
+    #embed-label span {
+      font-size: 11px; font-weight: 400; color: #6e6e73; margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+<div id="canvas-container"></div>
+
+<div id="title-label">
+  <div class="t1">Co-Pilot Assist</div>
+  <div class="t2">Highly Rated by OEM Customers · Deployed in Mass Production</div>
+</div>
+
+<div id="embed-label"><b></b><span></span></div>
+
+<script>
+// 嵌入模式：?embed=1 隱藏整組標題，改顯示角標。
+//   ?label= 主標　?sub= 副標　?color= 主標顏色（不含 #）
+// 角標做在頁面自己身上，會跟著 iframe 一起縮放，sim_env 那邊就不必再算
+// 一層 DOM 疊圖的座標，也不會因為 canvas 縮放比例改變而跑掉。
+(function () {
+  const q = new URLSearchParams(location.search);
+  if (!q.has('embed')) return;
+  document.getElementById('title-label').style.display = 'none';
+  const el = document.getElementById('embed-label');
+  const label = q.get('label');
+  if (!label) return;
+  el.querySelector('b').textContent = label;
+  el.querySelector('b').style.color = '#' + (q.get('color') || '6e6e73');
+  el.querySelector('span').textContent = q.get('sub') || '';
+  el.style.display = 'block';
+})();
+</script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three":          "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+    "three/addons/":  "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+// 改成固定俯視之後就沒有 OrbitControls 了：up 向量不是 Y 會讓它的球座標繞著
+// x 軸打轉，拖起來很怪；而且嵌在面板裡本來就不該讓人轉視角。
+import { Line2 }        from 'three/addons/lines/Line2.js';
+import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+
+// ─── Scene ────────────────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xffffff);
+scene.fog = new THREE.Fog(0xffffff, 55, 110);
+
+// ─── Renderer ─────────────────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+// ─── Camera：俯視平面圖 ───────────────────────────────────────────────────
+//   這一版要塞進 sim_env 回撥驗證面板的寬扁格子（單邊約 416×140，比例 2.97）。
+//   原本的車後追焦視角在那種格子裡會被壓成一條縫，所以改成正俯視、道路橫向
+//   延伸：螢幕橫軸 = 道路縱向 (world +z)，螢幕縱軸 = 車道橫向 (world +x)。
+//
+//   要讓 +z 落在螢幕右方，關鍵是 camera.up 設成 (1,0,0)：
+//     Z_local = eye-target = (0,1,0)
+//     X_local = cross(up, Z_local) = (0,0,1)  → 螢幕右 = world +z  ✓
+//     Y_local = cross(Z_local, X_local) = (1,0,0) → 螢幕上 = world +x
+//   本車偏移與岔路都是往 +x，所以在畫面上都是「往上」，和 sim_env 原本那張
+//   左轉車道岔開的示意圖同一個讀法。
+const VIEW_LEN  = 70;    // 螢幕橫向要涵蓋的道路長度 (m)
+const VIEW_W_MAX = 26;   // 縱向最多涵蓋多寬 (m)，避免獨立開啟時道路縮得太小
+const CAM_H     = 44;    // 相機高度：夠高才接近正投影，透視變形才小
+const VIEW_CX   = 2;     // 視野中心橫向：往 +x 挪一點，留空間給岔路
+const VIEW_CZ   = -10;   // 視野中心縱向：往後挪，讓軌跡佔多一點畫面
+
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.up.set(1, 0, 0);
+camera.position.set(VIEW_CX, CAM_H, VIEW_CZ);
+camera.lookAt(VIEW_CX, 0, VIEW_CZ);
+
+// 用長寬比反推 fov，讓「橫向涵蓋 VIEW_LEN 公尺」這件事和視窗形狀無關。
+// 直接寫死 fov 的話，嵌進 2.97 的格子和獨立開啟時看到的範圍會差很多。
+function applyFraming() {
+  const aspect = window.innerWidth / window.innerHeight;
+  camera.aspect = aspect;
+  const vert = Math.min(VIEW_LEN / aspect, VIEW_W_MAX);
+  camera.fov = 2 * Math.atan(vert / (2 * CAM_H)) * 180 / Math.PI;
+  camera.updateProjectionMatrix();
+}
+applyFraming();
+
+// ─── Lights ───────────────────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.4);
+dirLight.position.set(8, 18, -10);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(2048, 2048);
+dirLight.shadow.camera.near = 0.1; dirLight.shadow.camera.far = 100;
+dirLight.shadow.camera.left = -30; dirLight.shadow.camera.right = 30;
+dirLight.shadow.camera.top  = 30;  dirLight.shadow.camera.bottom = -30;
+scene.add(dirLight);
+
+const rimLight = new THREE.DirectionalLight(0xaabbdd, 0.5);
+rimLight.position.set(-8, 5, 4);
+scene.add(rimLight);
+
+// ─── Ground plane ─────────────────────────────────────────────────────────
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(200, 200),
+  new THREE.MeshBasicMaterial({ color: 0xffffff })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.02;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+function straightPts(x, zFrom, zTo, n = 80) {
+  const pts = [];
+  for (let i = 0; i <= n; i++)
+    pts.push(new THREE.Vector3(x, 0.02, zFrom + (zTo - zFrom) * (i / n)));
+  return pts;
+}
+
+function makeDashedLine(points, color, dashLen = 1.2, gapLen = 0.8, opacity = 0.75) {
+  const group = new THREE.Group();
+  const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
+  let acc = 0, drawing = true, buf = [];
+  const flush = () => {
+    if (buf.length >= 2)
+      group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(buf), mat));
+    buf = [];
+  };
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i], b = points[i + 1];
+    const segLen = a.distanceTo(b);
+    const dir = b.clone().sub(a).normalize();
+    let t = 0;
+    while (t < segLen) {
+      const limit = drawing ? dashLen : gapLen;
+      const step  = Math.min(limit - acc, segLen - t);
+      if (drawing) buf.push(a.clone().addScaledVector(dir, t));
+      t += step; acc += step;
+      if (acc >= limit - 1e-6) {
+        if (drawing) { buf.push(a.clone().addScaledVector(dir, t)); flush(); }
+        drawing = !drawing; acc = 0;
+      }
+    }
+  }
+  if (drawing && buf.length >= 2) flush();
+  return group;
+}
+
+// ─── Constants ────────────────────────────────────────────────────────────
+const LANE_HALF  = 1.9;
+const ROAD_LEN   = 80;
+const LANE_CYCLE = 4.0;
+
+const D          = 0.8;         // co-Drive lateral offset: 0.8 m to the right
+const Z1         = 5;           // brief center-hold before shifting (m)
+const Z2         = 25;          // end of poly4 transition (m)
+const EGO_SPEED  = 60 / 3.6;   // 16.67 m/s
+// 進入偏移前的直行距離 (m)。用距離而不是秒數來訂，因為岔口位置也是用
+// 距離算的，兩邊要對齊；NORMAL_DUR 由它反推。
+const NORMAL_LEN = 15;
+
+
+function poly4(s) {
+  const s2 = s*s, s3 = s2*s, s4 = s3*s;
+  return 3*s4 - 8*s3 + 6*s2;
+}
+
+function poly4Prime(s) {
+  const s2 = s*s;
+  return 12*s2*s - 24*s2 + 12*s;
+}
+
+function trajWX(relZ) {
+  if (relZ <= Z1) return 0;
+  if (relZ <= Z2) return -D * poly4((relZ - Z1) / (Z2 - Z1));
+  return -D;
+}
+
+function trajReturnWX(relZ) {
+  if (relZ <= Z1) return -D;
+  if (relZ <= Z2) return -D * (1 - poly4((relZ - Z1) / (Z2 - Z1)));
+  return 0;
+}
+
+// ─── worldGroup ───────────────────────────────────────────────────────────
+const worldGroup = new THREE.Group();
+scene.add(worldGroup);
+
+const laneGroup = new THREE.Group();
+
+function makeThickLine(x, zFrom, zTo, color, width, opacity = 1.0) {
+  const pts = straightPts(x, zFrom, zTo);
+  const flat = [];
+  for (const p of pts) flat.push(p.x, p.y, p.z);
+  const geo = new LineGeometry(); geo.setPositions(flat);
+  const mat = new LineMaterial({
+    color, linewidth: width, opacity, transparent: opacity < 1,
+    resolution: new THREE.Vector2(window.innerWidth, window.innerHeight),
+    worldUnits: false
+  });
+  const line = new Line2(geo, mat);
+  line.frustumCulled = false;
+  return line;
+}
+
+// 左右車道線（本車道邊界）：粗深灰虛線
+function makeThickDashedLine(x, zFrom, zTo, color, width, dashLen = 2.5, gapLen = 1.5) {
+  const group = new THREE.Group();
+  let z = zFrom;
+  while (z < zTo) {
+    const zEnd = Math.min(z + dashLen, zTo);
+    const flat = [x, 0.02, z, x, 0.02, zEnd];
+    const geo = new LineGeometry(); geo.setPositions(flat);
+    const mat = new LineMaterial({
+      color, linewidth: width,
+      resolution: new THREE.Vector2(window.innerWidth, window.innerHeight),
+      worldUnits: false
+    });
+    const seg = new Line2(geo, mat);
+    seg.frustumCulled = false;
+    group.add(seg);
+    z = zEnd + gapLen;
+  }
+  return group;
+}
+
+// 車道線要往本車後方多畫一段：鏡頭拉遠後畫面下緣可以看到 z ≈ -20 m，
+// 再加上 laneGroup 本身最多會往後捲一個 LANE_CYCLE，只畫到 -10 的話
+// 車後會露出一塊沒有路的白地。
+// 俯視之後畫面左緣看得到 z ≈ VIEW_CZ - VIEW_LEN/2 = -45 m，再加上 laneGroup
+// 本身最多往後捲一個 LANE_CYCLE，所以要畫到 -55 才不會露出沒有路的白地。
+const ROAD_BACK = -55;
+
+laneGroup.add(makeThickDashedLine(-LANE_HALF, ROAD_BACK, ROAD_LEN, 0x444444, 3));
+laneGroup.add(makeThickDashedLine( LANE_HALF, ROAD_BACK, ROAD_LEN, 0x444444, 3));
+
+// 最外側路邊線：稍細深灰實線
+laneGroup.add(makeThickLine(-LANE_HALF * 3, ROAD_BACK, ROAD_LEN, 0x666666, 2));
+laneGroup.add(makeThickLine( LANE_HALF * 3, ROAD_BACK, ROAD_LEN, 0x666666, 2));
+
+worldGroup.add(laneGroup);
+
+// ─── 岔出去的車道 ─────────────────────────────────────────────────────────
+//   兩條淡灰實線，與本車道夾 30°，從本車偏過去的那一側（local +x）岔開。
+//   位置固定在世界座標上（不跟著 laneGroup 的 4 m 循環跑），所以要自己
+//   依行駛距離平移。
+const FORK_DEG   = 30;
+// 岔口從「每一圈的起點」起算，而不是從 deploy 起算 —— 這樣本車還在直行
+// 的時候，岔口就已經在遠方可見，是它先出現、本車才被帶過去，而不是等到
+// 要偏移了才憑空冒出來。
+//   NORMAL 直行            NORMAL_LEN → deploy
+//   DETECT + MOVE 做完偏移  Z2         → 偏到底
+// 不留餘裕：岔口就落在偏到底的那一點，本車偏移做滿的瞬間正好在岔口旁邊。
+// 寫成算式而不是寫死數字：調 NORMAL_LEN 時岔口會自己跟著移，不會走鐘。
+const FORK_Z     = NORMAL_LEN + Z2;
+const FORK_LEN   = 45;              // 岔線長度 (m)
+const FORK_COLOR = 0xbbbbbb;
+
+function makeThickSeg(x1, z1, x2, z2, color, width) {
+  const flat = [];
+  for (let i = 0; i <= 24; i++) {
+    const t = i / 24;
+    flat.push(x1 + (x2 - x1) * t, 0.02, z1 + (z2 - z1) * t);
+  }
+  const geo = new LineGeometry(); geo.setPositions(flat);
+  const mat = new LineMaterial({
+    color, linewidth: width,
+    resolution: new THREE.Vector2(window.innerWidth, window.innerHeight),
+    worldUnits: false
+  });
+  const line = new Line2(geo, mat);
+  line.frustumCulled = false;
+  return line;
+}
+
+// ─── 本車走過的軌跡 ───────────────────────────────────────────────────────
+//   本車固定在場景原點、世界往後捲，所以「軌跡」不能記本車的座標（永遠是 0），
+//   要記它在道路座標中的橫向位置 —— 也就是 -egoX（worldGroup 往 -x 移多少，
+//   等效於本車相對車道往 +x 偏多少）。縱向則用累計行駛距離當座標。
+const TRAIL_LEN   = 60;      // 保留多長的軌跡 (m)
+const TRAIL_STEP  = 0.5;     // 取樣間隔 (m)，不是每幀都記，省掉重建成本
+const TRAIL_COLOR = 0x00a8c8;
+const TRAIL_FADE  = 0.25;    // 最舊的這個比例才淡出，其餘維持滿色
+
+const trailGroup = new THREE.Group();
+trailGroup.frustumCulled = false;
+worldGroup.add(trailGroup);
+
+// 材質只建一次重複用；每次只重建 geometry，才不會每秒丟掉幾十個 material
+const trailMat = new LineMaterial({
+  color: 0xffffff, vertexColors: true, linewidth: 2.5,
+  resolution: new THREE.Vector2(window.innerWidth, window.innerHeight),
+  worldUnits: false
+});
+const trailPts  = [];        // { x, s }，s = 記錄當下的累計行駛距離
+let   trailLine = null;
+let   lastTrailS = -Infinity;
+
+const cFresh = new THREE.Color(TRAIL_COLOR);
+const cFade  = new THREE.Color(0xffffff);   // 背景是白的，褪到白就等於淡出
+const cTmp   = new THREE.Color();
+
+function rebuildTrail() {
+  if (trailLine) {
+    trailGroup.remove(trailLine);
+    trailLine.geometry.dispose();
+    trailLine = null;
+  }
+  const n = trailPts.length;
+  if (n < 2) return;
+  const flat = [], cols = [];
+  for (let i = 0; i < n; i++) {
+    const p = trailPts[i];
+    flat.push(p.x, 0.06, p.s);              // 抬高一點，避免和車道線 z-fighting
+    // 只讓最舊的 TRAIL_FADE 段淡出，其餘維持滿色。之前是整條線性淡出，
+    // 在追焦視角只看得到最新 20 m 時沒事；改成俯視一次看到 45 m 之後，
+    // 中段就變成半透明的淡色，整條軌跡幾乎看不見。
+    cTmp.lerpColors(cFade, cFresh, Math.min(1, (i / (n - 1)) / TRAIL_FADE));
+    cols.push(cTmp.r, cTmp.g, cTmp.b);
+  }
+  const geo = new LineGeometry();
+  geo.setPositions(flat);
+  geo.setColors(cols);
+  trailLine = new Line2(geo, trailMat);
+  trailLine.frustumCulled = false;
+  trailGroup.add(trailLine);
+}
+
+const forkGroup = new THREE.Group();
+forkGroup.frustumCulled = false;
+worldGroup.add(forkGroup);
+
+{
+  const th = FORK_DEG * Math.PI / 180;
+  const dx = Math.sin(th) * FORK_LEN, dz = Math.cos(th) * FORK_LEN;
+  // 兩條都從「本車道自己的左右邊界」岔出去 —— 岔出去的那條車道就是本車道
+  // 的延伸，寬度跟本車道一樣，而直行的虛線邊界照舊往前延伸。
+  for (const x0 of [-LANE_HALF, LANE_HALF])
+    forkGroup.add(makeThickSeg(x0, 0, x0 + dx, dz, FORK_COLOR, 2));
+}
+
+// ─── Ego vehicle ──────────────────────────────────────────────────────────
+function buildEgo() {
+  const g = new THREE.Group();
+
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(1.8, 0.6, 4.2),
+    new THREE.MeshPhysicalMaterial({
+      color: 0xf4f4f2, metalness: 0.45, roughness: 0.22,
+      clearcoat: 1.0, clearcoatRoughness: 0.08
+    })
+  );
+  body.position.y = 0.55; body.castShadow = true; g.add(body);
+
+  const cabin = new THREE.Mesh(
+    new THREE.BoxGeometry(1.5, 0.5, 2.2),
+    new THREE.MeshPhysicalMaterial({
+      color: 0x3a4a5a, metalness: 0.2, roughness: 0.3,
+      transparent: true, opacity: 0.78
+    })
+  );
+  cabin.position.set(0, 1.05, -0.3); cabin.castShadow = true; g.add(cabin);
+
+  const stripe = new THREE.Mesh(
+    new THREE.BoxGeometry(1.82, 0.04, 4.22),
+    new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.7 })
+  );
+  stripe.position.y = 0.28; g.add(stripe);
+
+  const wGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.22, 24);
+  const wMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
+  for (const [x, y, z] of [[-0.95,0.32,-1.35],[0.95,0.32,-1.35],[-0.95,0.32,1.35],[0.95,0.32,1.35]]) {
+    const w = new THREE.Mesh(wGeo, wMat);
+    w.rotation.z = Math.PI / 2; w.position.set(x, y, z); w.castShadow = true; g.add(w);
+  }
+
+  for (const x of [-0.65, 0.65]) {
+    const hl = new THREE.Mesh(
+      new THREE.BoxGeometry(0.3, 0.12, 0.06),
+      new THREE.MeshBasicMaterial({ color: 0xfff8e0 })
+    );
+    hl.position.set(x, 0.5, 2.12); g.add(hl);
+
+    const tl = new THREE.Mesh(
+      new THREE.BoxGeometry(0.3, 0.10, 0.06),
+      new THREE.MeshBasicMaterial({ color: 0xff2200, transparent: true, opacity: 0.9 })
+    );
+    tl.position.set(x, 0.5, -2.12); g.add(tl);
+  }
+  return g;
+}
+
+const ego = buildEgo();
+scene.add(ego);
+
+// ─── Phase state machine ──────────────────────────────────────────────────
+let totalScroll = 0;
+// DONE = 播完凍住。不是停掉 requestAnimationFrame —— loop 要繼續跑，外面才能
+// 隨時用 postMessage 叫它重播，而且重播不必再把 loop 接回來。
+const PH = { NORMAL:0, DETECT:1, MOVE:2, PASS:3, RETURN:4, IDLE:5, DONE:6 };
+let phase        = PH.NORMAL;
+// 用腳本啟動時刻當基準：若寫死 0，遇上 three.js 從 CDN 載得比 NORMAL_DUR
+// 還久，第一圈會在第一幀就直接 deploy，岔口與偏移的相對位置就對不上。
+let phaseStartS  = performance.now() / 1000;
+let deploy_scroll = 0;
+let return_scroll = 0;
+let lastTime     = performance.now();
+
+const NORMAL_DUR = NORMAL_LEN / EGO_SPEED;   // 15 m ÷ 16.67 m/s = 0.9 s
+// 0 = 不維持偏移：偏到底就直接回正，整段側向動作是一次左右擺動，而不是
+// 偏到旁邊之後一路偏著開。真正的峰值停留來自 trajReturnWX 開頭那 Z1 = 5 m
+// （約 0.3 s），剛好夠本車帶著偏移掠過岔口。想加回一點停留就調大這個值。
+const PASS_HOLD  = 0;
+// 擺回中心之後再等多久才停。整段動畫只播一次，不循環。
+// 0 = 一擺回中心就停：本車後方看得到的軌跡只有 20.4 m，多等 1 秒就等於
+// 多走 16.7 m，整段甩動會被推出畫面，定格就只剩一條直線。
+const STOP_DELAY = 0;
+
+// ─── 重播 ─────────────────────────────────────────────────────────────────
+// sim_env 每一圈開頭會 postMessage 過來，兩個 demo 才會和上排面板同步起跑。
+// 場景裡所有會動的東西都是 totalScroll 和相位的函數，所以把這幾個變數歸零
+// 就等於整段重來，不需要重建任何 geometry（軌跡除外，它是累積出來的）。
+function resetRun() {
+  totalScroll   = 0;
+  phase         = PH.NORMAL;
+  phaseStartS   = performance.now() / 1000;
+  deploy_scroll = 0;
+  return_scroll = 0;
+  trailPts.length = 0;
+  lastTrailS    = -Infinity;
+  rebuildTrail();                       // 點數歸零後這會把舊的軌跡線移除
+}
+
+window.addEventListener('message', (e) => {
+  // 只是重播一段動畫，不讀取訊息內容以外的東西，所以不特別驗證 origin
+  //（file:// 下 origin 會是 "null"，驗了反而永遠不通過）。
+  if (e.data && e.data.type === 'mil:restart') resetRun();
+});
+
+// ─── Animation loop ───────────────────────────────────────────────────────
+function animate(now) {
+  requestAnimationFrame(animate);
+
+  const dt      = Math.min((now - lastTime) / 1000, 0.05);
+  lastTime = now;
+  const timeSec = now / 1000;
+
+  // DONE 之後不再前進：路面、岔口、軌跡都是由 totalScroll 推出來的，
+  // 凍住它整個場景就停在原地。
+  if (phase !== PH.DONE) totalScroll += EGO_SPEED * dt;
+  const relZ = totalScroll - deploy_scroll;
+
+  // ── Phase transitions ────────────────────────────────────────────────
+  if (phase === PH.NORMAL) {
+    if (timeSec - phaseStartS >= NORMAL_DUR) {
+      phase = PH.DETECT; phaseStartS = timeSec;
+      deploy_scroll = totalScroll;
+    }
+  } else if (phase === PH.DETECT) {
+    if (relZ >= Z1) { phase = PH.MOVE; phaseStartS = timeSec; }
+  } else if (phase === PH.MOVE) {
+    if (relZ >= Z2) { phase = PH.PASS; phaseStartS = timeSec; }
+  } else if (phase === PH.PASS) {
+    if (timeSec - phaseStartS >= PASS_HOLD) {
+      phase = PH.RETURN; phaseStartS = timeSec;
+      return_scroll = totalScroll;
+    }
+  } else if (phase === PH.RETURN) {
+    // 擺回中心（trajReturnWX 在 Z2 就回到 0）即視為甩動結束，
+    // 不再多走原本那段直行尾巴，否則「一秒後停」會被拖長。
+    if (totalScroll - return_scroll >= Z2) {
+      phase = PH.IDLE; phaseStartS = timeSec;
+    }
+  } else if (phase === PH.IDLE) {
+    if (timeSec - phaseStartS >= STOP_DELAY) {
+      phase = PH.DONE; phaseStartS = timeSec;
+    }
+  }
+
+  // ── egoX ────────────────────────────────────────────────────────────
+  let egoX = 0;
+  if (phase === PH.MOVE) {
+    egoX = trajWX(relZ);
+  } else if (phase === PH.PASS) {
+    egoX = -D;
+  } else if (phase === PH.RETURN) {
+    egoX = trajReturnWX(totalScroll - return_scroll);
+  }
+
+  // ── Road scroll (infinite loop illusion) ─────────────────────────────
+  laneGroup.position.z  = -(totalScroll % LANE_CYCLE);
+
+  // 岔路是世界座標上的固定物：整段只播一次，起點就是 totalScroll = 0
+  forkGroup.position.z = FORK_Z - totalScroll;
+
+  // 每走 TRAIL_STEP 才補一點，並丟掉超過 TRAIL_LEN 的尾巴
+  if (totalScroll - lastTrailS >= TRAIL_STEP) {
+    lastTrailS = totalScroll;
+    trailPts.push({ x: -egoX, s: totalScroll });
+    while (trailPts.length && totalScroll - trailPts[0].s > TRAIL_LEN) trailPts.shift();
+    rebuildTrail();
+  }
+  // 軌跡點存的是絕對行駛距離，整組往後推就落回本車後方
+  trailGroup.position.z = -totalScroll;
+
+  // ── Heading angle from trajectory derivative ──────────────────────────
+  let heading = 0;
+  if (phase === PH.MOVE) {
+    const s = Math.max(0, Math.min(1, (relZ - Z1) / (Z2 - Z1)));
+    heading = -Math.atan(D * poly4Prime(s) / (Z2 - Z1));
+  } else if (phase === PH.RETURN) {
+    const s = Math.max(0, Math.min(1, (totalScroll - return_scroll - Z1) / (Z2 - Z1)));
+    heading = Math.atan(D * poly4Prime(s) / (Z2 - Z1));
+  }
+
+  worldGroup.position.x = egoX;
+  // 航向角要轉在本車身上，不能轉整個世界。
+  // 追焦視角時相機和本車是綁在一起的，轉世界看起來就是本車在轉，兩者等價；
+  // 但改成俯視之後相機固定在場景座標，轉世界會變成「整條路歪掉」，讀起來
+  // 像道路在彎，而不是車在修方向。世界保持水平，改轉 ego 才對。
+  // 轉世界 +heading ≡ 轉觀察者 -heading，所以這裡取負號。
+  worldGroup.rotation.y = 0;
+  ego.rotation.y = -heading;
+
+  // 停住之後車身也不要再上下浮動 —— 車都不動了還在晃會很怪
+  ego.position.y = phase === PH.DONE ? 0 : Math.sin(timeSec * 1.4) * 0.012;
+
+  renderer.render(scene, camera);
+}
+
+requestAnimationFrame(animate);
+
+// ─── Resize ───────────────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  applyFraming();                       // fov 依長寬比重算，橫向涵蓋範圍才不變
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  const res = new THREE.Vector2(window.innerWidth, window.innerHeight);
+  worldGroup.traverse(obj => {          // 車道線 + 岔路線
+    if (obj.isLine2) obj.material.resolution.copy(res);
+  });
+  trailMat.resolution.copy(res);        // 軌跡線可能此刻還沒建出來，直接更新材質
+});
+</script>
+</body>
+</html>

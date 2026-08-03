@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mini-FOT 實車紀錄路線 — 土城一帶</title>
+<style>
+  :root{
+    --bg:#fbfcfd;--ink:#1d1d1f;--ink-2:#6e6e73;--ink-3:#86868b;--line:#d2d2d7;
+    --grid:#eaeef3;
+    /* 兩條路線的類別色,取自 dataviz 驗過的四色組(全配對 CVD 最差 9.9
+       protan、常視 20.3、對比皆 >= 3:1)的其中兩色。 */
+    --hw:#12a06e;   /* 高速 */
+    --ct:#0071e3;   /* 市區 */
+    /* 底圖用低彩度,才不會和兩條路線搶 */
+    --water:#dfe9f2;--park:#e2eee4;--road:#d6dade;--road2:#e6e9ec;
+    --sans:"SF Pro TC",-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden}
+  canvas{display:block;width:100%;height:100%}
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<script>
+/* ============================================================
+   Mini-FOT 實車紀錄路線 — 土城一帶
+
+   ⚠ 這是示意圖,不是實測地圖。抓的是土城一帶的骨架 ——
+     國道3號斜貫、大漢溪在西北、南面是山、市區夾在中間 ——
+     但街廓與路線都是畫出來的,沒有對應真實座標。
+     要改成地理正確版,把 GEO 裡的點換成真實軌跡即可(見下方註解)。
+
+   兩個標示點同時跑:一個沿國道3號(高速),一個在市區街廓裡繞(市區)。
+   它們同時在跑,是為了講「兩種路況都收了」,不是說它們是同一趟。
+
+   自動循環,無控制項(與本專案其他 demo 一致)。
+   ============================================================ */
+
+const cv  = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const CSS = getComputedStyle(document.documentElement);
+const C = n => CSS.getPropertyValue(n).trim();
+const col = v => v.startsWith('--') ? C(v) : v;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ---------- 幾何 ----------
+   全部用 0..1 的正規化座標,再映射到地圖矩形。
+   要換成真實軌跡:把經緯度先線性映射到 0..1(x = 東向, y = 南向),
+   丟進同樣的陣列就好,底下的繪圖與動畫都不用改。            */
+const GEO = {
+  // 大漢溪:西北側,由西往東北
+  river: [[-0.04,0.30],[0.10,0.24],[0.24,0.16],[0.38,0.08],[0.50,0.01],[0.58,-0.04]],
+  riverW: 0.055,
+
+  // 南面丘陵(天上山一帶)的稜線,線以下填成綠地
+  hills: [[-0.04,0.86],[0.12,0.82],[0.28,0.85],[0.44,0.80],[0.60,0.84],[0.76,0.79],[0.92,0.83],[1.04,0.80]],
+
+  // 國道3號:東北 → 西南斜貫
+  fw: [[1.02,0.06],[0.86,0.20],[0.72,0.34],[0.58,0.49],[0.44,0.65],[0.30,0.82],[0.20,0.96]],
+  // 台65線:從國道分出往東北
+  ex: [[0.72,0.34],[0.82,0.24],[0.92,0.16],[1.02,0.10]],
+  // 中央路(台3線):與國道平行但偏西
+  main: [[0.10,0.34],[0.24,0.42],[0.38,0.52],[0.52,0.63],[0.64,0.74],[0.74,0.84]],
+
+  // 市區街廓:斜向格線,和主要道路同一個走向才像同一座城。
+  // 格線畫在像素空間(等向),市區路線也必須用同一組參數生成 —— 兩邊
+  // 若各用各的座標系,路線就會斜穿過街廓,看起來像塗鴉。
+  // 街廓旋轉 -0.62 rad 之後,i∈[-3,3] × j∈[-2,1] 的迴圈會變成約 195x175 px
+  // 的斜置矩形。中心與步長是照這個外接框調的:再大一點上緣就會壓到大漢溪,
+  // 再往上一點下緣就會踩進南邊的丘陵。
+  // 街廓步長以地圖「高度」為基準,不是寬度:橫排 920x400 與直排 380x460
+  // 的寬度差了兩倍以上,用寬度當基準的話,直排時整座城會縮成一小塊。
+  gridRot: -0.62,                        // 弧度
+  cityC: [0.30, 0.54],                   // 街廓中心(正規化)
+  gridBox: [0.11, 0.30, 0.40, 0.52],     // 裁切範圍 x, y, w, h
+  gridStep: 0.10,                        // 一個街廓的邊長(佔地圖高的比例)
+
+  // 板橋 / 中和 那側的市街紋理,純粹是為了讓右半邊不要空掉
+  farGrids: [
+    { box: [0.60, 0.04, 0.22, 0.20], rot: -0.35, step: 0.10 },
+    { box: [0.78, 0.34, 0.20, 0.26], rot: -0.80, step: 0.105 },
+  ],
+
+  // 交流道位置
+  ic: [0.585, 0.487],
+
+  // 地名 [x, y, 文字, 對齊]
+  places: [
+    [0.30, 0.53, '土城',   'center'],
+    [0.62, 0.13, '板橋',   'center'],
+    [0.11, 0.14, '樹林',   'center'],
+    [0.14, 0.74, '三峽',   'center'],
+    [0.88, 0.44, '中和',   'center'],
+  ],
+};
+
+/* 市區路線用「街廓格點」描述,不是自由座標:相鄰兩點只准有一個座標改變,
+   走出來才會是一連串直角轉彎 —— 那才是市區開車的樣子。            */
+const CITY_NODES = [
+  [-3,-1], [0,-1], [0,-2], [3,-2], [3,0], [1,0], [1,1], [-2,1], [-2,0], [-3,0], [-3,-1],
+];
+
+/* 兩條路線。ptsOf(m) 回傳畫布座標的折線。 */
+const ROUTES = [
+  { key: 'hw', name: '高速', sub: '國道3號', c: '--hw',
+    ptsOf: m => [[1.00,0.08],[0.86,0.20],[0.72,0.34],[0.58,0.49],[0.44,0.65],[0.30,0.82],[0.22,0.93]]
+                  .map(p => P(p, m)) },
+  { key: 'ct', name: '市區', sub: '土城市區街廓', c: '--ct',
+    ptsOf: m => CITY_NODES.map(n => gridNode(n[0], n[1], m)) },
+];
+
+/* ---------- 版面 ---------- */
+let L = null, scale = 1, offX = 0, offY = 0;
+
+function buildLayout(cssW, cssH) {
+  /* 小格子嵌入(母頁面總覽那三格,高度 340)。用高度判斷就好 ——
+     桌機約 270 寬、手機約 330,兩種走同一套。
+
+     compact 一併帶 vertical:true。這張圖的窄版該做的取捨(圖例改單欄、
+     副標與頁尾換短句)在小格子裡一模一樣,沒必要再分一種。差別只有尺寸,
+     所以只換數字,不再開一套分支。                                    */
+  if (cssH < 520) {
+    /* compact 只有地圖一件東西:不畫標題(母頁面的格子已經有一組)、
+       圖例改畫進地圖左下角、頁尾整行拿掉。
+
+       畫布比例跟著改成 270x224(≈1.21)貼合格子。原本是 270x336 的直式,
+       擺進 271x225 的橫格子裡等比縮放只用得到 67% —— 兩側各空 38px,
+       地圖被縮到街廓和地名都糊掉。改成貼合比例後 scale ≈ 1.0,
+       同一張地圖大了五成。                                          */
+    /* 三支 compact 面板(drive / label / analysis)共用同一組幾何:
+       畫布 270x224、內容框 (10,10,250,194)、下緣留 20。
+       母頁面三格並排,格子都是 271x225 —— 畫布比例一致,scale 才會一致
+       (三張都 ≈1.004),三塊內容的上下緣才對得齊。任何一支改了這組數字,
+       另外兩支要一起改,否則那一格會自己縮成一塊比較小的圖。
+       下緣那 20 是 analysis 的輪播進度點要用的;drive 與 label 用不到,
+       但一樣留著 —— 留白對齊也是對齊。                              */
+    const W = 270, H = 224, pad = 10;
+    return { W, H, vertical: true, compact: true, pad, headY: 0,
+             map: { x: pad, y: pad, w: W - pad * 2, h: 194 },
+             legendY: 0, footY: 0 };
+  }
+
+  const vertical = cssW / cssH < 1.35;
+  if (vertical) {
+    // 圖例在直排是兩列,legendY + 22 那一列必須留在分隔線(footY-16)之上
+    const W = 380, H = 460, pad = 18;
+    return { W, H, vertical, pad, headY: 26,
+             map: { x: pad, y: 58, w: W - pad * 2, h: 286 },
+             legendY: 374, footY: H - 18 };
+  }
+  const W = 920, H = 400, pad = 26;
+  return { W, H, vertical, pad, headY: 30,
+           map: { x: pad, y: 62, w: W - pad * 2, h: 268 },
+           legendY: 356, footY: H - 18 };
+}
+
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  const r = cv.getBoundingClientRect();
+  cv.width  = Math.round(r.width  * dpr);
+  cv.height = Math.round(r.height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  L = buildLayout(r.width, r.height);
+  scale = Math.min(r.width / L.W, r.height / L.H);
+  offX = (r.width  - L.W * scale) / 2;
+  offY = (r.height - L.H * scale) / 2;
+}
+new ResizeObserver(resize).observe(cv);
+resize();
+
+/* ---------- 小工具 ---------- */
+function text(s, x, y, { size = 12, weight = 400, color = '--ink',
+                        font = 'sans', align = 'left', alpha = 1 } = {}) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = col(color);
+  ctx.font = `${weight} ${size}px ${font === 'mono' ? C('--mono') : C('--sans')}`;
+  ctx.textAlign = align;
+  ctx.fillText(s, x, y);
+  ctx.restore();
+}
+function measure(s, size, font) {
+  ctx.save();
+  ctx.font = `400 ${size}px ${font === 'mono' ? C('--mono') : C('--sans')}`;
+  const w = ctx.measureText(s).width; ctx.restore(); return w;
+}
+
+// 正規化座標 → 畫布座標。地圖不等比拉伸,所以 x/y 各自映射。
+const P = (p, m) => [m.x + p[0] * m.w, m.y + p[1] * m.h];
+
+function poly(pts, m) {
+  ctx.beginPath();
+  pts.forEach((p, i) => { const [x, y] = P(p, m); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+}
+
+/* 街廓格點 (i, j) → 畫布座標。和 drawBase 畫格線用的是同一組參數,
+   所以路線一定落在街廓線上。 */
+function gridNode(i, j, m) {
+  const rot = GEO.gridRot, step = GEO.gridStep * m.h;
+  const ux = Math.cos(rot), uy = Math.sin(rot);
+  const [cx, cy] = P(GEO.cityC, m);
+  return [cx + (i * ux - j * uy) * step, cy + (i * uy + j * ux) * step];
+}
+
+/* 折線長度表,拿來把 t(0..1)換成線上的位置。收畫布座標。 */
+function arcTable(xy) {
+  const cum = [0];
+  for (let i = 1; i < xy.length; i++) {
+    const d = Math.hypot(xy[i][0] - xy[i-1][0], xy[i][1] - xy[i-1][1]);
+    cum.push(cum[i-1] + d);
+  }
+  return { xy, cum, total: cum[cum.length - 1] };
+}
+function atT(tab, t) {
+  const d = clamp(t, 0, 1) * tab.total;
+  let i = 1;
+  while (i < tab.cum.length - 1 && tab.cum[i] < d) i++;
+  const a = tab.xy[i-1], b = tab.xy[i];
+  const s = (d - tab.cum[i-1]) / Math.max(1e-6, tab.cum[i] - tab.cum[i-1]);
+  return [a[0] + (b[0]-a[0]) * s, a[1] + (b[1]-a[1]) * s, i];
+}
+// 只畫到 t 為止的那一段折線
+function strokeUpTo(tab, t) {
+  const [px, py, i] = atT(tab, t);
+  ctx.beginPath();
+  ctx.moveTo(tab.xy[0][0], tab.xy[0][1]);
+  for (let k = 1; k < i; k++) ctx.lineTo(tab.xy[k][0], tab.xy[k][1]);
+  ctx.lineTo(px, py);
+  ctx.stroke();
+}
+
+/* 斜向格線,裁在 box 內。centerN 給了就以它為原點(市區街廓要和路線
+   共用同一個原點),沒給就用 box 的中心。 */
+function hatchGrid(m, box, rot, stepN, color, alpha, lw, centerN) {
+  const [gx, gy, gw, gh] = box;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(m.x + gx * m.w, m.y + gy * m.h, gw * m.w, gh * m.h);
+  ctx.clip();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = color; ctx.lineWidth = lw;
+  const [cx, cy] = centerN ? P(centerN, m)
+                           : [m.x + (gx + gw / 2) * m.w, m.y + (gy + gh / 2) * m.h];
+  const step = stepN * m.h;
+  const R = Math.hypot(gw * m.w, gh * m.h);
+  const n = Math.ceil(R / step) + 2;
+  for (const r of [rot, rot + Math.PI / 2]) {
+    const ux = Math.cos(r), uy = Math.sin(r);
+    for (let k = -n; k <= n; k++) {
+      const ox = -uy * k * step, oy = ux * k * step;
+      ctx.beginPath();
+      ctx.moveTo(cx + ox - ux * R, cy + oy - uy * R);
+      ctx.lineTo(cx + ox + ux * R, cy + oy + uy * R);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+/* ---------- 底圖 ---------- */
+function drawBase(m) {
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(m.x, m.y, m.w, m.h, 10); ctx.clip();
+  ctx.fillStyle = '#fdfefe'; ctx.fillRect(m.x, m.y, m.w, m.h);
+
+  // 丘陵:稜線以下填綠
+  ctx.fillStyle = C('--park');
+  poly(GEO.hills, m);
+  ctx.lineTo(m.x + m.w, m.y + m.h); ctx.lineTo(m.x, m.y + m.h); ctx.closePath(); ctx.fill();
+
+  // 大漢溪
+  ctx.strokeStyle = C('--water');
+  ctx.lineWidth = GEO.riverW * m.h; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  poly(GEO.river, m); ctx.stroke();
+
+  // 板橋 / 中和 那側的市街紋理:畫得比土城淡,只是為了填掉空白
+  for (const g of GEO.farGrids) hatchGrid(m, g.box, g.rot, g.step, C('--road2'), 0.55, 1);
+  // 土城市區街廓:中心與步長和 gridNode 共用,市區路線才落得到街廓線上
+  hatchGrid(m, GEO.gridBox, GEO.gridRot, GEO.gridStep, C('--road2'), 1, 1.3, GEO.cityC);
+
+  // 中央路
+  ctx.strokeStyle = C('--road'); ctx.lineWidth = 3.4;
+  poly(GEO.main, m); ctx.stroke();
+
+  // 國道3號與台65:先畫外框再畫內芯,是地圖上表示快速道路的慣例
+  for (const [pts, w] of [[GEO.fw, 7.5], [GEO.ex, 5.5]]) {
+    ctx.strokeStyle = C('--line'); ctx.lineWidth = w;
+    poly(pts, m); ctx.stroke();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = w - 3;
+    poly(pts, m); ctx.stroke();
+  }
+
+  // 交流道
+  const [ix, iy] = P(GEO.ic, m);
+  ctx.strokeStyle = C('--ink-3'); ctx.fillStyle = '#fff'; ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.arc(ix, iy, 4.2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+  ctx.restore();
+
+  // 外框
+  ctx.save();
+  ctx.strokeStyle = C('--line'); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(m.x, m.y, m.w, m.h, 10); ctx.stroke();
+  ctx.restore();
+
+  // 地名與道路註記
+  for (const [x, y, s, al] of GEO.places) {
+    const [px, py] = P([x, y], m);
+    text(s, px, py, { size: 11, weight: 600, color: '--ink-3', align: al, alpha: 0.85 });
+  }
+  const [fx, fy] = P([0.79, 0.30], m);
+  text('國道3號', fx, fy, { size: 9, font: 'mono', color: '--ink-3', align: 'left' });
+  const [mx2, my2] = P([0.155, 0.335], m);
+  text('台3線', mx2, my2, { size: 9, font: 'mono', color: '--ink-3', align: 'left' });
+  text('土城交流道', ix + 7, iy + 3, { size: 8.5, font: 'mono', color: '--ink-3' });
+}
+
+/* ---------- 路線與標示點 ---------- */
+function drawRoute(rt, tab, t) {
+  // 已跑過的軌跡
+  ctx.save();
+  ctx.strokeStyle = C(rt.c); ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  strokeUpTo(tab, t);
+  ctx.restore();
+
+  // 標示點:白色外環是 mark spec 的「重疊時加一圈底色」——
+  // 兩個點若剛好交會,才不會糊成一塊
+  const [px, py] = atT(tab, t);
+  ctx.save();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(px, py, 7.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = C(rt.c);
+  ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  return [px, py];
+}
+
+/* compact:圖例畫進地圖左下角,不另外佔一條橫帶。
+   母頁面那一格只有 271x225,圖例排在地圖外面等於再切掉 26px —— 地圖是
+   這格唯一的內容,不該為了圖例縮小。白底小面板是地圖圖例的慣例,壓在
+   丘陵或街廓上都讀得到,不必挑一塊剛好空著的地方(路線每一幀都在動,
+   本來也挑不到)。compact 只給名稱不給副標:國道3號與台3線在底圖上
+   已經各自標了一次。                                              */
+function drawLegendInMap(m) {
+  const SW = 15, GAP = 5, ITEM = 13, size = 9.5, padX = 8, padY = 6;
+  const nameW = rt => measure(rt.name, size, 'sans');
+  const w = ROUTES.reduce((s, rt) => s + SW + GAP + nameW(rt) + ITEM, 0) - ITEM + padX * 2;
+  const h = size + padY * 2;
+  /* 右下角:兩條路線都到不了的地方。高速是從右上 [1.00,0.08] 拉到左下
+     [0.22,0.93] 的斜線,y>0.8 時 x 一定 ≤0.30,所以左下角會蓋掉它的終點
+     標示;市區那圈街廓在中間偏左。挑角落要看路線走到哪,不是看哪裡好看。*/
+  const x = m.x + m.w - 8 - w, y = m.y + m.h - 8 - h;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,0.93)';
+  ctx.strokeStyle = C('--line'); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();
+  ctx.restore();
+
+  let cx = x + padX;
+  const cy = y + h / 2;
+  for (const rt of ROUTES) {
+    ctx.save();
+    ctx.strokeStyle = C(rt.c); ctx.lineWidth = 2.6; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + SW, cy); ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(cx + SW / 2, cy, 3.8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = C(rt.c);
+    ctx.beginPath(); ctx.arc(cx + SW / 2, cy, 2.4, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    text(rt.name, cx + SW + GAP, cy + 3.4, { size, weight: 700 });
+    cx += SW + GAP + nameW(rt) + ITEM;
+  }
+}
+
+function drawLegend(y) {
+  const perRow = L.vertical ? 1 : 2;
+  const colW = L.vertical ? 0 : 260;
+  ROUTES.forEach((rt, i) => {
+    const x = L.pad + (i % perRow) * colW;
+    const yy = y + Math.floor(i / perRow) * 22;
+    ctx.save();
+    ctx.strokeStyle = C(rt.c); ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x, yy - 4); ctx.lineTo(x + 16, yy - 4); ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(x + 8, yy - 4, 4.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = C(rt.c);
+    ctx.beginPath(); ctx.arc(x + 8, yy - 4, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    text(rt.name, x + 24, yy, { size: 11.5, weight: 600 });
+    text(rt.sub, x + 24 + measure(rt.name, 11.5, 'sans') + 8, yy,
+         { size: 10, font: 'mono', color: '--ink-3' });
+  });
+}
+
+/* ---------- 主迴圈 ----------
+   兩條同時跑,各自跑完各自的路線長度(市區那條刻意慢一點,
+   轉彎多、車速低,同樣的畫面時間走比較短的距離)。 */
+const TRUN = 7.5, TEND = 9.6;
+const t0 = performance.now();
+
+function frame(now) {
+  const time = ((now - t0) / 1000) % TEND;
+  const m = L.map;
+
+  ctx.save();
+  ctx.translate(offX, offY);
+  ctx.scale(scale, scale);
+  ctx.clearRect(0, 0, L.W, L.H);
+  ctx.fillStyle = C('--bg'); ctx.fillRect(0, 0, L.W, L.H);
+
+  if (!L.compact) {
+    text('實車紀錄路線 · 土城一帶', L.pad, L.headY, { size: 15, weight: 700 });
+    text(L.vertical ? '高速與市區兩種路況都收在同一批紀錄裡'
+                    : '高速與市區兩種路況都收在同一批紀錄裡 · 路線為示意,非實測軌跡',
+         L.pad, L.headY + 18, { size: 11, color: '--ink-2' });
+  }
+
+  drawBase(m);
+
+  ROUTES.forEach((rt, i) => {
+    const tab = arcTable(rt.ptsOf(m));
+    // 市區那條起步晚一點點,兩個點才不會像同一台車分身
+    const t = clamp((time / TRUN) * (i === 0 ? 1 : 1.06) - (i === 0 ? 0 : 0.04), 0, 1);
+    drawRoute(rt, tab, t);
+  });
+
+  // compact 到這裡就畫完了:圖例在地圖裡,沒有頁尾那一行,也沒有分隔線
+  if (L.compact) {
+    drawLegendInMap(m);
+    ctx.restore();
+    requestAnimationFrame(frame);
+    return;
+  }
+
+  drawLegend(L.legendY);
+
+  ctx.save();
+  ctx.globalAlpha = 0.6; ctx.strokeStyle = C('--line');
+  ctx.beginPath();
+  ctx.moveTo(L.pad, L.footY - 16); ctx.lineTo(L.W - L.pad, L.footY - 16);
+  ctx.stroke();
+  ctx.restore();
+
+  if (!L.vertical) {
+    text('市區、高速、匝道、壅塞停走都在同一段裡,不挑好路', L.pad, L.footY,
+         { size: 11, weight: 600 });
+    const tail = 'km 連續紀錄';
+    const tw = measure(tail, 10.5, 'sans');
+    text(tail, L.W - L.pad, L.footY, { size: 10.5, color: '--ink-2', align: 'right' });
+    text('100', L.W - L.pad - 4 - tw, L.footY,
+         { size: 15, weight: 700, font: 'mono', color: '--ct', align: 'right' });
+  } else {
+    text('不挑好路,也不刻意製造場景', L.pad, L.footY, { size: 11, weight: 600 });
+  }
+
+  ctx.restore();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

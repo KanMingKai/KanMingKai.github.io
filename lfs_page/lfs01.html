@@ -90,22 +90,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 .l1{padding:clamp(80px,12vw,120px) 0 clamp(56px,8vw,88px);text-align:center}
 .l1-inner{max-width:720px;margin:0 auto}
 .l1-role{font-size:clamp(26px,4.2vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.32;margin-bottom:22px}
-.l1-sub{font-size:clamp(15px,2vw,18px);font-weight:500;color:var(--ink-2);max-width:600px;margin:0 auto 34px;line-height:1.7}
-.l1-trust{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:var(--ink-3);font-family:var(--mono);flex-wrap:wrap}
-.l1-trust .dot{width:6px;height:6px;border-radius:50%;background:var(--blue)}
-
-/* ── layered sieve (hero) ── */
-/* 下方留白原本由已移除的 .l1-metrics 提供,改由 .sieve 自己撐出來 */
-.sieve{max-width:640px;margin:34px auto 30px}
-.sieve-src{font-family:var(--mono);font-size:11px;color:var(--ink-3);text-align:center;line-height:1.9;margin-bottom:4px}
-.sieve svg{width:100%;height:auto;display:block}
-.sieve-final{text-align:center;margin-top:4px}
-.sieve-final .t{font-size:14.5px;font-weight:700;color:var(--blue)}
-.sieve-final .badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:9px}
-.sieve-final .b{font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--blue);border-radius:7px;padding:4px 11px}
-.flowline{stroke-dasharray:6 7;animation:sieveflow 1.2s linear infinite}
-@keyframes sieveflow{to{stroke-dashoffset:-13}}
-@media(prefers-reduced-motion:reduce){.flowline{animation:none}}
+.l1-sub{font-size:clamp(15px,2vw,18px);font-weight:500;color:var(--ink-2);max-width:600px;margin:0 auto;line-height:1.7}
 
 /* physics block */
 .phys{max-width:460px;margin:24px auto 0;background:#0b0b0c;border-radius:14px;padding:22px;text-align:center}
@@ -173,14 +158,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 /* platform */
 .plat{max-width:640px;margin:0 auto}
 
-/* influence */
-.infl{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:760px;margin:0 auto}
-.infl-c{border-radius:16px;padding:20px;text-align:center;background:var(--bg-alt)}
-.infl-c.c2{background:#eef4ff;border:1px solid #cfe1ff}
-.infl-c.c3{background:var(--green-bg);border:1px solid var(--green-line)}
-.infl-n{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--blue);margin-bottom:8px}
-.infl-t{font-size:14px;font-weight:700;margin-bottom:8px}
-.infl-d{font-size:12.5px;color:var(--ink-2);line-height:1.6}
+/* influence — 三張 .infl 卡已移除(內容和下面的 .vtab 重複),樣式跟著清掉 */
 
 /* vendor table */
 .vtab{max-width:640px;margin:24px auto 0;border-collapse:collapse;width:100%;font-size:12.5px}
@@ -213,6 +191,11 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
    窄螢幕會改成四格直排,需要更高的框 */
 .ldemo--tall iframe{height:640px}
 @media(max-width:680px){.ldemo--tall iframe{height:960px}}
+/* 兩顆相機的比較是 920x404 的橫版(左卡是圖、右卡是 2x2 決策表);
+   比例低於 1.5 它會自己攤成 360x580 的直排 —— 表格兩欄在 360 擠不開,
+   那時改成一顆相機一組。窄螢幕的框要給夠高,否則卡在中間比例會被縮到看不清 */
+.ldemo--cam iframe{height:410px}
+@media(max-width:760px){.ldemo--cam iframe{height:560px}}
 
 /* CTO 3-second scan badges */
 .rbadges{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:600px;margin:28px auto 0}
@@ -269,38 +252,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 .svgcap{font-size:12px;color:var(--ink-2);text-align:center;margin-top:10px;line-height:1.65;max-width:560px;margin-left:auto;margin-right:auto}
 .svgcap b{color:var(--ink)}
 
-/* road montage */
-.montage{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:660px;margin:26px auto 0}
-.m-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 12px 14px;text-align:center;box-shadow:var(--shadow)}
-.m-ic{width:52px;height:52px;margin:0 auto 10px;display:block}
-.m-ic svg{width:100%;height:100%;display:block;overflow:visible}
-.m-t{font-size:12.5px;font-weight:700;color:var(--ink)}
-.m-d{font-size:10.5px;color:var(--ink-3);margin-top:4px;line-height:1.45}
-@media(max-width:680px){.montage{grid-template-columns:repeat(2,1fr)}}
-
-/* montage icon animations */
-.ic-cross-a{animation:icCrossA 3.2s ease-in-out infinite}
-.ic-cross-b{animation:icCrossB 3.2s ease-in-out infinite}
-@keyframes icCrossA{0%,45%{opacity:1}50%,95%{opacity:.15}100%{opacity:1}}
-@keyframes icCrossB{0%,45%{opacity:.15}50%,95%{opacity:1}100%{opacity:.15}}
-.ic-flash{animation:icFlash 2.6s ease-in-out infinite}
-@keyframes icFlash{0%,68%{opacity:0}78%{opacity:.9}88%{opacity:0}100%{opacity:0}}
-.ic-rays{animation:icGlow 1.5s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:center}
-@keyframes icGlow{from{opacity:.5;transform:scale(.92)}to{opacity:1;transform:scale(1.1)}}
-.ic-glareline{animation:icGlareLine 1.5s ease-in-out infinite alternate}
-@keyframes icGlareLine{from{opacity:.35}to{opacity:1}}
-.ic-truck{animation:icTruck 3s ease-in-out infinite}
-@keyframes icTruck{0%,18%{transform:translateX(24px)}55%,100%{transform:translateX(0)}}
-.ic-car{animation:none}
-.ic-oldline,.ic-newline{transform-box:fill-box;transform-origin:center}
-.ic-oldline{animation:icJitA 2.4s ease-in-out infinite}
-.ic-newline{animation:icJitB 2.4s ease-in-out infinite}
-@keyframes icJitA{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
-@keyframes icJitB{0%,100%{transform:translateY(0)}50%{transform:translateY(2px)}}
-@media(prefers-reduced-motion:reduce){
-  .ic-cross-a,.ic-cross-b,.ic-flash,.ic-rays,.ic-glareline,.ic-truck,.ic-oldline,.ic-newline{animation:none}
-}
-
 /* 0.12° tilt animation */
 .beamG{transform-box:view-box;transform-origin:92px 96px;animation:tiltBeam 2.6s ease-in-out infinite alternate}
 @keyframes tiltBeam{from{transform:rotate(0deg)}to{transform:rotate(-3.2deg)}}
@@ -322,9 +273,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 .flow{stroke-dasharray:9 9;animation:dashf 1.15s linear infinite}
 @keyframes dashf{to{stroke-dashoffset:-18}}
 
-/* ruler sweep */
-.sweep{transform-box:view-box;animation:sweep 3.2s ease-in-out infinite alternate}
-@keyframes sweep{from{transform:translateX(0)}to{transform:translateX(554px)}}
 
 /* pyramid entrance */
 .pyr svg polygon{opacity:0;transform:translateY(12px);transition:opacity .55s ease,transform .55s ease}
@@ -343,7 +291,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 .tl.on .tl-node:nth-child(3){transition-delay:.75s}
 
 @media(prefers-reduced-motion:reduce){
-  .beamG,.gapG,.jitG,.flow,.sweep{animation:none}
+  .beamG,.gapG,.jitG,.flow{animation:none}
   .pyr svg polygon,.pyr svg text,.tl-node{opacity:1;transform:none;transition:none}
 }
 @media(max-width:680px){
@@ -352,43 +300,99 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 }
 
 @media(max-width:680px){
-  .rc2,.vs,.pillars,.infl,.rcmp-reads{grid-template-columns:1fr}
+  .rc2,.vs,.pillars,.rcmp-reads{grid-template-columns:1fr}
   .vs{gap:10px}.vs-col.old,.vs-col.new{border-radius:16px}.vs-mid{transform:rotate(90deg)}
   .tl{grid-template-columns:1fr;gap:20px}.tl::before{display:none}
   .rcmp-ctrl{grid-template-columns:70px 1fr 70px}
 }
-/* ── LaneNet architecture diagram(取自 lane_ai_pipeline.html)── */
-/* ── LaneNet architecture diagram (Step 3) ── */
-.lanenet{margin-top:14px;padding:18px 16px;background:var(--bg-alt);border-radius:14px;border:1px solid var(--line)}
-.lanenet-title{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--ink-3);letter-spacing:.07em;margin-bottom:14px;text-transform:uppercase}
-.ln-flow{display:flex;align-items:center;gap:4px;overflow-x:auto;padding-bottom:4px}
-.ln-node{flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;width:92px}
-.ln-img{width:88px;height:60px;border-radius:8px;overflow:hidden;border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.08);background:#fff}
-.ln-img svg{display:block;width:100%;height:100%}
-.ln-label{font-size:9px;color:var(--ink-2);text-align:center;line-height:1.35;font-weight:600}
-.ln-arrow{flex:none;color:var(--ink-3);font-size:15px;font-weight:700;padding:0 1px}
-.ln-branches{flex:none;display:flex;flex-direction:column;gap:8px}
-.ln-branch-row{display:flex;align-items:center;gap:4px}
-.ln-branch-tag{font-family:var(--mono);font-size:8px;font-weight:700;color:#fff;border-radius:5px;padding:2px 6px;position:absolute;top:-9px;left:50%;transform:translateX(-50%);white-space:nowrap}
-.ln-img{position:relative}
-.ln-combine{flex:none;width:30px;height:30px;border-radius:50%;background:#fff;border:1.5px solid var(--ink-3);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--ink-2);font-weight:700}
-.ln-specs{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
-.ln-specs-t{font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:8px}
-.ln-specs ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px 18px}
-.ln-specs li{font-size:11.5px;color:var(--ink-2);line-height:1.6;padding-left:14px;position:relative}
-.ln-specs li::before{content:'•';position:absolute;left:0;color:var(--blue);font-weight:700}
-.ln-specs li b{color:var(--ink);font-weight:700}
-@media(max-width:640px){.ln-flow{flex-wrap:nowrap}.ln-specs ul{grid-template-columns:1fr}}
-/* ── 五大職能總覽(#matrix)── */
-.matrix{display:grid;grid-template-columns:repeat(5,1fr);gap:13px;max-width:1040px;margin:0 auto}
-.matrix-c{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 16px;box-shadow:var(--shadow);text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:9px;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
-.matrix-c:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--blue)}
-.matrix-k{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--blue);letter-spacing:.06em}
-.matrix-t{font-size:14px;font-weight:700;color:var(--ink);line-height:1.35}
-.matrix-d{font-size:11.5px;color:var(--ink-2);line-height:1.6;flex:1}
-.matrix-go{font-size:11px;font-weight:700;color:var(--blue);display:flex;align-items:center;gap:4px}
-@media(max-width:900px){.matrix{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:480px){.matrix{grid-template-columns:1fr}}
+/* ── METHOD 總覽:一條資料生產線(#method 開場)──
+   這張總圖的工作是講「流程與角色」,不是重播下面三張詳圖的內容。
+   所以三格各自只留一個精簡標記 —— 把 920px 的詳圖縮到 1/3 寬,
+   三套標題會互相打架,而且字全糊,等於三張都讀不到。
+
+   為什麼寫在 DOM 而不做成 iframe(與 fot_* 那三張的慣例不同):
+   它有一半內容是文字與連結(角色列、三個功用要連到下游章節)。
+   canvas 裡的字不能選、不能點、搜尋不到,連結更接不出去。
+   既有那三張是純資料圖,iframe 才合理;這張是導覽元件。
+
+   三格外面要有框:框住才讀得成「一條線」,不然會被當作三件並列的事。
+   功用接在框底中央的「功用」籤之下,不逐格對位 —— 兩個功用都是整條線
+   走完才有的產物,硬要一格對一條會講錯因果。
+
+   原本這裡有一張 920x44 的分岔 SVG(從中線岔成兩條接到兩張卡)。拿掉了:
+   它連同上下的莖與籤佔 130px,而「兩張卡都掛在同一條線下面」靠一個
+   置中的籤加鄰近性就讀得出來,不值那個高度。                     */
+/* 這一段是全頁最高的內容區之一,而它又排在 hero 的正下方 —— 讀者還沒
+   看到任何成果就要先滾一個半畫面。所以 #method 自己收一組比較緊的
+   padding(其餘 section 維持 clamp(56,9vw,104) 的全頁節奏)。 */
+#method{padding:clamp(44px,5vw,56px) 0}
+#method .unit-head{margin-bottom:20px}
+/* 導言放寬到 640:同樣的字數少掉一行(560 寬會斷成三行) */
+#method .unit-lead{max-width:640px}
+.povr{max-width:920px;margin:0 auto}
+/* 角色標示(人形 +「我」+「主導」籤)與上下兩截莖線、「功用」籤都拿掉了。
+   理由是同一件事在這一段講了四次:導言的「我先把資料做完」、STEP 02 標題的
+   「我定義欄位」、章節標題,再加一個圖示。圖示是最弱的那次,卻自己佔一條
+   橫帶 —— 這一段本來有九條橫帶(籤/標題/導言/角色/線/框/線/籤/卡),
+   讀起來亂的是帶數,不是內容量。留下四條:標題區、框、卡片。 */
+/* 框底原本還有一排 mono 小字的「保證線」(固定路線可重跑 / 抽驗複標 /
+   全腳本化),連同它的細分隔線一起拿掉了,所以框裡只剩生產線這一排,
+   .povr-box 自己就是那個 grid,不再需要 .povr-line 包一層。 */
+.povr-box{border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:var(--shadow);
+          padding:14px 8px;display:grid;grid-template-columns:1fr 26px 1fr 26px 1fr;align-items:start}
+.povr-c{display:flex;flex-direction:column;align-items:center;gap:7px;padding:6px 6px;text-align:center}
+/* 三格原本各有一個「STEP 01 · 跑」的藍色籤,拿掉了:順序由格與格之間的
+   箭頭表示,編號只是把同一件事再標一次;而「跑/標/析」這種一字動詞
+   得先看完下面的標題才知道在指什麼,等於要讀者倒著讀。 */
+/* 三格裡的動畫。高度必須留在 520 以下 —— 三支面板都用 cssH < 520 切
+   compact 版面,改這個數字要順便看一下那三支的 buildLayout。
+   compact 的虛擬畫布(如 fot_drive 的 270x336)會等比縮放,所以 225 也畫得
+   出來;但高度只能寫在這裡,不要用 JS 在載入後才改 —— 那三支的
+   ResizeObserver 對「載入後才變高」處理得不乾淨,會整格畫成空白。 */
+.povr-f{width:100%;border-radius:10px;overflow:hidden;line-height:0;background:var(--bg-alt)}
+.povr-f iframe{width:100%;height:225px;border:0;display:block}
+/* 每格現在只有「一句標題 + 圖」。原本標題下面還有一行灰色說明
+   (.povr-d),拿掉了 —— 標題已經把這一步做了什麼講完,說明是第二遍。
+
+   min-height 40 是必要的,不是留白:標題在圖上面時,只要有一格比別格多
+   一行,那一格的圖就跟著低下去,三張圖對不齊。現在三格都是兩行,但兩行
+   的組成不一樣 —— 第二格是兩行標題(38px),第一、三格是標題加一行小字
+   註記(33px)。撐到 40 讓三格一律等高,順便讓下面 .povr-arrow 的
+   padding-top 算得準(那個數字是硬寫的,標題高度一浮動就對不到圖中線)。
+   改文案時不用管長度,兩行以內都不會壞。 */
+.povr-t{font-size:13.5px;font-weight:700;line-height:1.4;min-height:40px;
+        display:flex;flex-direction:column;justify-content:center;align-items:center}
+/* 註記:「示意,非實際路線／數據」。這兩張圖的軌跡與散點都是程式畫的,
+   不是實測值 —— 履歷頁上一張看起來像 GPS log 的圖,如果沒說是示意,
+   被問到的時候就從加分變扣分。做得比標題小一級、不加粗、給次級灰:
+   它是但書,不是宣稱,不該和標題搶。 */
+.povr-tn{font-size:10px;font-weight:400;color:var(--ink-3);line-height:1.5}
+/* 箭頭:細線加小折角。實心粗箭頭是簡報語彙,放進來會和整頁的細線淡色
+   不同調。158 = 格 padding 6 + 標題區 40 + gap 7 + 圖高一半 112
+   − 箭頭一半 7,對齊三格裡的圖中線(箭頭與格子的上緣同高,所以框的
+   padding 兩邊互相抵銷,不進算式)。 */
+.povr-arrow{display:flex;align-items:center;justify-content:center;padding-top:158px;color:var(--blue);opacity:.45}
+/* 兩張用途卡直接接在框下面。中間原本有「功用」籤,拿掉了 —— 卡片自己
+   就寫著「用途 01 / 02」,籤只是把同一個詞再說一次。 */
+.povr-uses{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;margin-top:13px}
+.povr-u{background:var(--bg-alt);border:1px solid var(--line);border-radius:16px;padding:13px 15px;
+        display:flex;flex-direction:column;gap:5px;text-decoration:none;color:inherit;
+        transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+.povr-u:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--blue)}
+.povr-uk{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--blue);letter-spacing:.05em}
+/* 標題吃掉多餘高度(原本是說明句在吃),兩張卡的「→」才會對在同一條線上 */
+.povr-ut{font-size:14px;font-weight:700;line-height:1.4;flex:1}
+.povr-ugo{font-size:11.5px;font-weight:700;color:var(--blue)}
+@media(max-width:760px){
+  /* 窄螢幕:生產線改成直的,箭頭跟著轉 90° */
+  .povr-box{grid-template-columns:1fr;padding:10px}
+  .povr-arrow{padding:0;transform:rotate(90deg)}
+  .povr-uses{grid-template-columns:1fr}
+  /* 手機沒有「一屏」的壓力,圖給回一點高度比較讀得到 */
+  .povr-f iframe{height:280px}
+}
+/* 內文連結:全頁只有 hero 與這幾處需要,規則就放這裡 */
+.p-narr a{color:var(--blue);text-decoration:none;border-bottom:1px solid rgba(0,113,227,.35)}
 </style>
 </head>
 <body>
@@ -406,14 +410,14 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 
 <nav class="chnav" id="chnav" aria-label="章節導覽">
   <div class="in">
-    <a href="#matrix" data-sec="matrix">五大職能</a>
+    <a href="#method" data-sec="method">方法論</a>
+    <a href="#influence" data-sec="influence">影響力</a>
     <a href="#root-cause" data-sec="root-cause">根因拆解</a>
     <a href="#architecture" data-sec="architecture">系統架構</a>
     <a href="#decision-1" data-sec="decision-1">決策① Lane Degrade</a>
     <a href="#decision-2" data-sec="decision-2">決策② 半徑公式</a>
     <a href="#validation" data-sec="validation">驗證</a>
     <a href="#simulation" data-sec="simulation">模擬環境</a>
-    <a href="#influence" data-sec="influence">影響力</a>
     <a href="#faq" data-sec="faq">FAQ</a>
     <a href="#reflection" data-sec="reflection">反思</a>
   </div>
@@ -423,121 +427,125 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 <section class="l1">
   <div class="wrap l1-inner">
     <div class="l1-role">用 <span class="grad">5 個步驟</span>，解決 <span class="grad">20+ 種複雜場景</span><br>的車道線感知問題</div>
-    <div class="l1-sub">感知不會完美——與其花千萬追求完美感知，我主導設計車道融合系統（LFS），在融合層把下面這些不完美，收斂成 AEB／ACC／LFC／LCC 都能穩定依賴的<b>同一條車道線</b>。</div>
+    <div class="l1-sub">感知不會完美——與其花千萬追求完美感知，我主導設計車道融合系統（LFS），在融合層把感知的不完美，收斂成 AEB／ACC／LFC／LCC 都能穩定依賴的<b>同一條車道線</b>。</div>
+  </div>
+</section>
 
-    <div class="sieve">
-      <p class="sieve-src">路口無車道線 · 隧道出口逆光 · 大貨車遮蔽 · 校正殘留 · 新舊線交替 · S 彎擬合失敗 ⋯ 等 20+ 種</p>
-      <svg viewBox="0 0 640 524" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="20 多種複雜場景的亂線，經過五道機制層層梳理，收斂成一條穩定車道線">
-        <!-- zone 0 · 亂 -->
-        <g fill="none" stroke="#d97706" stroke-width="1.6" opacity=".45">
-          <path d="M40,-2 C90,28 140,44 186,78"/>
-          <path d="M105,-2 C80,30 150,48 214,78"/>
-          <path d="M170,-2 C210,26 200,50 246,78"/>
-          <path d="M235,-2 C200,30 260,46 278,78"/>
-          <path d="M300,-2 C340,24 290,52 310,78"/>
-          <path d="M365,-2 C330,28 360,50 342,78"/>
-          <path d="M430,-2 C470,24 400,52 374,78"/>
-          <path d="M495,-2 C450,30 430,48 402,78"/>
-          <path d="M560,-2 C520,26 470,50 430,78"/>
-          <path d="M600,-2 C580,34 500,52 456,78"/>
-        </g>
-        <!-- zone 1 -->
-        <g fill="none" stroke-width="1.8">
-          <path d="M196,110 C206,130 200,148 212,166" stroke="#d97706" opacity=".5"/>
-          <path d="M232,110 C222,132 240,146 246,166" stroke="#d97706" opacity=".5"/>
-          <path d="M270,110 C282,130 272,150 282,166" stroke="#d97706" opacity=".5"/>
-          <path d="M308,110 C298,132 314,148 318,166" stroke="#0071e3" opacity=".6"/>
-          <path d="M346,110 C356,130 344,150 352,166" stroke="#d97706" opacity=".5"/>
-          <path d="M384,110 C374,132 392,146 388,166" stroke="#0071e3" opacity=".6"/>
-          <path d="M424,110 C434,130 416,150 420,166" stroke="#d97706" opacity=".5"/>
-        </g>
-        <!-- zone 2 -->
-        <g fill="none" stroke-width="2">
-          <path d="M226,198 C234,218 226,236 244,254" stroke="#d97706" opacity=".5"/>
-          <path d="M272,198 C264,220 280,234 286,254" stroke="#0071e3" opacity=".7"/>
-          <path d="M318,198 C326,218 314,238 324,254" stroke="#d97706" opacity=".5"/>
-          <path d="M364,198 C356,220 370,236 362,254" stroke="#0071e3" opacity=".7"/>
-          <path d="M408,198 C416,218 400,238 398,254" stroke="#d97706" opacity=".45"/>
-        </g>
-        <!-- zone 3 -->
-        <g fill="none" stroke-width="2.2">
-          <path d="M268,286 C276,306 280,324 292,342" stroke="#0071e3" opacity=".8"/>
-          <path d="M322,286 C316,308 326,326 322,342" stroke="#d97706" opacity=".4"/>
-          <path d="M376,286 C368,306 360,326 350,342" stroke="#0071e3" opacity=".8"/>
-        </g>
-        <!-- zone 4 -->
-        <g fill="none" stroke="#0071e3" stroke-width="2.5" opacity=".9">
-          <path d="M302,374 C306,394 306,412 312,430"/>
-          <path d="M340,374 C336,394 334,412 328,430"/>
-        </g>
-        <!-- zone 5 · 一條線 -->
-        <path class="flowline" d="M320,462 L320,512" fill="none" stroke="#0071e3" stroke-width="3.5"/>
-        <polyline points="311,505 320,515 329,505" fill="none" stroke="#0071e3" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- 5 層機制 -->
-        <g>
-          <rect x="150" y="78" width="340" height="32" rx="16" fill="#fff" stroke="#d2d2d7" stroke-width="1.2"/>
-          <text x="320" y="99" text-anchor="middle" font-size="13" font-weight="700" fill="#1d1d1f"><tspan fill="#0071e3" font-family="JetBrains Mono,monospace" font-size="11">STEP 1　</tspan>C1 Bias 閉迴路補償</text>
-          <rect x="150" y="166" width="340" height="32" rx="16" fill="#fff" stroke="#d2d2d7" stroke-width="1.2"/>
-          <text x="320" y="187" text-anchor="middle" font-size="13" font-weight="700" fill="#1d1d1f"><tspan fill="#0071e3" font-family="JetBrains Mono,monospace" font-size="11">STEP 2　</tspan>場景化 ROI 框選</text>
-          <rect x="150" y="254" width="340" height="32" rx="16" fill="#fff" stroke="#d2d2d7" stroke-width="1.2"/>
-          <text x="320" y="275" text-anchor="middle" font-size="13" font-weight="700" fill="#1d1d1f"><tspan fill="#0071e3" font-family="JetBrains Mono,monospace" font-size="11">STEP 3　</tspan>前車航向角融合</text>
-          <rect x="150" y="342" width="340" height="32" rx="16" fill="#fff" stroke="#d2d2d7" stroke-width="1.2"/>
-          <text x="320" y="363" text-anchor="middle" font-size="13" font-weight="700" fill="#1d1d1f"><tspan fill="#0071e3" font-family="JetBrains Mono,monospace" font-size="11">STEP 4　</tspan>降階方程式</text>
-          <rect x="150" y="430" width="340" height="32" rx="16" fill="#eef4ff" stroke="#cfe1ff" stroke-width="1.2"/>
-          <text x="320" y="451" text-anchor="middle" font-size="13" font-weight="700" fill="#1d1d1f"><tspan fill="#0071e3" font-family="JetBrains Mono,monospace" font-size="11">STEP 5　</tspan>Forward / Backward 實時估測</text>
-        </g>
-      </svg>
-      <div class="sieve-final">
-        <div class="t">一條穩定車道線 ＋ 封閉解半徑</div>
-        <div class="badges"><span class="b">ACC</span><span class="b">AEB</span><span class="b">LFC</span><span class="b">LCC</span></div>
+<!-- ===== 2.5 METHOD ===== -->
+<section id="method">
+  <div class="wrap">
+    <div class="unit">
+      <div class="unit-head">
+        <div class="unit-tag">METHOD · 一切的起點</div>
+        <div class="unit-title">這 20+ 種場景<br>不是想出來的，是跑出來的</div>
+        <p class="unit-lead">動手改任何一行融合邏輯之前，我先把資料做完：<b>100 km 連續路況、逐幀標註、統計成一把可重跑的尺</b>。這把尺用來量四家相機、定相機模型，不是拿來宣稱信心區間。後面每個案例，都掛在它的下游。</p>
       </div>
-    </div>
-    <div class="l1-trust">
-      <span class="dot"></span>與西門子聯合驗證 · ISO 26262 實戰（ASIL 分解／FMEA） · 依 MAAB 工業標準交付 · 對接 4 大感知廠 · 實車路測含吐魯番 70°C
+
+      <!-- 總覽:先給三秒鐘讀得完的版本,細節在下面的 STEP 卡片 -->
+      <div class="povr">
+        <div class="povr-box">
+          <div class="povr-c">
+            <span class="povr-t">
+              <span>100 km 連續實車紀錄</span>
+              <span class="povr-tn">（示意，非實際路線）</span>
+            </span>
+            <div class="povr-f">
+              <iframe src="fot_drive.html" title="實車紀錄路線 — 高速與市區兩種路況收在同一批紀錄裡" loading="lazy"></iframe>
+            </div>
+          </div>
+
+          <span class="povr-arrow" aria-hidden="true">
+            <svg width="24" height="14" viewBox="0 0 24 14" fill="none" stroke="currentColor"
+                 stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1,7 H20"/><path d="M15,2.5 L20,7 L15,11.5"/>
+            </svg>
+          </span>
+
+          <div class="povr-c">
+            <span class="povr-t">
+              <span>產生標準化標註流程</span>
+              <span>快速標註 Ground Truth</span>
+            </span>
+            <div class="povr-f">
+              <iframe src="fot_label.html" title="逐幀人工標註 — 驗證部門三人分段包乾，標成同一份 Excel" loading="lazy"></iframe>
+            </div>
+          </div>
+
+          <span class="povr-arrow" aria-hidden="true">
+            <svg width="24" height="14" viewBox="0 0 24 14" fill="none" stroke="currentColor"
+                 stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1,7 H20"/><path d="M15,2.5 L20,7 L15,11.5"/>
+            </svg>
+          </span>
+
+          <div class="povr-c">
+            <span class="povr-t">
+              <span>最後圖形化呈現感知特性</span>
+              <span class="povr-tn">（示意，非實際數據）</span>
+            </span>
+            <div class="povr-f">
+              <iframe src="fot_analysis.html" title="Mini-FOT 實車資料統計 — 場景分類、下一車道類型、有效視野三張輪播" loading="lazy"></iframe>
+            </div>
+          </div>
+        </div>
+
+        <div class="povr-uses">
+          <a class="povr-u" href="#influence">
+            <span class="povr-uk">用途 01</span>
+            <span class="povr-ut">分析各感知器差異，據此制定感知對策</span>
+            <span class="povr-ugo">看影響力 →</span>
+          </a>
+          <a class="povr-u" href="#simulation">
+            <span class="povr-uk">用途 02</span>
+            <span class="povr-ut">建出感知模擬的相機模型</span>
+            <span class="povr-ugo">看模擬環境 →</span>
+          </a>
+        </div>
+      </div>
+      <!-- 這裡原本有一句 .p-mid「先量、再析,才動手改 —— 後面的每一個案例,
+           都是從這條線分出去的。」拿掉了:它和上面 .unit-lead 的最後一句
+           是同一句話,中間只隔一個畫面,講兩次沒有加分。 -->
     </div>
   </div>
 </section>
 
-<!-- ===== 2. ROOT CAUSE ===== -->
-<section id="matrix" style="padding-top:0">
+<!-- ===== 7. INFLUENCE ===== -->
+<section id="influence">
   <div class="wrap">
     <div class="unit">
-      <div class="unit-head" style="margin-bottom:22px">
-        <div class="unit-tag">五大職能 · 沒空看完全文就看這裡</div>
-        <div class="unit-title" style="font-size:clamp(19px,2.6vw,26px)">同一個專案，五種能力的證據</div>
+      <div class="unit-head">
+        <div class="unit-tag">INFLUENCE · 標準與賦能</div>
+        <div class="unit-title">我制定的驗證方法<br>成了四家大廠的共同語言</div>
+        <p class="unit-lead">一個人能把系統做穩，是實力；能讓別人也照著你的方法做，才是影響力。車道線驗證，我做的不只是「驗過」，而是定出一套大家都能用的標準。</p>
       </div>
-      <div class="matrix">
-        <a class="matrix-c" href="#decision-2">
-          <span class="matrix-k">01 · 技術深度</span>
-          <span class="matrix-t">推導半徑封閉解</span>
-          <span class="matrix-d">修正業界用了多年的公式，25m 誤差歸零，成為量產標準。</span>
-          <span class="matrix-go">看半徑公式 →</span>
-        </a>
-        <a class="matrix-c" href="#root-cause">
-          <span class="matrix-k">02 · 系統思維</span>
-          <span class="matrix-t">三柱架構、根因三分類</span>
-          <span class="matrix-d">把五花八門的路測問題收斂成偏差／缺失／誤判三型，各自對應解法。</span>
-          <span class="matrix-go">看根因拆解 →</span>
-        </a>
-        <a class="matrix-c" href="#decision-1">
-          <span class="matrix-k">03 · 成本判斷</span>
-          <span class="matrix-t">融合層解法，省千萬重訓</span>
-          <span class="matrix-d">Lane Degrade 用幾行邏輯，換到跟供應商重訓等效的行為，成本近零。</span>
-          <span class="matrix-go">看 Lane Degrade →</span>
-        </a>
-        <a class="matrix-c" href="#influence">
-          <span class="matrix-k">04 · 跨團隊影響力</span>
-          <span class="matrix-t">同一套尺，量三大感知廠</span>
-          <span class="matrix-d">制定的驗證方法對接 Mobileye／PCT／Stradvision／Horizon，並賦能兩個團隊自建系統。</span>
-          <span class="matrix-go">看影響力 →</span>
-        </a>
-        <a class="matrix-c" href="#validation">
-          <span class="matrix-k">05 · 安全嚴謹度</span>
-          <span class="matrix-t">四層驗證＋70°C 極限環境</span>
-          <span class="matrix-d">MIL→CIL→HIL→Road 全走完，ISO 26262 實戰、ASIL 分解與 FMEA。</span>
-          <span class="matrix-go">看驗證章節 →</span>
-        </a>
+
+      <!-- 這裡原本有 01 定標準 / 02 對接四大廠 / 03 賦能兩團隊 三張卡,拿掉了:
+           三張卡講的東西下面全都再講一次 —— 四家大廠有 .vtab 那張表(還多了
+           每一家我實際做的事),賦能兩團隊有後面那段 (1)(2)(3)。留著等於同一
+           段話說兩遍,而且它擋在導言和「量出來的差異」那張圖中間。 -->
+
+      <!-- 「同一把尺」原本是一張概念圖(尺掃過四個廠商方塊),已移除 ——
+           這張直接秀量出來的差異,而且差異指向對策,比概念圖有力 -->
+      <div class="ldemo ldemo--cam">
+        <iframe src="cam_compare.html" title="同一把尺，兩顆相機 — View Range 差異如何決定 Fusion 邏輯" loading="lazy"></iframe>
       </div>
+      <p class="ldemo-cap"><b>同一把尺，量四家相機——差別是真的量得出來的。</b>同一套統計方法換一顆相機重跑，兩條 View Range 曲線的形狀就不一樣——低速差 25 m、高速差 32 m，而形狀不同代表融合層要接的東西也不同。<b>評估一顆新相機要怎麼接，看這張圖就夠，不必等下一次路測。</b></p>
+
+      <table class="vtab">
+        <tr><th>大廠</th><th>角色</th><th>我做的事</th></tr>
+        <tr><td>Mobileye (J2)</td><td>最早基準</td><td>建立 baseline 與 VRE 公式</td></tr>
+        <tr><td>PCT (FIH)</td><td>承接方法</td><td>5 輪驗測、逐一排查 DBC 映射</td></tr>
+        <tr><td>Stradvision (SV)</td><td>新相機對比</td><td>以 J2/PCT 為基線量化差異</td></tr>
+        <tr><td>Horizon Robotics</td><td>新創供應商</td><td>回饋評測方法與失效案例，支援其車道偵測演算法研發</td></tr>
+      </table>
+
+      <p class="p-narr" style="margin-top:24px">賦能的具體內容是三樣：<b>(1)</b> 可重複的驗證方法與 KPI 定義，讓他們知道「做到什麼程度才算好」；<b>(2)</b> 我踩過的坑（DBC 映射、近距盲區、鄰道護欄誤判），讓他們少走冤枉路；<b>(3)</b> 設計階段的技術對焦，一起確認輸出能符合下游融合要求。</p>
+
+      <p class="p-narr" style="margin-top:16px">這種對外協作與交付能力不是一夕養成的。<b>最早與西門子聯合驗證 LFS、依 MAAB 工業標準重構交付</b>時，就打下了底子——那時我學到的不只是演算法，而是「如何把內部原型，變成別人信得過、接得住的交付物」。這套流程涵蓋 LFS 與 OFS 兩個系統，我負責的是 LFS，實際參與了 ASIL 分解、FMEA 與安全需求追溯。</p>
+
+      <p class="p-narr" style="margin-top:16px">後續，我們 ADAS 團隊也在另一階段整體通過德凱（DEKRA）的 ISO 26262 / ASPICE 認證，我個人另外完成官方 80 小時培訓。<b>這兩段經驗，讓我對安全流程的理解，從「自己執行、被稽核」延伸到「團隊層級的稽核與標準內化」——這也是我後來能定出驗證方法、讓四家大廠與兩個團隊都能照著做的底氣來源。</b></p>
+
+      <p class="gold">從被大廠驗證，到定標準給大廠用，再到教會別的團隊自己驗——我留下的不是一份報告，是一套方法。</p>
     </div>
   </div>
 </section>
@@ -546,208 +554,10 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-tag">WHY FUSION</div>
-        <div class="unit-title">車道線不會單獨存在<br>路上的其他車，也是資訊</div>
-        <p class="unit-lead">相機只是眾多感知源之一，不可能永遠準確。<b>Lane Fusion</b> 要做的不是修飾一條線，而是把車道線以外的訊號也拉進來一起判斷——包含路口、隧道、強光、大貨車遮擋這些會讓感知失準的路況，以及<b>周圍車輛的行進方向</b>這種車道線本身沒有、但能拿來驗證車道線是否合理的資訊。這正是單一感知源、甚至更大的 AI 模型都解不了的問題。</p>
+        <div class="unit-tag">ROOT CAUSE · 收斂</div>
+        <div class="unit-title">路測回報的是現象<br>不是原因</div>
+        <p class="unit-lead">方向盤左右甩動、汽車偏邊行駛、車道線缺失——這三種抱怨底下，躺著七個各自不同的根因。一路拆到底之後再重新歸類，依據只有一個：<b>資訊是歪了、沒了，還是選錯了</b>。<b>分類不是為了整齊，是因為三型各自對應完全不同的解法</b>——補償、降級估計、交叉驗證。<b>後面那套三柱架構，就是照這三型分流蓋的。</b></p>
       </div>
-
-      <div style="max-width:920px;margin:26px auto 0">
-      <div class="lanenet">
-      <div class="lanenet-title">Network Architecture（LaneNet）— 模型內部怎麼跑</div>
-      <div class="ln-flow">
-
-      <div class="ln-node">
-      <div class="ln-img">
-      <svg viewBox="0 0 100 70" preserveAspectRatio="none">
-      <rect width="100" height="70" fill="#dbe1ea"/>
-      <rect width="100" height="26" fill="#c3ccd9"/>
-      <polygon points="0,70 38,26 62,26 100,70" fill="#5f6b7a"/>
-      <line x1="46" y1="26" x2="18" y2="70" stroke="#fff" stroke-width="2.4" stroke-dasharray="5 4"/>
-      <line x1="54" y1="26" x2="82" y2="70" stroke="#fff" stroke-width="2.4" stroke-dasharray="5 4"/>
-      </svg>
-      </div>
-      <div class="ln-label">輸入影像<br>512×256</div>
-      </div>
-
-      <div class="ln-arrow">→</div>
-
-      <div class="ln-node">
-      <div class="ln-img">
-      <svg viewBox="0 0 100 70">
-      <rect x="18" y="30" width="26" height="34" fill="#0071e3" opacity=".22" stroke="#0071e3" stroke-width="1"/>
-      <rect x="32" y="20" width="26" height="34" fill="#0071e3" opacity=".45" stroke="#0071e3" stroke-width="1"/>
-      <rect x="46" y="10" width="26" height="34" fill="#0071e3" opacity=".75" stroke="#0071e3" stroke-width="1"/>
-      </svg>
-      </div>
-      <div class="ln-label">Shared Encoder<br>ENet / BiSeNetV2</div>
-      </div>
-
-      <div class="ln-arrow">→</div>
-
-      <div class="ln-branches">
-      <div class="ln-branch-row">
-      <div class="ln-node" style="width:70px">
-      <div class="ln-img" style="height:40px">
-      <svg viewBox="0 0 70 40">
-      <rect x="10" y="8" width="16" height="24" fill="#6d28d9" opacity=".25" stroke="#6d28d9"/>
-      <rect x="24" y="4" width="16" height="24" fill="#6d28d9" opacity=".55" stroke="#6d28d9"/>
-      </svg>
-      </div>
-      <div class="ln-label" style="font-size:8px">Embedding<br>Branch</div>
-      </div>
-      <div class="ln-arrow" style="font-size:12px">→</div>
-      <div class="ln-node" style="width:74px">
-      <div class="ln-img" style="height:44px">
-      <svg viewBox="0 0 100 60" preserveAspectRatio="none">
-      <defs><linearGradient id="lng" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#7c3aed"/><stop offset=".35" stop-color="#06b6d4"/>
-      <stop offset=".65" stop-color="#ec4899"/><stop offset="1" stop-color="#f59e0b"/>
-      </linearGradient></defs>
-      <rect width="100" height="60" fill="url(#lng)"/>
-      <polygon points="0,60 38,22 62,22 100,60" fill="#000" opacity=".18"/>
-      </svg>
-      </div>
-      <div class="ln-label" style="font-size:8px">Instance 特徵圖<br>(dim=4)</div>
-      </div>
-      </div>
-      <div class="ln-branch-row">
-      <div class="ln-node" style="width:70px">
-      <div class="ln-img" style="height:40px">
-      <svg viewBox="0 0 70 40">
-      <rect x="10" y="8" width="16" height="24" fill="#6e6e73" opacity=".25" stroke="#6e6e73"/>
-      <rect x="24" y="4" width="16" height="24" fill="#6e6e73" opacity=".55" stroke="#6e6e73"/>
-      </svg>
-      </div>
-      <div class="ln-label" style="font-size:8px">Segmentation<br>Branch</div>
-      </div>
-      <div class="ln-arrow" style="font-size:12px">→</div>
-      <div class="ln-node" style="width:74px">
-      <div class="ln-img" style="height:44px">
-      <svg viewBox="0 0 100 60" preserveAspectRatio="none">
-      <rect width="100" height="60" fill="#0b0b0c"/>
-      <line x1="46" y1="22" x2="18" y2="60" stroke="#fff" stroke-width="3"/>
-      <line x1="54" y1="22" x2="82" y2="60" stroke="#fff" stroke-width="3"/>
-      </svg>
-      </div>
-      <div class="ln-label" style="font-size:8px">Binary 車道遮罩</div>
-      </div>
-      </div>
-      </div>
-
-      <div class="ln-combine">⊗</div>
-
-      <div class="ln-node">
-      <div class="ln-img">
-      <svg viewBox="0 0 100 70">
-      <rect width="100" height="70" fill="#fafafa"/>
-      <circle cx="30" cy="24" r="2.6" fill="#0071e3"/><circle cx="35" cy="30" r="2.6" fill="#0071e3"/><circle cx="26" cy="34" r="2.6" fill="#0071e3"/><circle cx="38" cy="20" r="2.6" fill="#0071e3"/>
-      <circle cx="66" cy="42" r="2.6" fill="#ec4899"/><circle cx="72" cy="36" r="2.6" fill="#ec4899"/><circle cx="62" cy="48" r="2.6" fill="#ec4899"/><circle cx="70" cy="50" r="2.6" fill="#ec4899"/>
-      <circle cx="12" cy="58" r="1.8" fill="#9ca3af"/><circle cx="86" cy="14" r="1.8" fill="#9ca3af"/>
-      </svg>
-      </div>
-      <div class="ln-label">Clustering<br>依 Embedding 分群</div>
-      </div>
-
-      <div class="ln-arrow">→</div>
-
-      <div class="ln-node">
-      <div class="ln-img">
-      <svg viewBox="0 0 100 70" preserveAspectRatio="none">
-      <rect width="100" height="70" fill="#7a3b46"/>
-      <polygon points="0,70 38,26 62,26 100,70" fill="#5b2530" opacity=".5"/>
-      <path d="M50,22 L16,70" stroke="#22c55e" stroke-width="3.4" fill="none"/>
-      <path d="M50,22 L84,70" stroke="#22c55e" stroke-width="3.4" fill="none"/>
-      </svg>
-      </div>
-      <div class="ln-label">最終車道<br>疊圖輸出</div>
-      </div>
-
-      </div>
-
-      <div class="ln-specs">
-      <div class="ln-specs-t">Network Architecture（LaneNet）</div>
-      <ul>
-      <li>雙分支架構：<b>Segmentation Branch</b> + <b>Embedding Branch</b></li>
-      <li>Encoder-decoder network：<b>ENet</b></li>
-      <li>Backbone Network：<b>BiSeNetV2</b></li>
-      <li>Loss Functions：<b>Binary Cross Entropy</b> + <b>Discriminative Loss</b></li>
-      <li>Dataset：<b>TuSimple</b></li>
-      <li>Embedding dimension：<b>4</b></li>
-      <li>Image size：<b>512×256</b></li>
-      </ul>
-      </div>
-      </div>
-      </div>
-      <p class="ldemo-cap"><b>先看相機這一端在做什麼</b>：車道線是這樣被算出來的——雙分支各自輸出「哪些像素是線」與「哪條線是哪條」，再靠分群組合出結果。理解它的輸出怎麼來的，才知道融合層要接住的是什麼。</p>
-
-      <div class="montage">
-        <div class="m-card">
-          <div class="m-ic"><svg viewBox="0 0 64 64" role="img" aria-label="路口多線交錯示意">
-            <rect x="0" y="26" width="64" height="12" fill="#e5e5ea"/>
-            <rect x="26" y="0" width="12" height="64" fill="#e5e5ea"/>
-            <line x1="0" y1="32" x2="64" y2="32" stroke="#fff" stroke-width="1.4" stroke-dasharray="4 4"/>
-            <line x1="32" y1="0" x2="32" y2="64" stroke="#fff" stroke-width="1.4" stroke-dasharray="4 4"/>
-            <path class="ic-cross-a" d="M32,60 L32,36 L52,20" fill="none" stroke="#0071e3" stroke-width="3.4" stroke-linecap="round"/>
-            <path class="ic-cross-b" d="M32,60 L32,36 L12,20" fill="none" stroke="#b45309" stroke-width="3.4" stroke-dasharray="2.5 4" stroke-linecap="round"/>
-          </svg></div>
-          <div class="m-t">路口 / 十字路口</div><div class="m-d">多條線交錯，容易選錯線</div>
-        </div>
-        <div class="m-card">
-          <div class="m-ic"><svg viewBox="0 0 64 64" role="img" aria-label="隧道進出口明暗劇變示意">
-            <defs><linearGradient id="tuning1" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stop-color="#fff3b0"/><stop offset=".4" stop-color="#4b4b4f"/><stop offset="1" stop-color="#0b0b0c"/>
-            </linearGradient></defs>
-            <path d="M4,58 L4,30 A28,28 0 0,1 60,30 L60,58 Z" fill="url(#tuning1)"/>
-            <path class="ic-flash" d="M4,58 L4,30 A28,28 0 0,1 60,30 L60,58 Z" fill="#fff"/>
-          </svg></div>
-          <div class="m-t">隧道進出口</div><div class="m-d">明暗劇變，短暫失明</div>
-        </div>
-        <div class="m-card">
-          <div class="m-ic"><svg viewBox="0 0 64 64" role="img" aria-label="強光逆光訊號漂移示意">
-            <g class="ic-rays" stroke="#f5b400" stroke-width="3" stroke-linecap="round">
-              <line x1="32" y1="1" x2="32" y2="9"/>
-              <line x1="13" y1="9" x2="18.5" y2="15"/>
-              <line x1="51" y1="9" x2="45.5" y2="15"/>
-              <line x1="5" y1="24" x2="13" y2="24"/>
-              <line x1="59" y1="24" x2="51" y2="24"/>
-            </g>
-            <circle cx="32" cy="24" r="10" fill="#fde047"/>
-            <line class="ic-glareline" x1="8" y1="52" x2="56" y2="52" stroke="#fff" stroke-width="4.4" stroke-dasharray="7 5"/>
-          </svg></div>
-          <div class="m-t">強光 / 逆光</div><div class="m-d">白線過曝，訊號漂移</div>
-        </div>
-        <div class="m-card">
-          <div class="m-ic"><svg viewBox="0 0 64 64" role="img" aria-label="大貨車側向切入遮擋車道線示意">
-            <line x1="0" y1="48" x2="64" y2="48" stroke="#c7c7cc" stroke-width="3" stroke-dasharray="6 5"/>
-            <g class="ic-truck">
-              <rect x="6" y="24" width="30" height="18" rx="2" fill="#6e6e73"/>
-              <rect x="36" y="15" width="17" height="27" rx="2" fill="#8e8e93"/>
-              <circle cx="16" cy="44" r="4" fill="#1d1d1f"/>
-              <circle cx="45" cy="44" r="4" fill="#1d1d1f"/>
-            </g>
-          </svg></div>
-          <div class="m-t">大貨車遮擋</div><div class="m-d">側向切入，遮住車道線</div>
-        </div>
-        <div class="m-card">
-          <div class="m-ic"><svg viewBox="0 0 64 64" role="img" aria-label="連續上下坡幾何投影失真示意">
-            <path id="hillpath" d="M2,50 Q16,14 32,30 T62,16" fill="none" stroke="#c7c7cc" stroke-width="4" stroke-linecap="round"/>
-            <circle r="4.5" fill="#0071e3">
-              <animateMotion dur="2.8s" repeatCount="indefinite" path="M2,50 Q16,14 32,30 T62,16"/>
-            </circle>
-          </svg></div>
-          <div class="m-t">連續上下坡</div><div class="m-d">幾何投影失真</div>
-        </div>
-        <div class="m-card">
-          <div class="m-ic"><svg viewBox="0 0 64 64" role="img" aria-label="新舊線交替施工路段線位跳動示意">
-            <line class="ic-oldline" x1="4" y1="26" x2="60" y2="22" stroke="#b45309" stroke-width="3" stroke-dasharray="5 5" opacity=".75"/>
-            <line class="ic-newline" x1="4" y1="38" x2="60" y2="40" stroke="#0071e3" stroke-width="3" stroke-dasharray="5 5"/>
-            <polygon points="32,44 26,58 38,58" fill="#f59e0b"/>
-            <rect x="27.5" y="52.5" width="9" height="2.6" fill="#fff"/>
-          </svg></div>
-          <div class="m-t">新舊線交替</div><div class="m-d">施工路段，線位跳動</div>
-        </div>
-      </div>
-      <p class="svgcap" style="margin-top:14px">這六種路況，是 LFS 每天要面對的現實——下面先拆解它們實際造成的問題，再看怎麼分類、怎麼解。</p>
 
       <!-- 側向根因拆解 mind-map -->
       <div class="eb" style="margin-top:38px">側向根因拆解 · 現象 → 根因</div>
@@ -824,94 +634,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
           <text x="488" y="465" font-size="12.5" font-weight="700" fill="#1d1d1f">新舊線交替跳動</text>
         </svg>
         <p class="svgcap">側向表現看似三個獨立現象，往下追都收斂到具體根因：<b>現象①（方向盤左右甩動）</b>來自 1.1 車道線尾端不穩與 1.2 軌跡銜接不平滑；<b>現象②（汽車偏邊行駛）</b>來自 2.1 車輛參數不夠精準與 2.2 車道線 C1 bias；<b>現象③（車道線缺失）</b>來自 3.1 路口／隧道短暫失明、3.2 前車／護欄遮擋與 3.3 新舊線交替跳動。</p>
-      </div>
-
-      <p class="p-mid">路測遇到的問題看似五花八門，其實收斂成三類。</p>
-
-      <!-- 三類問題 mind-map -->
-      <div class="svgcard wide" style="margin-top:20px">
-        <svg viewBox="0 0 720 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="路測問題收斂成偏差型、缺失型與誤判型三類、各自對應解法的樹狀圖">
-          <defs>
-            <linearGradient id="rootg2" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#0a84ff"/>
-              <stop offset=".5" stop-color="#0071e3"/>
-              <stop offset="1" stop-color="#28c6e8"/>
-            </linearGradient>
-          </defs>
-
-          <!-- connectors (root → 三類) -->
-          <path d="M148,260 C202,260 210,62 250,62"    fill="none" stroke="#b45309" stroke-width="2" opacity=".5"/>
-          <path d="M148,260 C202,260 210,274 250,274"  fill="none" stroke="#0071e3" stroke-width="2" opacity=".5"/>
-          <path d="M148,260 C202,260 210,414 250,414"  fill="none" stroke="#0a8a5c" stroke-width="2" opacity=".5"/>
-          <!-- connectors (偏差型 → 現象) -->
-          <path d="M418,62 C452,62 452,30 484,30"    fill="none" stroke="#b45309" stroke-width="1.7" opacity=".4"/>
-          <path d="M418,62 C452,62 452,86 484,86"    fill="none" stroke="#b45309" stroke-width="1.7" opacity=".4"/>
-          <path d="M418,62 C452,62 452,142 484,142"  fill="none" stroke="#b45309" stroke-width="1.7" opacity=".4"/>
-          <!-- connectors (缺失型 → 現象) -->
-          <path d="M418,274 C452,274 452,218 484,218" fill="none" stroke="#0071e3" stroke-width="1.7" opacity=".4"/>
-          <path d="M418,274 C452,274 452,274 484,274" fill="none" stroke="#0071e3" stroke-width="1.7" opacity=".4"/>
-          <path d="M418,274 C452,274 452,330 484,330" fill="none" stroke="#0071e3" stroke-width="1.7" opacity=".4"/>
-          <!-- connectors (誤判型 → 現象) -->
-          <path d="M418,414 C452,414 452,386 484,386" fill="none" stroke="#0a8a5c" stroke-width="1.7" opacity=".4"/>
-          <path d="M418,414 C452,414 452,442 484,442" fill="none" stroke="#0a8a5c" stroke-width="1.7" opacity=".4"/>
-
-          <!-- ROOT -->
-          <rect x="16" y="230" width="132" height="60" rx="15" fill="url(#rootg2)"/>
-          <text x="82" y="258" text-anchor="middle" font-size="14.5" font-weight="700" fill="#fff">路測問題</text>
-          <text x="82" y="276" text-anchor="middle" font-size="9.5" fill="#fff" opacity=".82">看似五花八門</text>
-
-          <!-- 偏差型 -->
-          <rect x="250" y="20" width="168" height="84" rx="15" fill="#fff7ed" stroke="#fde3c8" stroke-width="1.2"/>
-          <text x="334" y="42" text-anchor="middle" font-size="14" font-weight="700" fill="#b45309">偏差型</text>
-          <text x="334" y="60" text-anchor="middle" font-size="10" fill="#6e6e73">資訊在，但歪了</text>
-          <rect x="282" y="70" width="104" height="22" rx="11" fill="#b45309"/>
-          <text x="334" y="85" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">→ 要補償</text>
-
-          <!-- 缺失型 -->
-          <rect x="250" y="232" width="168" height="84" rx="15" fill="#eef4ff" stroke="#cfe1ff" stroke-width="1.2"/>
-          <text x="334" y="254" text-anchor="middle" font-size="14" font-weight="700" fill="#0071e3">缺失型</text>
-          <text x="334" y="272" text-anchor="middle" font-size="10" fill="#6e6e73">資訊直接沒了</text>
-          <rect x="282" y="282" width="104" height="22" rx="11" fill="#0071e3"/>
-          <text x="334" y="297" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">→ 降級估計</text>
-
-          <!-- 誤判型 -->
-          <rect x="250" y="376" width="168" height="76" rx="15" fill="#ecfdf5" stroke="#86efac" stroke-width="1.2"/>
-          <text x="334" y="400" text-anchor="middle" font-size="14" font-weight="700" fill="#0a8a5c">誤判型</text>
-          <text x="334" y="417" text-anchor="middle" font-size="10" fill="#6e6e73">資訊在，但選/算錯了</text>
-          <rect x="269" y="426" width="130" height="22" rx="11" fill="#0a8a5c"/>
-          <text x="334" y="441" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">→ 要交叉驗證</text>
-
-          <!-- 偏差型 leaves -->
-          <rect x="484" y="8" width="228" height="44" rx="12" fill="#fff" stroke="#fde3c8" stroke-width="1.2"/>
-          <circle cx="502" cy="30" r="3.2" fill="#b45309"/>
-          <text x="516" y="35" font-size="12.5" font-weight="700" fill="#1d1d1f">相機裝歪（C1 Bias）</text>
-          <rect x="484" y="64" width="228" height="44" rx="12" fill="#fff" stroke="#fde3c8" stroke-width="1.2"/>
-          <circle cx="502" cy="86" r="3.2" fill="#b45309"/>
-          <text x="516" y="91" font-size="12.5" font-weight="700" fill="#1d1d1f">上下坡幾何失真</text>
-          <rect x="484" y="120" width="228" height="44" rx="12" fill="#fff" stroke="#fde3c8" stroke-width="1.2"/>
-          <circle cx="502" cy="142" r="3.2" fill="#b45309"/>
-          <text x="516" y="147" font-size="12.5" font-weight="700" fill="#1d1d1f">強光漂移</text>
-
-          <!-- 缺失型 leaves -->
-          <rect x="484" y="196" width="228" height="44" rx="12" fill="#fff" stroke="#cfe1ff" stroke-width="1.2"/>
-          <circle cx="502" cy="218" r="3.2" fill="#0071e3"/>
-          <text x="516" y="223" font-size="12.5" font-weight="700" fill="#1d1d1f">路口 / 隧道短暫失明</text>
-          <rect x="484" y="252" width="228" height="44" rx="12" fill="#fff" stroke="#cfe1ff" stroke-width="1.2"/>
-          <circle cx="502" cy="274" r="3.2" fill="#0071e3"/>
-          <text x="516" y="279" font-size="12.5" font-weight="700" fill="#1d1d1f">前車 / 護欄遮擋</text>
-          <rect x="484" y="308" width="228" height="44" rx="12" fill="#fff" stroke="#cfe1ff" stroke-width="1.2"/>
-          <circle cx="502" cy="330" r="3.2" fill="#0071e3"/>
-          <text x="516" y="335" font-size="12.5" font-weight="700" fill="#1d1d1f">新舊線交替跳動</text>
-
-          <!-- 誤判型 leaves -->
-          <rect x="484" y="364" width="228" height="44" rx="12" fill="#fff" stroke="#86efac" stroke-width="1.2"/>
-          <circle cx="502" cy="386" r="3.2" fill="#0a8a5c"/>
-          <text x="516" y="391" font-size="12.5" font-weight="700" fill="#1d1d1f">路口前錯誤單邊線</text>
-          <rect x="484" y="420" width="228" height="44" rx="12" fill="#fff" stroke="#86efac" stroke-width="1.2"/>
-          <circle cx="502" cy="442" r="3.2" fill="#0a8a5c"/>
-          <text x="516" y="447" font-size="12.5" font-weight="700" fill="#1d1d1f">路口跟車變道誤判</text>
-        </svg>
-        <p class="svgcap">同一批路測問題，依「<b>資訊還在不在、對不對</b>」分三類：<b>偏差型</b>資訊在但歪了，要<b>補償</b>；<b>缺失型</b>資訊直接沒了，要<b>降級估計</b>；<b>誤判型</b>資訊看起來正常，但選錯或算錯了，光靠車道線自己判斷不出來，要用<b>周圍車輛的行進方向做交叉驗證</b>。三類分流，正好對上後面的三柱架構。</p>
       </div>
 
       <p class="p-narr" style="margin-top:24px;text-align:center">這不是「哪個功能沒寫好」，而是<b>我們把四個安全功能，直接接到了一個不確定的外部世界上</b>。光是 J2 相機，我就記錄了五類實際路測問題：路緣石遮蔽左線、大貨車切入拉歪右線、S 形彎道擬合不出、上下坡未補正、新舊線跳動。</p>
@@ -1168,8 +890,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
       <p class="ldemo-cap"><b>前三格建環境，第四格才是拿它做事</b>：相機模型決定車道線「看得到多遠、錯得像不像真的」，場景記錄提供真實的路型與車流軌跡，兩者到位才有資格合成沒發生過的情境——而這一切的用途，是改完程式碼之後能立刻重跑比對。</p>
 
       <div class="p-narr" style="margin-top:26px">
-        <p class="p-narr">關鍵在第一層。從 CAN log 錄下車道線係數與物件的位置、速度不難，難的是<b>讓模擬出來的車道線「錯得跟真的一樣」</b>。我統計的其中一項是<b>有效視野距離與車速的關係</b>——低速時穩定在一個定值，超過約 40 kph 之後隨車速線性成長，而且有明確的上下界。這條分段折線就是模型：模擬時車道線該在多遠開始不可信，由它決定，而不是我隨手設一個數字。</p>
-        <p class="p-narr" style="margin-top:14px">能建出這條曲線的前提，是我們已經用 Mini-FOT 完整驗證過這顆相機的偵測性能。<b>先有感知驗證，才有可信的感知模擬。</b></p>
+        <p class="p-narr">關鍵在第一層。從 CAN log 錄下車道線係數與物件的位置、速度不難，難的是<b>讓模擬出來的車道線「錯得跟真的一樣」</b>。這一層的參數不是設出來的，是<a href="#method">開頭 METHOD 章 STEP 03 那三張切面的最後一張</a>直接接過來的：<b>有效視野距離與車速的關係</b>——低速穩定在一個定值，約 40 kph 之後隨車速線性成長，上下界明確。這條分段折線就是相機模型，模擬時車道線該在多遠開始不可信由它決定。</p>
+        <p class="p-narr" style="margin-top:14px">這也是為什麼那 100 km 的統計要先做完。<b>先有感知驗證，才有可信的感知模擬</b>——沒有量過這顆相機，模擬出來的只是我對它的想像。</p>
         <p class="p-narr" style="margin-top:14px">第二層是把跑過的路整段記錄下來：<b>四條車道線的起點（<code>C0</code>）與所有物件的位置，逐幀累積</b>，畫在以本車為原點的座標上——縱軸是縱向距離，負值代表已經開過的路。開得越久，尾巴越長；過彎時整條尾巴會相對現在的車頭甩出去。</p>
         <p class="p-narr" style="margin-top:14px">要讓這條尾巴是平滑的、而不是波浪狀，有一步不能少：<b><code>C0</code> 量的是「車道線相對本車」</b>，本車在車道內左右晃時記錄到的值就跟著擺，必須用<b>本車動態把自身的晃動扣掉</b>才能對齊到世界座標。這跟融合層做的是同一件事——車道線偵測必須和本車動態一起看，單獨看任何一邊都不夠。</p>
         <p class="p-narr" style="margin-top:14px">物件的黑點軌跡還有一個附帶好處：<b>前車實際走過的路，和車道線推出來的路會疊在一起</b>。兩個獨立來源互相印證，記錄有沒有歪掉一眼就看得出來。</p>
@@ -1177,78 +899,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
         <p class="p-narr" style="margin-top:14px">整套是自研的 <b>MATLAB</b> 腳本。它最後<span class="grad">驗證了 50 個以上的問題</span>，也是 LFS 車道融合系統能一路補齊的原因——每次改完融合邏輯，都能拿同一批資料重跑，直接看下游拿到的車道線有沒有變穩，而不是等下一次路測。</p>
       </div>
 
-      <p class="p-mid">能重現、能重跑、能比對——<span class="grad">這才有下一章裡變成四家大廠共同語言的底氣。</span></p>
-    </div>
-  </div>
-</section>
-
-<!-- ===== 7. INFLUENCE ===== -->
-<section id="influence">
-  <div class="wrap">
-    <div class="unit">
-      <div class="unit-head">
-        <div class="unit-tag">INFLUENCE · 標準與賦能</div>
-        <div class="unit-title">我制定的驗證方法<br>成了四家大廠的共同語言</div>
-        <p class="unit-lead">一個人能把系統做穩，是實力；能讓別人也照著你的方法做，才是影響力。車道線驗證，我做的不只是「驗過」，而是定出一套大家都能用的標準。</p>
-      </div>
-
-      <div class="infl">
-        <div class="infl-c">
-          <div class="infl-n">01 · 定標準</div>
-          <div class="infl-t">一套可重複的驗證方法</div>
-          <div class="infl-d">從訊號定義、直線/彎道場景、KPI（C0/VRE/Valid Rate）到問題回報流程，讓驗證可重複、可比較、可交接。</div>
-        </div>
-        <div class="infl-c c2">
-          <div class="infl-n">02 · 對接四大廠</div>
-          <div class="infl-t">同一套尺，量四家相機</div>
-          <div class="infl-d">Mobileye(J2)、PCT(FIH)、Stradvision(SV)、Horizon Robotics 用同一套方法對接，溝通成本大降、問題定位有共同依據。</div>
-        </div>
-        <div class="infl-c c3">
-          <div class="infl-n">03 · 賦能兩團隊</div>
-          <div class="infl-t">教會別人自己做</div>
-          <div class="infl-d">輔助兩個團隊做出自己的車道線偵測系統——不是幫他們做，是把方法、KPI、踩過的坑交出去。</div>
-        </div>
-      </div>
-
-      <div class="svgcard wide">
-        <svg viewBox="0 0 720 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="同一套KPI標尺量測四家相機">
-          <rect x="60" y="26" width="600" height="34" rx="8" fill="#eef4ff" stroke="#0071e3" stroke-width="1.2"/>
-          <rect class="sweep" x="60" y="26" width="46" height="34" rx="8" fill="rgba(0,113,227,.16)"/>
-          <line x1="110" y1="26" x2="110" y2="36" stroke="#0071e3" opacity=".35"/><line x1="160" y1="26" x2="160" y2="36" stroke="#0071e3" opacity=".35"/><line x1="210" y1="26" x2="210" y2="36" stroke="#0071e3" opacity=".35"/><line x1="260" y1="26" x2="260" y2="36" stroke="#0071e3" opacity=".35"/><line x1="310" y1="26" x2="310" y2="36" stroke="#0071e3" opacity=".35"/><line x1="360" y1="26" x2="360" y2="36" stroke="#0071e3" opacity=".35"/><line x1="410" y1="26" x2="410" y2="36" stroke="#0071e3" opacity=".35"/><line x1="460" y1="26" x2="460" y2="36" stroke="#0071e3" opacity=".35"/><line x1="510" y1="26" x2="510" y2="36" stroke="#0071e3" opacity=".35"/><line x1="560" y1="26" x2="560" y2="36" stroke="#0071e3" opacity=".35"/><line x1="610" y1="26" x2="610" y2="36" stroke="#0071e3" opacity=".35"/>
-          <text x="160" y="50" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0071e3" font-family="JetBrains Mono,monospace">C0 誤差</text>
-          <text x="360" y="50" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0071e3" font-family="JetBrains Mono,monospace">VRE</text>
-          <text x="555" y="50" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0071e3" font-family="JetBrains Mono,monospace">Valid Rate</text>
-          <line x1="127.5" y1="60" x2="127.5" y2="112" stroke="#0071e3" stroke-width="1.5" stroke-dasharray="4 5"/>
-          <line x1="282.5" y1="60" x2="282.5" y2="112" stroke="#0071e3" stroke-width="1.5" stroke-dasharray="4 5"/>
-          <line x1="437.5" y1="60" x2="437.5" y2="112" stroke="#0071e3" stroke-width="1.5" stroke-dasharray="4 5"/>
-          <line x1="592.5" y1="60" x2="592.5" y2="112" stroke="#0071e3" stroke-width="1.5" stroke-dasharray="4 5"/>
-          <rect x="60"  y="112" width="135" height="42" rx="12" fill="#fff" stroke="#d2d2d7"/>
-          <rect x="215" y="112" width="135" height="42" rx="12" fill="#fff" stroke="#d2d2d7"/>
-          <rect x="370" y="112" width="135" height="42" rx="12" fill="#fff" stroke="#d2d2d7"/>
-          <rect x="525" y="112" width="135" height="42" rx="12" fill="#fff" stroke="#d2d2d7"/>
-          <text x="127.5" y="138" text-anchor="middle" font-size="12" font-weight="700" fill="#1d1d1f">Mobileye J2</text>
-          <text x="282.5" y="138" text-anchor="middle" font-size="12" font-weight="700" fill="#1d1d1f">PCT (FIH)</text>
-          <text x="437.5" y="138" text-anchor="middle" font-size="12" font-weight="700" fill="#1d1d1f">Stradvision SV</text>
-          <text x="592.5" y="138" text-anchor="middle" font-size="12" font-weight="700" fill="#1d1d1f">Horizon</text>
-        </svg>
-        <p class="svgcap"><b>同一把尺，量四家相機</b>——KPI 定義統一之後，差異可量化、問題可定位、結果可比較。</p>
-      </div>
-
-      <table class="vtab">
-        <tr><th>大廠</th><th>角色</th><th>我做的事</th></tr>
-        <tr><td>Mobileye (J2)</td><td>最早基準</td><td>建立 baseline 與 VRE 公式</td></tr>
-        <tr><td>PCT (FIH)</td><td>承接方法</td><td>5 輪驗測、逐一排查 DBC 映射</td></tr>
-        <tr><td>Stradvision (SV)</td><td>新相機對比</td><td>以 J2/PCT 為基線量化差異</td></tr>
-        <tr><td>Horizon Robotics</td><td>新創供應商</td><td>回饋評測方法與失效案例，支援其車道偵測演算法研發</td></tr>
-      </table>
-
-      <p class="p-narr" style="margin-top:24px">賦能的具體內容是三樣：<b>(1)</b> 可重複的驗證方法與 KPI 定義，讓他們知道「做到什麼程度才算好」；<b>(2)</b> 我踩過的坑（DBC 映射、近距盲區、鄰道護欄誤判），讓他們少走冤枉路；<b>(3)</b> 設計階段的技術對焦，一起確認輸出能符合下游融合要求。</p>
-
-      <p class="p-narr" style="margin-top:16px">這種對外協作與交付能力不是一夕養成的。<b>最早與西門子聯合驗證 LFS、依 MAAB 工業標準重構交付</b>時，就打下了底子——那時我學到的不只是演算法，而是「如何把內部原型，變成別人信得過、接得住的交付物」。這套流程涵蓋 LFS 與 OFS 兩個系統，我負責的是 LFS，實際參與了 ASIL 分解、FMEA 與安全需求追溯。</p>
-
-      <p class="p-narr" style="margin-top:16px">後續，我們 ADAS 團隊也在另一階段整體通過德凱（DEKRA）的 ISO 26262 / ASPICE 認證，我個人另外完成官方 80 小時培訓。<b>這兩段經驗，讓我對安全流程的理解，從「自己執行、被稽核」延伸到「團隊層級的稽核與標準內化」——這也是我後來能定出驗證方法、讓四家大廠與兩個團隊都能照著做的底氣來源。</b></p>
-
-      <p class="gold">從被大廠驗證，到定標準給大廠用，再到教會別的團隊自己驗——我留下的不是一份報告，是一套方法。</p>
+      <p class="p-mid">能重現、能重跑、能比對——<span class="grad">這才是那套方法能交到四家大廠手上的底氣。</span></p>
     </div>
   </div>
 </section>

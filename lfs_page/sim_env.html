@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>資料驅動的車道線模擬環境 — 相機模型 · 道路模型 · 場景合成</title>
+<title>資料驅動的車道線模擬環境 — 相機模型 · 場景記錄 · 回撥驗證</title>
 <style>
   :root{
     --bg:#fbfcfd;--ink:#1d1d1f;--ink-2:#6e6e73;--ink-3:#86868b;--line:#d2d2d7;
     --blue:#0071e3;--green:#0a8a5c;--amber:#c2760b;--grid:#eaeef3;
+    --flow:#2a7ea8;
     --sans:"SF Pro TC",-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
     --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   }
@@ -15,22 +16,38 @@
   html,body{height:100%}
   body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden}
   canvas{display:block;width:100%;height:100%}
+  /* 兩個嵌入的 3D demo:絕對定位浮在 canvas 上,位置每幀由 placeFrame 換算。
+     外框和圓角比照原本 canvas 畫的示意圖,視覺上才接得起來。 */
+  .replay-frame{
+    position:absolute;border:1px solid var(--line);border-radius:8px;
+    background:#fff;overflow:hidden;
+  }
 </style>
 </head>
 <body>
 
 <canvas id="c"></canvas>
 
+<iframe id="fBefore" class="replay-frame" title="改版前" scrolling="no"></iframe>
+<iframe id="fAfter"  class="replay-frame" title="改版後" scrolling="no"></iframe>
+
 <script>
 /* ============================================================
-   資料驅動的車道線模擬環境 — 三段式流程動畫
+   資料驅動的車道線模擬環境 — 流程動畫
 
-     1 相機模型  Mini-FOT 取 100 km 統計相機偵測車道線的參數行為
+     1 相機模型  Mini-FOT 取 100 km 統計相機偵測車道線的參數行為 —— 靜態
      2 場景記錄  本車座標系下,逐幀累積車道線 C0 與物件位置
-     3 場景合成  路型 + 相機模型 + 合成車流 → 產生沒發生過的情境
+     ─────── 兩者相加 = 一套可重跑的模擬環境 ───────
+     3 回撥驗證  改完程式,用同一段場景重跑比對
+
+   版面本身就是那個算式:上排兩格中間擺一個「+」,再用一支粗箭頭
+   往下接到驗證那一格 —— 上排是「建環境」,下排是「用環境」。
+
+   會動的只有 2 和 3,而且同時播:回撥驗證跑的就是場景記錄錄下來的
+   那一段,兩邊同一個時間軸才看得出是同一件事。相機模型是靜態的輸入。
 
    自動循環,無控制項(與本專案其他 demo 一致)。
-   版面兩種:寬螢幕橫排三欄、窄螢幕直排三列 —— 等比縮放會讓手機上
+   版面兩種:寬螢幕 2+1、窄螢幕直排三列 —— 等比縮放會讓手機上
    完全看不清,所以依容器長寬比切換,而不是縮小同一份版面。
    ============================================================ */
 
@@ -48,27 +65,28 @@ const rnd = s => { const x = Math.sin(s * 127.1) * 43758.5453; return x - Math.f
 const META = [
   { n: '1', t: '相機模型', s: 'Mini-FOT 統計:車速 → 有效視野距離' },
   { n: '2', t: '場景記錄', s: '左:當下場景　右:逐幀累積的結果' },
-  { n: '3', t: '場景合成', s: '加入合成車流,產生沒發生過的情境' },
-  { n: '4', t: '回撥驗證', s: '改完程式,用同一段場景重跑比對' },
+  { n: '3', t: '回撥驗證', s: '改完程式,用同一段場景重跑比對' },
 ];
 
 let L = null, scale = 1, offX = 0, offY = 0;
 
-// 上排三格「建環境」,下排整行「用環境」——版面本身就在講這個層次。
-// 第二格裡有兩個子畫面,所以比同排另外兩格大一號。
-const SHARE = [0.29, 0.42, 0.29];
+// 上排兩格「建環境」,下排整行「用環境」——版面本身就在講這個層次。
+// 第二格裡有兩個子畫面,所以比隔壁大一號。
+const SHARE = 0.455;              // 上排左格佔可用寬度的比例
 
 function buildLayout(cssW, cssH) {
-  // 門檻對應 3+1 版面的長寬比(920x640 ≈ 1.44):比它更瘦就改直排
+  // 門檻對應 2+1 版面的長寬比(920x640 ≈ 1.44):比它更瘦就改直排
   const vertical = cssW / cssH < 1.15;
 
   if (vertical) {
-    const W = 360, H = 1000, pad = 16, top = 62, gap = 16;
-    const avail = H - top - 44 - gap * 3;
-    const share = [0.21, 0.29, 0.21, 0.29];
+    // 直排時 gap 要塞得下中間的「+」與粗箭頭,所以開得比原本寬。
+    // 底部留 78:結語那兩行加上分隔線,比橫排版面高一倍。
+    const W = 360, H = 880, pad = 16, top = 62, gap = 34;
+    const avail = H - top - 78 - gap * 2;
+    const share = [0.27, 0.365, 0.365];
     let y = top;
     return {
-      W, H, vertical, headY: 26, footY: H - 42,
+      W, H, vertical, gap, headY: 26, footY: H - 42,
       panels: META.map((m, i) => {
         const h = Math.floor(avail * share[i]);
         const box = { ...m, x: pad, y, w: W - pad * 2, h };
@@ -78,19 +96,17 @@ function buildLayout(cssW, cssH) {
     };
   }
 
-  const W = 920, H = 640, pad = 22, top = 66, gap = 30, rowGap = 34;
-  const rowH = 248;
-  const avail = W - pad * 2 - gap * 2;
-  let x = pad;
-  const panels = META.slice(0, 3).map((m, i) => {
-    const w = Math.floor(avail * SHARE[i]);
-    const box = { ...m, x, y: top, w, h: rowH };
-    x += w + gap;
-    return box;
-  });
-  panels.push({ ...META[3], x: pad, y: top + rowH + rowGap,
-                w: W - pad * 2, h: H - (top + rowH + rowGap) - 62 });
-  return { W, H, vertical, headY: 30, footY: H - 26, panels };
+  const W = 920, H = 640, pad = 22, top = 66, gap = 46, rowGap = 48;
+  const rowH = 236;
+  const avail = W - pad * 2 - gap;
+  const wL = Math.floor(avail * SHARE);
+  const panels = [
+    { ...META[0], x: pad,            y: top, w: wL,          h: rowH },
+    { ...META[1], x: pad + wL + gap, y: top, w: avail - wL,  h: rowH },
+    { ...META[2], x: pad, y: top + rowH + rowGap,
+                  w: W - pad * 2, h: H - (top + rowH + rowGap) - 62 },
+  ];
+  return { W, H, vertical, gap, headY: 30, footY: H - 26, panels };
 }
 
 function resize() {
@@ -131,35 +147,56 @@ function measure(s, size, font) {
 // 上緣留 64px 給面板標題與副標,避免與圖表的軸標籤擠在一起
 const plotOf = p => ({ x: p.x + 16, y: p.y + 64, w: p.w - 32, h: p.h - 88 });
 
-function panelChrome(p, state) {          // state: 0 未到 / 1 進行中 / 2 已完成
+// 三格永遠都在(沒有分段揭露),所以只剩「要不要用藍色點出來」這個區別
+function panelChrome(p, accent) {
   ctx.save();
-  ctx.strokeStyle = state === 1 ? C('--blue') : C('--line');
-  ctx.globalAlpha = state === 1 ? 0.85 : state === 2 ? 0.55 : 0.35;
-  ctx.lineWidth = state === 1 ? 1.5 : 1;
+  ctx.strokeStyle = accent ? C('--blue') : C('--line');
+  ctx.globalAlpha = accent ? 0.85 : 0.6;
+  ctx.lineWidth = accent ? 1.5 : 1;
   ctx.beginPath(); ctx.roundRect(p.x, p.y, p.w, p.h, 12); ctx.stroke();
   ctx.restore();
 
-  const a = state ? 1 : 0.34;
   text(p.n, p.x + 15, p.y + 24, { size: 11, weight: 700, font: 'mono',
-       color: state === 1 ? '--blue' : '--ink-3', alpha: a });
-  text(p.t, p.x + 31, p.y + 24, { size: 12.5, weight: 700,
-       color: state === 1 ? '--ink' : '--ink-2', alpha: a });
+       color: accent ? '--blue' : '--ink-3' });
+  text(p.t, p.x + 31, p.y + 24, { size: 12.5, weight: 700, color: '--ink' });
   text(p.s, p.x + 15, p.y + 41, { size: 9.5, font: 'mono', color: '--ink-3',
-       alpha: state ? 0.95 : 0.3 });
+       alpha: 0.95 });
 }
 
-function arrow(x1, y1, x2, y2, alpha) {
+// 上排兩格中間的「+」:相機模型 加上 場景記錄
+function plus(cx, cy, s, alpha) {
   if (alpha <= 0) return;
   ctx.save();
   ctx.globalAlpha = alpha;
-  ctx.strokeStyle = C('--ink-3'); ctx.fillStyle = C('--ink-3'); ctx.lineWidth = 1.4;
-  const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy);
-  const ux = dx / len, uy = dy / len;
-  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - ux * 6, y2 - uy * 6); ctx.stroke();
+  ctx.strokeStyle = C('--ink-2');
+  ctx.lineWidth = Math.max(3, s * 0.36);
+  ctx.lineCap = 'round';
   ctx.beginPath();
-  ctx.moveTo(x2, y2);
-  ctx.lineTo(x2 - ux * 7 - uy * 3.5, y2 - uy * 7 + ux * 3.5);
-  ctx.lineTo(x2 - ux * 7 + uy * 3.5, y2 - uy * 7 - ux * 3.5);
+  ctx.moveTo(cx - s, cy); ctx.lineTo(cx + s, cy);
+  ctx.moveTo(cx, cy - s); ctx.lineTo(cx, cy + s);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// 兩排之間的粗箭頭:上面加起來的東西,往下就是拿來跑驗證的
+function blockArrow(cx, y1, y2, alpha) {
+  if (alpha <= 0) return;
+  const h = y2 - y1;
+  if (h <= 6) return;
+  const halfHead  = Math.min(h * 0.62, 24);
+  const halfShaft = halfHead * 0.46;
+  const headH     = Math.min(h * 0.52, 22);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = C('--flow');
+  ctx.beginPath();
+  ctx.moveTo(cx - halfShaft, y1);
+  ctx.lineTo(cx + halfShaft, y1);
+  ctx.lineTo(cx + halfShaft, y2 - headH);
+  ctx.lineTo(cx + halfHead,  y2 - headH);
+  ctx.lineTo(cx,             y2);
+  ctx.lineTo(cx - halfHead,  y2 - headH);
+  ctx.lineTo(cx - halfShaft, y2 - headH);
   ctx.closePath(); ctx.fill();
   ctx.restore();
 }
@@ -178,7 +215,7 @@ function rangeAt(v, hi) {
   return flat + t * (hi ? 70 : 55);
 }
 
-function drawCamera(p, k) {
+function drawCamera(p) {
   const r = plotOf(p);
   const px = v => r.x + (v / VMAX) * r.w;            // 車速 → 畫布 x
   const py = m => r.y + r.h - (m / RMAX) * r.h;      // 距離 → 畫布 y
@@ -205,25 +242,21 @@ function drawCamera(p, k) {
        { size: 9.5, font: 'mono', color: '--ink-3', align: 'right' });
 
   // 實車量測散點
-  const N = 420, shown = Math.floor(N * ease(k / 0.6));
+  const N = 420;
   ctx.save();
-  ctx.fillStyle = C('--green');
-  for (let i = 0; i < shown; i++) {
+  ctx.fillStyle = C('--green'); ctx.globalAlpha = 0.44;
+  for (let i = 0; i < N; i++) {
     const v = rnd(i + 1) * VMAX;
     // 分佈:低速時集中在定值以下,轉折後跟著上界一起抬升
     const top = rangeAt(v, true) * 1.06;
     const m = top * (0.1 + 0.9 * Math.pow(rnd(i + 90), 0.75));
-    ctx.globalAlpha = 0.14 + clamp((shown - i) / 40, 0, 1) * 0.34;
     ctx.beginPath(); ctx.arc(px(v), py(m), 1.4, 0, Math.PI * 2); ctx.fill();
   }
   ctx.restore();
 
-  const fit = ease((k - 0.48) / 0.44);
-  if (fit <= 0) return;
-
   // 上下界之間的模型帶
   ctx.save();
-  ctx.globalAlpha = fit * 0.16; ctx.fillStyle = C('--blue');
+  ctx.globalAlpha = 0.16; ctx.fillStyle = C('--blue');
   ctx.beginPath();
   for (let v = 0; v <= VMAX; v += 5) ctx.lineTo(px(v), py(rangeAt(v, true)));
   for (let v = VMAX; v >= 0; v -= 5) ctx.lineTo(px(v), py(rangeAt(v, false)));
@@ -231,7 +264,7 @@ function drawCamera(p, k) {
 
   // 上界(琥珀點劃線)與下界(藍虛線)
   for (const hi of [true, false]) {
-    ctx.globalAlpha = fit;
+    ctx.globalAlpha = 1;
     ctx.strokeStyle = hi ? C('--amber') : C('--blue');
     ctx.lineWidth = 1.8;
     ctx.setLineDash(hi ? [6, 3, 1.5, 3] : [5, 4]);
@@ -242,7 +275,7 @@ function drawCamera(p, k) {
   ctx.setLineDash([]);
 
   // 轉折點
-  ctx.globalAlpha = fit * 0.5;
+  ctx.globalAlpha = 0.5;
   ctx.strokeStyle = C('--ink-3'); ctx.lineWidth = 1;
   ctx.setLineDash([2, 3]);
   ctx.beginPath();
@@ -253,9 +286,9 @@ function drawCamera(p, k) {
 
   // 兩個標註都放在低速側的上半部 —— 那塊區域沒有散點也沒有模型帶
   text('上下界折線 = 相機模型', r.x + 6, r.y + 12,
-       { size: 10, font: 'mono', color: '--blue', alpha: fit });
+       { size: 10, font: 'mono', color: '--blue' });
   text('≈40 kph 起隨車速線性成長', px(KNEE) + 6, py(94),
-       { size: 9, font: 'mono', color: '--ink-2', alpha: fit });
+       { size: 9, font: 'mono', color: '--ink-2' });
 }
 
 /* ---------- 第 2 幕:場景記錄 ----------
@@ -478,189 +511,80 @@ function drawRecord(p, k) {
        { size: 8.5, font: 'mono', color: '--ink-2', align: 'right' });
 }
 
-/* ---------- 第 3 幕:場景合成 ---------- */
-// 迴旋曲線:近處近乎直線,越遠曲率越大(第三幕自己用,與 PATH 無關)
-const roadX = (t, bend) => bend * t * t * (1.15 - t * 0.25);
+/* ---------- 第 3 幕:回撥驗證 ----------
+   這一格不再用 canvas 畫示意圖,而是嵌兩個真的 3D demo。
+   對應關係是照「行為」定的,不是照檔名:
+     改版前 = MIL.html       D = 0.8,被岔線帶偏 0.8 m 再拉回 → 軌跡鼓一個弧
+     改版後 = MIL copy.html  D = 0,  全程走車道中心          → 軌跡是直線
+   面板原本的兩句說明就是這樣寫的(「跟著左轉邊線被帶出去」/「守住直行車道」),
+   會動的那一份才對得上「改版前」。
 
-function drawScene(p, k, time) {
-  const r = plotOf(p);
-  const cx = r.x + r.w * 0.5;
-  const bend = Math.min(40, r.w * 0.18);
-  const lw = Math.min(30, r.w * 0.13);         // 車道半寬
-  const laneAt = (t, lane) => cx + roadX(t, bend) + lane * lw;
+   兩個檔案除了 D 之外逐字元相同,所以「唯一的變數是程式碼」這句話
+   在這裡是字面意義上的成立。
 
-  ctx.save();
-  ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 10); ctx.clip();
-  ctx.fillStyle = '#f2f3f5'; ctx.fillRect(r.x, r.y, r.w, r.h);
+   iframe 是 DOM,浮在 canvas 上面,所以要自己換算座標:canvas 的版面是
+   920x640 的邏輯座標再等比縮放,換算就是 offX/offY/scale 那三個值。      */
 
-  // 車道線 —— 用相機模型的離散度加抖動:近處穩、遠處晃
-  const app = ease(k / 0.45);
-  for (const lane of [-1.5, -0.5, 0.5, 1.5]) {
-    const edge = Math.abs(lane) > 1;
-    ctx.globalAlpha = app * (edge ? 0.9 : 0.55);
-    ctx.strokeStyle = edge ? C('--ink-2') : C('--ink-3');
-    ctx.lineWidth = edge ? 2 : 1.4;
-    ctx.setLineDash(edge ? [] : [7, 7]);
-    ctx.beginPath();
-    for (let s = 0; s <= 36; s++) {
-      const t = s / 36;
-      // 抖動依相機模型:視野距離內穩定,接近並超出有效距離才明顯晃動
-      const noise = Math.sin(time * 2.4 + s * 0.8 + lane) * (0.05 + t * t * 0.5) * 9;
-      ctx.lineTo(laneAt(t, lane) + noise, r.y + r.h * (1 - t));
-    }
-    ctx.stroke();
-  }
-  ctx.setLineDash([]);
+const REPLAY_SRC = [
+  { el: null, id: 'fBefore', file: 'MIL.html',
+    label: '改版前', sub: '跟著岔線被帶出去', color: 'c2760b' },
+  { el: null, id: 'fAfter',  file: 'MIL copy.html',
+    label: '改版後', sub: '守住直行車道',     color: '0071e3' },
+];
 
-  // 合成車流
-  const cars = [
-    { lane: -1, base: 0.60, sp: 0.05, name: 'A' },
-    { lane:  0, base: 0.78, sp: 0.03, name: 'B' },
-    { lane:  1, base: 0.44, sp: 0.07, name: 'C' },
-  ];
-  const carIn = ease((k - 0.3) / 0.4);
-  cars.forEach((c, i) => {
-    const a = clamp(carIn * 3 - i, 0, 1);
-    if (a <= 0) return;
-    const t = (c.base + time * c.sp) % 0.86 + 0.08;
-    const px = laneAt(t, c.lane), py = r.y + r.h * (1 - t);
-    const sc = (0.55 + t * 0.55) * Math.min(1, r.w / 220);
-    ctx.globalAlpha = a;
-    ctx.fillStyle = '#5b6472';
-    ctx.beginPath();
-    ctx.roundRect(px - 7 * sc, py - 12 * sc, 14 * sc, 24 * sc, 3.5 * sc);
-    ctx.fill();
-    ctx.globalAlpha = a * 0.9;
-    text(c.name, px, py - 16 * sc, { size: 9, weight: 700, font: 'mono',
-         color: '--ink-2', align: 'center' });
-  });
-
-  ctx.globalAlpha = app;
-  ctx.fillStyle = C('--blue');
-  const ex = laneAt(0.06, 0), ey = r.y + r.h * 0.94;
-  ctx.beginPath(); ctx.roundRect(ex - 8, ey - 13, 16, 26, 4); ctx.fill();
-  ctx.restore();
-
-  text('本車', ex, r.y + r.h + 14,
-       { size: 10, weight: 700, color: '--blue', align: 'center', alpha: app });
+for (const f of REPLAY_SRC) {
+  f.el = document.getElementById(f.id);
+  f.el.src = encodeURI(f.file) +
+    '?embed=1&label=' + encodeURIComponent(f.label) +
+    '&sub='   + encodeURIComponent(f.sub) +
+    '&color=' + f.color;
 }
 
-/* ---------- 第 4 幕:回撥驗證 ----------
-   場景是「左轉車道」:直行車道的左側邊線在路口前岔出去,
-   融合層若跟著岔出去的那條線走,本車就會被帶離直行車道。
-   同一段記錄餵給兩個版本的程式,唯一的變數就是程式碼本身。   */
-
-// 左側邊線從 xs 之後岔開的量(0..1 → 0..1)
-const flare = u => u <= 0 ? 0 : Math.pow(u, 1.7);
-
-function drawVariant(r, prog, after) {
-  const lw = Math.min(22, r.h * 0.22);          // 車道半寬
-  const cy = r.y + r.h * 0.54;
-  const xs = r.x + r.w * 0.42;                  // 岔開起點
-  const SPREAD = lw * 2.0;
-  const uAt = px => clamp((px - xs) / (r.x + r.w - xs), 0, 1);
-  const turnEdge = px => cy - lw * 1.5 - flare(uAt(px)) * SPREAD;
-
-  ctx.save();
-  ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 8); ctx.clip();
-  ctx.fillStyle = '#eef0f3'; ctx.fillRect(r.x, r.y, r.w, r.h);
-
-  // 直行路面 + 岔出去的左轉車道
-  ctx.fillStyle = '#c3c9d1';
-  ctx.fillRect(r.x, cy - lw * 1.5, r.w, lw * 3);
-  ctx.beginPath();
-  ctx.moveTo(xs, cy - lw * 1.5);
-  for (let px = xs; px <= r.x + r.w; px += 4) ctx.lineTo(px, turnEdge(px));
-  ctx.lineTo(r.x + r.w, cy - lw * 1.5);
-  ctx.closePath(); ctx.fill();
-
-  // 車道線
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 1.6; ctx.setLineDash([8, 8]);
-  for (const off of [-0.5, 0.5]) {
-    ctx.beginPath();
-    ctx.moveTo(r.x, cy + off * lw * 2); ctx.lineTo(r.x + r.w, cy + off * lw * 2);
-    ctx.stroke();
-  }
-  ctx.setLineDash([]); ctx.lineWidth = 2.2;
-  for (const off of [-1.5, 1.5]) {
-    ctx.beginPath();
-    ctx.moveTo(r.x, cy + off * lw); ctx.lineTo(r.x + r.w, cy + off * lw);
-    ctx.stroke();
-  }
-
-  // 岔出去的左轉邊線 —— 就是會把人帶走的那條
-  ctx.strokeStyle = C('--amber'); ctx.lineWidth = 2.2;
-  ctx.beginPath();
-  for (let px = xs; px <= r.x + r.w; px += 3) ctx.lineTo(px, turnEdge(px));
-  ctx.stroke();
-
-  // 岔開點
-  ctx.strokeStyle = C('--ink-3'); ctx.lineWidth = 1;
-  ctx.setLineDash([2, 3]); ctx.globalAlpha = 0.7;
-  ctx.beginPath();
-  ctx.moveTo(xs, cy - lw * 1.5 - 4); ctx.lineTo(xs, r.y + 22); ctx.stroke();
-  ctx.setLineDash([]); ctx.globalAlpha = 1;
-
-  // 本車:改版前跟著岔線走,改版後守住直行車道
-  const lane = cy - lw;
-  const pathY = px => after ? lane : lane - flare(uAt(px)) * SPREAD * 0.86;
-  const ex = r.x + 16 + prog * (r.w - 40);
-  const col = after ? C('--blue') : C('--amber');
-
-  ctx.strokeStyle = col; ctx.lineWidth = 2.4; ctx.globalAlpha = 0.9;
-  ctx.beginPath();
-  for (let px = r.x + 16; px <= ex; px += 3) ctx.lineTo(px, pathY(px));
-  ctx.stroke();
-  ctx.globalAlpha = 1;
-
-  // 偏離量:只有改版前才有,用一段標註把差異講明
-  if (!after && prog > 0.55) {
-    const a = clamp((prog - 0.55) * 4, 0, 1);
-    ctx.globalAlpha = a * 0.85;
-    ctx.strokeStyle = C('--amber'); ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
-    ctx.beginPath(); ctx.moveTo(ex, pathY(ex)); ctx.lineTo(ex, lane); ctx.stroke();
-    ctx.setLineDash([]); ctx.globalAlpha = 1;
-  }
-
-  ctx.fillStyle = col;
-  ctx.beginPath(); ctx.roundRect(ex - 8, pathY(ex) - 5, 16, 10, 3); ctx.fill();
-  ctx.restore();
-
-  ctx.save();
-  ctx.strokeStyle = C('--line'); ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 8); ctx.stroke();
-  ctx.restore();
-
-  text(after ? '改版後' : '改版前', r.x + 9, r.y + 15,
-       { size: 10, weight: 700, color: after ? '--blue' : '--amber' });
-  text(after ? '守住直行車道' : '跟著左轉邊線被帶出去', r.x + 48, r.y + 15,
-       { size: 9.5, font: 'mono', color: '--ink-2' });
-  if (!after)
-    text('左轉車道在此岔開', xs + 5, r.y + 32,
-         { size: 8.5, font: 'mono', color: '--ink-3' });
+// 把 iframe 疊到面板的邏輯座標上
+function placeFrame(el, x, y, w, h) {
+  el.style.left   = (offX + x * scale) + 'px';
+  el.style.top    = (offY + y * scale) + 'px';
+  el.style.width  = (w * scale) + 'px';
+  el.style.height = (h * scale) + 'px';
 }
 
-function drawReplay(p, k) {
+// 每一圈開頭叫兩個 demo 一起重播,才會和上排面板同步
+function restartReplay() {
+  for (const f of REPLAY_SRC) {
+    if (f.el.contentWindow) f.el.contentWindow.postMessage({ type: 'mil:restart' }, '*');
+  }
+}
+
+function drawReplay(p) {
   const r = plotOf(p);
-  const prog = ease(clamp(k / 0.82, 0, 1));
   const gap = 12, hw = (r.w - gap) / 2;
-  drawVariant({ x: r.x, y: r.y, w: hw, h: r.h }, prog, false);
-  drawVariant({ x: r.x + hw + gap, y: r.y, w: hw, h: r.h }, prog, true);
+  placeFrame(REPLAY_SRC[0].el, r.x,            r.y, hw, r.h);
+  placeFrame(REPLAY_SRC[1].el, r.x + hw + gap, r.y, hw, r.h);
 
   text('輸入:同一段記錄的左轉車道場景　·　唯一的變數是程式碼',
        r.x, r.y + r.h + 14, { size: 9.5, font: 'mono', color: '--ink-3' });
 }
 
-/* ---------- 主迴圈 ---------- */
-// 第二幕要跑完一段有感的路程,又不能讓虛線快到閃爍,所以給它最長的時間
-const T1 = 2.9, T2 = 9.6, T3 = 13.6, T4 = 19.0, TEND = 21.2;
+/* ---------- 主迴圈 ----------
+   相機模型是靜態的輸入,一開始就畫完、不再動。
+   場景記錄與回撥驗證是同一件事的兩半(錄一段 → 拿同一段重跑),
+   所以共用一個 k 同時播,而不是排成前後兩幕。
+   TRUN 沿用原本第二幕的長度:要跑完一段有感的路程,
+   又不能讓路面虛線快到閃爍。跑完停一下再回到開頭。            */
+const TRUN = 6.7, TEND = 8.6;
 const t0 = performance.now();
+let prevTime = 0;
 
 function frame(now) {
   const time = ((now - t0) / 1000) % TEND;
-  const act = time < T1 ? 0 : time < T2 ? 1 : time < T3 ? 2 : 3;
+  const k = clamp(time / TRUN, 0, 1);
   const P = L.panels;
+
+  // time 倒退代表這一圈剛結束 —— 用它當「重新開始」的信號，通知兩個
+  // 嵌入的 demo 一起重播。它們自己跑 3.9 秒就會定格，剩下的時間停在
+  // 結果畫面上，正好給人看完對比。
+  if (time < prevTime) restartReplay();
+  prevTime = time;
 
   ctx.save();
   ctx.translate(offX, offY);
@@ -672,53 +596,49 @@ function frame(now) {
   text('自研 MATLAB 腳本 · 用 Mini-FOT 實車資料建模,而非人工造場景',
        22, L.headY + 18, { size: 11, color: '--ink-2' });
 
-  P.forEach((p, i) => panelChrome(p, i === act ? 1 : i < act ? 2 : 0));
+  // 藍框留給最後那一格 —— 它是整頁的結論,不再是「現在播到這裡」
+  P.forEach((p, i) => panelChrome(p, i === 2));
 
-  drawCamera(P[0], act === 0 ? clamp(time / T1, 0, 1) : 1);
-  if (act >= 1) drawRecord(P[1], act === 1 ? clamp((time - T1) / (T2 - T1), 0, 1) : 1);
-  if (act >= 2) drawScene(P[2], clamp((time - T2) / (T3 - T2), 0, 1), time);
-  if (act >= 3) drawReplay(P[3], clamp((time - T3) / (T4 - T3), 0, 1));
+  drawCamera(P[0]);
+  drawRecord(P[1], k);
+  drawReplay(P[2]);          // 內容由 iframe 負責,這裡只擺位置和說明文字
 
-  // 面板之間的箭頭。橫排版面的上排往右接,第三格到第四格是換行往下。
-  for (let i = 0; i < 3; i++) {
-    const a = clamp((time - [T1, T2, T3][i] + 0.5) * 2, 0, 1);
-    const sameRow = !L.vertical && i < 2;
-    if (sameRow)
-      arrow(P[i].x + P[i].w + 8, P[i].y + P[i].h / 2,
-            P[i + 1].x - 8, P[i].y + P[i].h / 2, a);
-    else
-      arrow(P[i].x + P[i].w / 2, P[i].y + P[i].h + 3,
-            P[i].x + P[i].w / 2, P[i + 1].y - 3, a);
+  // 連接符號固定顯示:沒有分段揭露了,它們就是版面的一部分。
+  // 共用同一條垂直軸(橫排時是上排兩格的接縫),讀起來才是「1+2 往下」。
+  if (L.vertical) {
+    const cx = P[0].x + P[0].w / 2;
+    plus(cx, (P[0].y + P[0].h + P[1].y) / 2, L.gap * 0.32, 1);
+    blockArrow(cx, P[1].y + P[1].h + 5, P[2].y - 5, 1);
+  } else {
+    const cx = P[0].x + P[0].w + L.gap / 2;
+    plus(cx, P[0].y + P[0].h / 2, 14, 1);
+    blockArrow(cx, P[0].y + P[0].h + 5, P[2].y - 5, 1);
   }
 
-  const fin = ease((time - T4 + 0.6) / 1.1);
-  if (fin > 0) {
-    ctx.save();
-    ctx.globalAlpha = fin * 0.6;
-    ctx.strokeStyle = C('--line');
-    ctx.beginPath();
-    ctx.moveTo(22, L.footY - 22); ctx.lineTo(L.W - 22, L.footY - 22);
-    ctx.stroke();
-    ctx.restore();
+  ctx.save();
+  ctx.globalAlpha = 0.6;
+  ctx.strokeStyle = C('--line');
+  ctx.beginPath();
+  ctx.moveTo(22, L.footY - 22); ctx.lineTo(L.W - 22, L.footY - 22);
+  ctx.stroke();
+  ctx.restore();
 
-    const tail = '個問題以此定位與驗證';
-    if (L.vertical) {
-      text('路上只發生一次的狀況,這裡可以重跑、也可以生成變體', 22, L.footY - 4,
-           { size: 11, weight: 600, alpha: fin });
-      const nw = measure('50+', 15, 'mono');
-      text('50+', 22, L.footY + 16, { size: 15, weight: 700, font: 'mono',
-           color: '--blue', alpha: fin });
-      text(tail, 26 + nw, L.footY + 16,
-           { size: 11, color: '--ink-2', alpha: fin });
-    } else {
-      text('路上只發生一次的狀況,在這裡可以重跑、也可以改參數生成變體', 22, L.footY,
-           { size: 12, weight: 600, alpha: fin });
-      const tw = measure(tail, 11, 'sans');
-      text(tail, L.W - 22, L.footY, { size: 11, color: '--ink-2',
-           align: 'right', alpha: fin });
-      text('50+', L.W - 26 - tw, L.footY, { size: 17, weight: 700, font: 'mono',
-           color: '--blue', align: 'right', alpha: fin });
-    }
+  const tail = '個問題以此定位與驗證';
+  if (L.vertical) {
+    text('路上只發生一次的狀況,這裡可以重跑、也可以生成變體', 22, L.footY - 4,
+         { size: 11, weight: 600 });
+    const nw = measure('50+', 15, 'mono');
+    text('50+', 22, L.footY + 16,
+         { size: 15, weight: 700, font: 'mono', color: '--blue' });
+    text(tail, 26 + nw, L.footY + 16, { size: 11, color: '--ink-2' });
+  } else {
+    text('路上只發生一次的狀況,在這裡可以重跑、也可以改參數生成變體', 22, L.footY,
+         { size: 12, weight: 600 });
+    const tw = measure(tail, 11, 'sans');
+    text(tail, L.W - 22, L.footY,
+         { size: 11, color: '--ink-2', align: 'right' });
+    text('50+', L.W - 26 - tw, L.footY,
+         { size: 17, weight: 700, font: 'mono', color: '--blue', align: 'right' });
   }
 
   ctx.restore();
