@@ -45,152 +45,44 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 .p-mid{font-size:16px;color:var(--ink);font-weight:600;line-height:1.7;max-width:600px;margin:28px auto 0;text-align:center}
 .gold{font-size:15px;color:var(--ink-2);line-height:1.8;max-width:600px;margin:28px auto 0;text-align:center;font-style:italic}
 /* Ch4 hero quote (D2) */
-.gold--hero{font-style:normal;font-size:clamp(18px,2.6vw,24px);font-weight:600;color:var(--ink);max-width:620px;margin:44px auto 0;line-height:1.6}
-.gold--hero::before{content:'\201C';display:block;font-family:Georgia,serif;font-size:52px;line-height:.5;color:var(--blue);opacity:.32;margin-bottom:12px}
 /* ── Ch4 (radius formula) additions ── */
 .unit-lead b{color:var(--ink)}
 .eb{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--blue);text-align:center;text-transform:uppercase;margin:0 0 12px}
 .line{font-size:14px;color:var(--ink);line-height:1.75;max-width:560px;margin:0 auto 16px;text-align:center}
 .line b{font-weight:700}
-.blk{margin-top:clamp(30px,4vw,44px)}
-.eqn{display:inline-flex;align-items:center;gap:6px;justify-content:center;font-family:var(--mono);font-weight:700;font-size:14px}
-.eqn--old{color:var(--amber)}
-.eqn--new{color:var(--ink)}
-.frac{display:inline-flex;flex-direction:column;text-align:center;line-height:1.25;margin:0 1px}
-.frac .num,.frac .den{padding:2px 8px}
-.frac .num{border-bottom:1.7px solid currentColor}
-.frac sup{font-size:.66em;vertical-align:super}
-.struck{position:relative}
-.struck::after{content:'';position:absolute;left:-5px;right:-5px;top:47%;height:1.7px;background:var(--amber);transform:rotate(-9deg);opacity:.9}
-.eqn .hl{color:var(--blue);background:rgba(0,113,227,.1);padding:0 4px;border-radius:5px}
-.cmp{display:grid;grid-template-columns:1fr auto 1fr;gap:0;max-width:600px;margin:18px auto 0;align-items:stretch}
-.cmp-col{border-radius:16px;padding:22px 16px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:14px}
-.cmp--old{background:#fff7ed;border:1px solid var(--amber-line)}
-.cmp--new{background:#eef4ff;border:1px solid #cfe1ff}
-.cmp-k{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.05em}
-.cmp--old .cmp-k{color:var(--amber)}
-.cmp--new .cmp-k{color:var(--blue)}
-.cmp-tag{font-size:12.5px;font-weight:700}
-.cmp--old .cmp-tag{color:var(--amber)}
-.cmp--new .cmp-tag{color:var(--green)}
-.cmp-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 12px}
-.cmp-mid b{font-size:20px;color:#c0c4cb;line-height:1}
-.cmp-mid span{font-size:9px;font-weight:700;color:var(--blue);white-space:nowrap;margin-top:3px}
-@media(max-width:680px){.cmp{grid-template-columns:1fr}.cmp-mid{padding:8px 0}.cmp-mid b{transform:rotate(90deg);display:inline-block}}
 /* Ch4 minimal step number (B3) */
-.stepn{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--blue);opacity:.5;margin-right:9px}
 /* Ch4 formula spotlight card (C3, light) */
-.formula{max-width:540px;margin:28px auto 0;background:#fff;border:1px solid var(--line);border-radius:18px;padding:30px 24px;text-align:center;box-shadow:var(--shadow)}
-.formula-k{display:block;font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.08em;margin-bottom:9px}
-.formula-old{font-family:var(--mono);font-size:15px;color:var(--ink-3);margin-bottom:22px}
-.formula-old .formula-k{color:var(--ink-3)}
-.formula-old .fx{text-decoration:line-through;text-decoration-color:rgba(0,0,0,.28)}
-.formula-new{font-family:var(--mono);font-size:17px;color:var(--ink);font-weight:700}
-.formula-new .formula-k{color:var(--blue)}
-.fn-hero{display:inline-block;color:var(--blue);font-size:21px;padding:3px 9px;margin:0 2px;border-radius:9px;background:rgba(0,113,227,.09);box-shadow:0 0 0 1px rgba(0,113,227,.22),0 8px 22px rgba(0,113,227,.16)}
-.formula-note{font-family:var(--sans);font-size:11.5px;color:var(--blue);font-weight:600;margin-top:16px}
 
 /* code/sig block */
-.sig{background:#0b0b0c;border-radius:12px;padding:16px 20px;font-family:var(--mono);font-size:13px;color:#7dd3fc;overflow-x:auto;white-space:pre;line-height:1.7}
-.sig .c1{color:#f0abfc}.sig .c2{color:#86efac}.sig .c3{color:#94a3b8}.sig .hl{color:#fde047;font-weight:700}
 
 /* ===== LAYER 1 ===== */
-.l1{padding:clamp(80px,12vw,120px) 0 clamp(56px,8vw,88px);text-align:center}
-.l1-inner{max-width:720px;margin:0 auto}
-.l1-role{font-size:clamp(26px,4.2vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.32;margin-bottom:22px}
-.l1-sub{font-size:clamp(15px,2vw,18px);font-weight:500;color:var(--ink-2);max-width:600px;margin:0 auto;line-height:1.7}
 
 /* physics block */
-.phys{max-width:460px;margin:24px auto 0;background:#0b0b0c;border-radius:14px;padding:22px;text-align:center}
-.phys-eq{font-family:var(--mono);font-size:13px;color:#7dd3fc;line-height:1.8}
-.phys-out{font-family:var(--mono);font-size:clamp(24px,4vw,32px);font-weight:700;color:#fde047;margin-top:10px}
 
 /* two-type root cause */
-.rc2{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:720px;margin:0 auto}
-.rc2-col{border-radius:16px;padding:20px}
-.rc2-col.bias{background:#fff7ed;border:1px solid var(--amber-line)}
-.rc2-col.miss{background:#eef4ff;border:1px solid #cfe1ff}
-.rc2-k{font-size:12px;font-weight:700;letter-spacing:.03em;margin-bottom:12px}
-.rc2-col.bias .rc2-k{color:var(--amber)}.rc2-col.miss .rc2-k{color:var(--blue)}
-.rc2-li{font-size:13px;color:var(--ink);padding:6px 0;border-bottom:1px dashed rgba(0,0,0,.08)}
-.rc2-li:last-child{border:0}
-.rc2-fix{margin-top:14px;font-size:13.5px;font-weight:700;text-align:center;padding:10px;border-radius:10px;background:rgba(255,255,255,.6)}
-.rc2-col.bias .rc2-fix{color:var(--amber)}.rc2-col.miss .rc2-fix{color:var(--blue)}
 
 /* vs compare */
-.vs{display:grid;grid-template-columns:1fr auto 1fr;gap:0;max-width:660px;margin:0 auto;align-items:stretch}
-.vs-col{padding:22px}
-.vs-col.old{background:var(--bg-alt);border-radius:16px 0 0 16px}
-.vs-col.new{background:#eef4ff;border-radius:0 16px 16px 0;border:1px solid #cfe1ff}
-.vs-mid{display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--ink-3);padding:0 6px}
-.vs-h{font-size:12px;font-weight:700;letter-spacing:.04em;margin-bottom:14px}
-.vs-col.old .vs-h{color:var(--ink-3)}.vs-col.new .vs-h{color:var(--blue)}
-.vs-row{font-size:13px;color:var(--ink);padding:7px 0;display:flex;justify-content:space-between;gap:10px}
-.vs-row b{font-family:var(--mono)}
-.vs-foot{text-align:center;font-size:12.5px;color:var(--green);font-weight:700;margin-top:12px}
 
 /* pillar cards */
-.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:960px;margin:0 auto}
-.pc{border:1px solid var(--line);border-top:3px solid var(--blue);border-radius:16px;padding:22px}
-.pc:nth-child(2){border-top-color:#28c6e8}
-.pc:nth-child(3){border-top-color:#0a8a5c}
-@media(max-width:900px){.pillars{grid-template-columns:1fr}}
-.pc-n{font-family:var(--mono);font-size:11px;color:var(--blue);font-weight:700;margin-bottom:8px}
-.pc-t{font-size:15px;font-weight:700;margin-bottom:12px}
-.pc-row{font-size:13px;color:var(--ink-2);line-height:1.6;margin-bottom:8px}
-.pc-row b{color:var(--ink)}
 
 /* pyramid */
-.pyr{max-width:520px;margin:0 auto;display:flex;gap:24px;align-items:center;flex-wrap:wrap;justify-content:center}
-.pyr-tags{display:flex;flex-direction:column;gap:12px}
-.pyr-tag{font-size:13px;color:var(--ink-2)}
-.pyr-tag b{color:var(--ink);font-family:var(--mono)}
 
 /* details reuse */
-.detwrap{max-width:640px;margin:20px auto 0}
-.detwrap details{border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:10px;background:#fff}
-.detwrap summary{cursor:pointer;font-size:13.5px;font-weight:600;list-style:none;color:var(--ink)}
-.detwrap summary::-webkit-details-marker{display:none}
-.detwrap summary::before{content:'+ ';color:var(--blue);font-family:var(--mono)}
-.detwrap[open] summary::before{content:'− '}
-.detwrap .a{font-size:13px;color:var(--ink-2);line-height:1.7;margin-top:10px}
 
 /* turpan heat block */
-.turpan{max-width:560px;margin:24px auto 0;border-radius:16px;padding:26px;text-align:center;color:#fff;background:linear-gradient(160deg,#7c2d12 0%,#c2410c 45%,#f59e0b 100%);position:relative;overflow:hidden}
-.turpan::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(255,255,255,.06) 0,rgba(255,255,255,.06) 2px,transparent 2px,transparent 9px);animation:heat 3s linear infinite;pointer-events:none}
 @keyframes heat{from{transform:translateY(0)}to{transform:translateY(9px)}}
-.turpan-big{font-family:var(--mono);font-size:clamp(30px,6vw,46px);font-weight:700;line-height:1;position:relative}
-.turpan-lbl{font-size:13px;margin-top:8px;opacity:.95;position:relative}
-.turpan-desc{font-size:12.5px;margin-top:14px;line-height:1.7;opacity:.92;position:relative;max-width:420px;margin-left:auto;margin-right:auto}
 
 /* platform */
-.plat{max-width:640px;margin:0 auto}
 
 /* influence — 三張 .infl 卡與四家大廠的 .vtab 表都已移除,樣式跟著清掉。
    那些內容導言已經講完(規律沒人給、我自己量、四家同一套方法),表和卡
    是同一件事換句話再說一次。 */
 
 /* radius comparator */
-.rcmp{max-width:600px;margin:0 auto}
-.rcmp-stage{background:var(--bg-alt);border-radius:16px;padding:18px}
-.rcmp-reads{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-.rcmp-read{text-align:center;padding:12px;border-radius:12px;background:#fff;border:1px solid var(--line)}
-.rcmp-read.err{background:#fff7ed;border-color:var(--amber-line)}
-.rcmp-read .rv{font-family:var(--mono);font-size:clamp(20px,3.4vw,26px);font-weight:700}
-.rcmp-read.old .rv{color:var(--ink-3)}
-.rcmp-read.new .rv{color:var(--blue)}
-.rcmp-read.err .rv{color:var(--amber)}
-.rcmp-read .rl{font-size:11px;color:var(--ink-3);margin-top:4px}
-.rcmp-ctrl{display:grid;grid-template-columns:80px 1fr 90px;align-items:center;gap:12px;margin:18px auto 0;max-width:480px}
-.rcmp-ctrl label{font-size:12.5px;font-weight:600}
-.rcmp-ctrl input[type=range]{width:100%;accent-color:var(--blue);cursor:pointer}
-.rcmp-val{font-family:var(--mono);font-size:12px;color:var(--blue);font-weight:600;text-align:right}
-.rcmp-note{font-size:11px;color:var(--ink-3);text-align:center;margin-top:12px;line-height:1.5}
 
 /* embedded live animation (no frame) */
 .ldemo{max-width:920px;margin:28px auto 0;border-radius:16px;overflow:hidden;line-height:0}
 .ldemo iframe{width:100%;height:420px;border:0;display:block}
-.ldemo-cap{font-size:12px;color:var(--ink-3);text-align:center;margin-top:12px;line-height:1.65;max-width:600px;margin-left:auto;margin-right:auto}
 @media(max-width:680px){.ldemo iframe{height:360px}}
 /* 模擬環境動畫是 3+1 版面(920x640),iframe 要給對長寬比;
    窄螢幕會改成四格直排,需要更高的框 */
@@ -204,36 +96,13 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 
 /* CTO 3-second scan badges */
 .rbadges{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:600px;margin:28px auto 0}
-.rbadge{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 10px;text-align:center;box-shadow:var(--shadow)}
-.rbadge .rb-k{display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--blue);margin-bottom:6px;font-family:var(--mono)}
-.rbadge .rb-v{font-size:13.5px;font-weight:700;color:var(--ink)}
-@media(max-width:480px){.rbadges{gap:8px}.rbadge{padding:11px 6px}.rbadge .rb-v{font-size:12px}}
+@media(max-width:480px){.rbadges{gap:8px}}
 
 /* Ch4 slim: observation row (text + big number) */
-.rc-obs{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;max-width:660px;margin:0 auto}
-.rc-obs-txt{font-size:14.5px;color:var(--ink);line-height:1.8}
-.rc-num{text-align:center;background:#fff7ed;border:1px solid var(--amber-line);border-radius:16px;padding:16px 22px;min-width:120px}
-.rc-num-v{font-family:var(--mono);font-size:42px;font-weight:700;color:var(--amber);line-height:1}
-.rc-num-v span{font-size:19px}
-.rc-num-l{font-size:10.5px;color:var(--amber);margin-top:7px;line-height:1.45;font-weight:600}
 /* Ch4 slim: geometry diagram card */
-.geo{max-width:520px;margin:22px auto 0;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 18px 14px;box-shadow:var(--shadow)}
-.geo svg{width:100%;height:auto;display:block}
-.geo-cap{font-size:12px;color:var(--ink-2);line-height:1.65;text-align:center;margin-top:8px}
-.geo-cap b{color:var(--ink)}
 /* Ch4 slim: result chips */
-.rc-result{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:660px;margin:26px auto 0}
-.rc-chip{font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--bg-alt);border:1px solid var(--line);border-radius:980px;padding:7px 15px}
-.rc-chip--main{color:#fff;background:var(--blue);border-color:var(--blue)}
-@media(max-width:680px){.rc-obs{grid-template-columns:1fr}.rc-num{justify-self:center}}
 
 /* timeline */
-.tl{max-width:640px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;position:relative}
-.tl::before{content:'';position:absolute;top:14px;left:16%;right:16%;height:2px;background:var(--line)}
-.tl-node{text-align:center;position:relative;padding:0 8px}
-.tl-dot{width:14px;height:14px;border-radius:50%;background:var(--blue);margin:8px auto 14px;position:relative;z-index:1;border:3px solid #fff;box-shadow:0 0 0 1px var(--blue)}
-.tl-t{font-size:13px;font-weight:700}
-.tl-d{font-size:12px;color:var(--ink-2);margin-top:4px;line-height:1.5}
 
 /* ── development timeline(C1 bias 動畫下方)──
    五個節點的橫向歷程:2022 通勤觀察 → 2024 量產上車。
@@ -312,12 +181,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 }
 
 /* faq */
-.faq{max-width:760px;margin:0 auto}
-.faq details{border-bottom:1px solid var(--line);padding:16px 0}
-.faq summary{cursor:pointer;font-size:14.5px;font-weight:600;display:flex;gap:10px;list-style:none}
-.faq summary::-webkit-details-marker{display:none}
-.faq .qb{color:var(--blue);font-family:var(--mono)}
-.faq .a{font-size:13.5px;color:var(--ink-2);line-height:1.75;margin-top:10px;padding-left:26px}
 
 /* cta */
 .cta{text-align:center}
@@ -340,13 +203,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 @keyframes gapGrow{from{transform:scaleY(.08);opacity:.3}to{transform:scaleY(1);opacity:1}}
 
 /* solution roadmap */
-.rmap{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:10px;align-items:stretch;max-width:760px;margin:26px auto 0}
-.rmap-n{border:1px solid var(--line);border-radius:14px;padding:15px 12px;text-align:center;background:#fff}
-.rmap-n.arch{background:#eef4ff;border-color:#cfe1ff}
-.rmap-n .k{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--blue);margin-bottom:6px}
-.rmap-n .t{font-size:13.5px;font-weight:700}
-.rmap-n .d{font-size:11.5px;color:var(--ink-3);margin-top:5px;line-height:1.5}
-.rmap-a{display:flex;align-items:center;color:#c0c4cb;font-size:17px}
 
 /* jitter → stable */
 .jitG{animation:jit .16s steps(2,end) infinite}
@@ -354,22 +210,9 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 .flow{stroke-dasharray:9 9;animation:dashf 1.15s linear infinite}
 @keyframes dashf{to{stroke-dashoffset:-18}}
 
-
 /* pyramid entrance */
-.pyr svg polygon{opacity:0;transform:translateY(12px);transition:opacity .55s ease,transform .55s ease}
-.pyr svg text{opacity:0;transition:opacity .5s ease 1.05s}
-.pyr.on svg polygon{opacity:1;transform:none}
-.pyr.on svg text{opacity:1}
-.pyr.on svg polygon:nth-of-type(3){transition-delay:.05s}
-.pyr.on svg polygon:nth-of-type(2){transition-delay:.4s}
-.pyr.on svg polygon:nth-of-type(1){transition-delay:.75s}
 
 /* timeline entrance */
-.tl-node{opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s ease}
-.tl.on .tl-node{opacity:1;transform:none}
-.tl.on .tl-node:nth-child(1){transition-delay:.05s}
-.tl.on .tl-node:nth-child(2){transition-delay:.4s}
-.tl.on .tl-node:nth-child(3){transition-delay:.75s}
 
 /* 開發歷程時間軸刻意「不」做進場動畫:同一張卡下半已經有一支循環播放的
    3D 動畫,上半再依序亮起會兩邊搶注意力。時間軸是讀者要停下來逐格讀的
@@ -378,18 +221,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 
 @media(prefers-reduced-motion:reduce){
   .beamG,.gapG,.jitG,.flow{animation:none}
-  .pyr svg polygon,.pyr svg text,.tl-node{opacity:1;transform:none;transition:none}
-}
-@media(max-width:680px){
-  .rmap{grid-template-columns:1fr}
-  .rmap-a{justify-content:center;transform:rotate(90deg);min-height:20px}
-}
-
-@media(max-width:680px){
-  .rc2,.vs,.pillars,.rcmp-reads{grid-template-columns:1fr}
-  .vs{gap:10px}.vs-col.old,.vs-col.new{border-radius:16px}.vs-mid{transform:rotate(90deg)}
-  .tl{grid-template-columns:1fr;gap:20px}.tl::before{display:none}
-  .rcmp-ctrl{grid-template-columns:70px 1fr 70px}
 }
 /* ── METHOD 總覽:一條資料生產線(#method 開場)──
    這張總圖的工作是講「流程與角色」,不是重播下面三張詳圖的內容。
@@ -430,7 +261,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 #method .unit-lead,
 #influence .unit-lead,
 #architecture .unit-lead,
-#simulation .unit-lead{max-width:640px;text-align:left}
+#simulation .unit-lead,
+#decision-1 .unit-lead{max-width:640px;text-align:left}
 /* 導言和下面那張圖中間疊了兩段間距(unit-head 的 32 + .ldemo 的 28 = 60),
    中間空一大塊,讀起來像斷掉。這裡歸零,只留 .ldemo 自己的 28 —— 和 #method
    的 20 差不多,兩節的節奏才一致。 */
@@ -524,7 +356,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
     <a href="#architecture" data-sec="architecture">C1 Bias 補償</a>
     <a href="#decision-1" data-sec="decision-1">決策① Lane Degrade</a>
     <a href="#decision-2" data-sec="decision-2">決策② 半徑公式</a>
-    <a href="#reflection" data-sec="reflection">反思</a>
   </div>
 </nav>
 
@@ -873,35 +704,9 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">KEY DECISION 01</div>
-        <div class="unit-title">省下一筆千萬預算<br>只用了幾行數學</div>
-        <p class="unit-lead">供應商的車道線在某些場景不夠穩，正規解法是讓供應商重新訓練感知模型——報價 USD 470–625K，還要等好幾個月。我沒走這條路。</p>
+        <div class="unit-title">用演算法對策<br>取代高成本及高工時的模型重新訓練</div>
+        <p class="unit-lead">當車道線 View Range 過短時，感知輸出的 <b>C₂、C₃ 高階項在遠端被過度外推</b>，導致車道線尾端大幅甩動，影響橫向控制穩定度。供應商評估需重新訓練感知模型，<b>報價 USD 470–625K，工期數月</b>。我提出改在 ADAS 端以後處理解決：<b>依有效 View Range 動態降階</b>，把車道線重新擬合為較低階方程式（短距 C₀–C₁、中距 C₀–C₂、full range 維持 C₀–C₃），<b>以近乎零成本消除尾端甩動</b>，效果幾乎一樣，該對策也獲得主管肯定。</p>
       </div>
-
-      <p class="p-narr">我回頭問了一個更基本的問題：我們<b>真正需要</b>的，是「更準的原始感知」，還是「一條夠穩、四大功能能直接用的車道線」？答案是後者。既然如此，我不需要動到最貴的感知模型，我可以在<b>融合層</b>動手。</p>
-
-      <p class="p-narr" style="margin-top:16px">我做的 <b>Lane Degrade</b>：當偵測到車道線係數不可靠時，主動把高階係數（曲率、曲率變化率）<b>降階</b>，退回到低階但穩定的表述——用一個受控的「降級」，換到和重訓後幾乎一樣的行為。</p>
-
-      <div class="vs" style="margin-top:28px">
-        <div class="vs-col old">
-          <div class="vs-h">供應商方案</div>
-          <div class="vs-row">重訓感知模型</div>
-          <div class="vs-row"><span>成本</span><b>USD 470–625K</b></div>
-          <div class="vs-row"><span>週期</span><b>數個月</b></div>
-          <div class="vs-row">需新資料 / 算力</div>
-        </div>
-        <div class="vs-mid">→</div>
-        <div class="vs-col new">
-          <div class="vs-h">我的方案</div>
-          <div class="vs-row">融合層 Lane Degrade</div>
-          <div class="vs-row"><span>成本</span><b>≈ 0</b></div>
-          <div class="vs-row"><span>週期</span><b>數行邏輯</b></div>
-          <div class="vs-row">沿用現有訊號</div>
-          <div class="vs-foot">✓ 行為等效（係數穩定降階）</div>
-        </div>
-      </div>
-
-      <p class="p-narr" style="margin-top:24px">這不是免費的——降階時我確實放棄了高階曲率的精度。但關鍵判斷是：<b>在感知本來就不可靠的那一刻，高階係數本來就是雜訊，放棄它反而更安全。</b> 我用實車 log 交叉比對，確認降階後的車道線行為，與供應商重訓要達到的目標一致。</p>
-
       <!-- 決策流程 + 動畫,合成一張卡(排版比照 #architecture 與 #decision-2)。
            02 那格底下掛一個琥珀色的代價標註,把「不走這條路」的理由當場秀出來。 -->
       <div class="dtl" style="margin-top:26px">
@@ -1013,8 +818,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
           <iframe src="follow_gap_10m_light.html" title="跟車情境 前車距離 10m 實測動畫" loading="lazy"></iframe>
         </div>
       </div>
-
-      <p class="gold">最貴的解法通常最直覺；但問對問題，往往能用最便宜的方式拿到一樣的結果。</p>
     </div>
   </div>
 </section>
@@ -1108,35 +911,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
         </div>
       </div>
 
-      <!-- CLOSER -->
-      <div class="blk">
-        <p class="gold--hero">這條公式存在太久，久到沒人再懷疑它。是我選擇不放過那個跳動的數字，才發現我們所有人都忘了那個分母。</p>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- ===== 9. REFLECTION ===== -->
-<section id="reflection">
-  <div class="wrap">
-    <div class="unit">
-      <div class="unit-head">
-        <div class="unit-tag">REFLECTION</div>
-        <div class="unit-title">標準是我定的<br>能力是我留給團隊的</div>
-      </div>
-
-      <div class="tl" style="margin-bottom:36px">
-        <div class="tl-node"><div class="tl-dot"></div><div class="tl-t">被驗證的人</div><div class="tl-d">與西門子聯合驗證<br>依 MAAB 交付</div></div>
-        <div class="tl-node"><div class="tl-dot"></div><div class="tl-t">定標準的人</div><div class="tl-d">一套方法<br>對接 4 大廠</div></div>
-        <div class="tl-node"><div class="tl-dot"></div><div class="tl-t">賦能別人</div><div class="tl-d">輔助 2 團隊<br>自建車道線系統</div></div>
-      </div>
-
-      <p class="p-narr">這套車道融合系統，架構是我設計的。但那條讓四個功能都信得過的穩定車道線，是四個功能團隊、四家大廠、兩個我輔助過的團隊，一起撐起來的。</p>
-      <p class="p-narr" style="margin-top:16px">我也知道 LFS 還沒到終點。相機視野只有 120m，L3 需要看到 300m 以外——那需要車流軌跡、Free Space、地圖擴視野三個層次一起補上。這是我想帶著團隊繼續走的方向。</p>
-      <p class="p-narr" style="margin-top:16px">當我輔助的兩個團隊能用我留下的方法，自己做出並驗證他們的車道線系統時，我知道這件事成了——<b>這個系統不再需要我一個人也能長大。</b></p>
-
-      <p class="p-mid">架構是我設計的，但系統，<span class="grad">是大家一起建起來的。</span></p>
     </div>
   </div>
 </section>
@@ -1152,15 +926,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 </section>
 
 <script>
-(function(){
-  var io=new IntersectionObserver(function(es){
-    es.forEach(function(e){
-      if(e.isIntersecting){e.target.classList.add('on');io.unobserve(e.target);}
-    });
-  },{threshold:.35});
-  document.querySelectorAll('.pyr,.tl').forEach(function(el){io.observe(el);});
-})();
-
 /* .chnav 捲動高亮已移至 ../assets/nav.js(三頁共用) */
 </script>
 <script src="../assets/nav.js"></script>
