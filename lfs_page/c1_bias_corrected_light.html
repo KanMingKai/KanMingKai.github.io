@@ -121,6 +121,9 @@ controls.target.set(0.5, 0, 6);
 controls.maxPolarAngle = Math.PI / 2.1;
 controls.minDistance = 4;
 controls.maxDistance = 60;
+// 關掉滾輪縮放:這支動畫嵌在頁面裡,OrbitControls 會把滾輪事件吃掉,
+// 讀者想往下捲頁面時整頁會卡住。拖曳旋轉保留(要按住才觸發,不會誤觸)。
+controls.enableZoom = false;
 controls.update();
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.85));
