@@ -355,10 +355,33 @@ function radii(C1, noiseScale) {
   return [ (1/(2*C2mag))*nOld, (factor/(2*C2mag))*nNew ];
 }
 
+// ═══ 本車橫向擺動 ═════════════════════════════════════════════════════════
+// 原本是 10 秒一輪、前 5 秒偏離、後 5 秒完全回正(egoX=0 → C1=0 → 新舊公式
+// 都算出 180,兩條線重合成一條平線)。可視窗口只有 4.7 秒,所以某些時間點
+// 滾到這裡整張圖就是兩條平線,看不到任何差異 —— 而那個差異正是這張圖的論點。
+// 改成連續正弦擺動:車一直有夾角,橘線永遠在掉,只在通過中心的瞬間碰到 180。
+// 週期 8 秒(|sin| 的週期就是 4 秒),小於 4.7 秒的窗口,保證畫面上一定有完整的一次下探。
+const SWING_T = 8;
+const egoXAt = t => -Math.sin((t / SWING_T) * 2 * Math.PI) * 1.3;
+const c1At   = t => Math.abs(egoXAt(t)) / 1.3 * 0.32;
+
 // ═══ History buffers ══════════════════════════════════════════════════════
 const N = 280;
 const hC2R=new Float32Array(N).fill(CURVE_R), hT3R=new Float32Array(N).fill(CURVE_R);
 let hIdx=0;
+
+// 一載入就把 280 格往回推算填滿,曲線第一幀就是完整的。
+// 不這樣做的話,緩衝區初值全是 180(平線),真實資料要從右邊一格一格推進來,
+// 得等約 4.7 秒(280 幀 ÷ 60fps)畫面才有東西 —— 也就是「人到了才開始畫」。
+// 用的是與動畫迴圈同一個 c1At(),所以填進去的和接下來畫的完全接得上。
+(function prefillHistory(){
+  const t0 = performance.now() / 1000;
+  for (let k = N; k > 0; k--) {
+    const [a, bnew] = radii(c1At(t0 - k / 60), 1.0);
+    hC2R[hIdx] = a; hT3R[hIdx] = bnew;
+    hIdx = (hIdx + 1) % N;
+  }
+})();
 
 // ═══ Wave drawing ═════════════════════════════════════════════════════════
 function getDims(canvas) {
@@ -368,10 +391,41 @@ function getDims(canvas) {
   return [r.width, r.height, ctx];
 }
 
+// 只量寬度、不畫,給圖例排版用(要先知道放不放得下才能決定字級)
+function fracW(ctx, num, den, sup, F, SF) {
+  ctx.font=F+'px JetBrains Mono,monospace';
+  let nw=ctx.measureText(num).width;
+  const dw=ctx.measureText(den).width;
+  if(sup){ ctx.font=SF+'px JetBrains Mono,monospace'; nw+=ctx.measureText(sup).width; }
+  return Math.max(nw,dw);
+}
+
+// 圖例用的分數:分子置中在橫線上、分母在下,回傳整體寬度。
+// sup 是分子的指數(例如 (1+C₁²) 的 3/2),用較小的字級往上抬。
+function legendFrac(ctx, x, midY, color, num, den, sup, F, SF) {
+  ctx.fillStyle=color;
+  ctx.font=F+'px JetBrains Mono,monospace';
+  const baseW=ctx.measureText(num).width;
+  const dw=ctx.measureText(den).width;
+  let supW=0;
+  if(sup){ ctx.font=SF+'px JetBrains Mono,monospace'; supW=ctx.measureText(sup).width; }
+  const nw=baseW+supW, w=Math.max(nw,dw);
+  const nx=x+(w-nw)/2;
+  ctx.font=F+'px JetBrains Mono,monospace';
+  ctx.fillText(num,nx,midY-F*0.38);
+  if(sup){ ctx.font=SF+'px JetBrains Mono,monospace'; ctx.fillText(sup,nx+baseW,midY-F*0.88); }
+  ctx.fillRect(x,midY,w,0.9);
+  ctx.font=F+'px JetBrains Mono,monospace';
+  ctx.fillText(den,x+(w-dw)/2,midY+F*1.38);
+  return w;
+}
+
 function drawWaveR() {
   const [W,H,ctx]=getDims(document.getElementById('waveR'));
   ctx.clearRect(0,0,W,H); ctx.fillStyle='#f7f7f9'; ctx.fillRect(0,0,W,H);
-  const P={l:38,r:10,t:10,b:18};
+  // t 從 10 加到 34:上緣讓出一條帶子給圖例的分數(分子+橫線+分母約 20px 高),
+  // 否則分數會壓在 240 那條格線和曲線上。
+  const P={l:38,r:10,t:34,b:18};
   const gW=W-P.l-P.r, gH=H-P.t-P.b;
   const R0=120, R1=240;
   const ry=v=>P.t+gH-((Math.max(R0,Math.min(R1,v))-R0)/(R1-R0))*gH;
@@ -415,13 +469,43 @@ function drawWaveR() {
   ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.font='7px JetBrains Mono,monospace';
   ctx.fillText('now →',P.l+gW-26,P.t+gH+12);
 
-  const lx=P.l+6;
-  ctx.fillStyle='#c2760b'; ctx.fillRect(lx,P.t+3,16,2);
-  ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillText('1/(2C₂)',lx+20,P.t+8);
-  ctx.fillStyle='#0071e3'; ctx.fillRect(lx+70,P.t+3,16,2);
-  ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillText('new R',lx+90,P.t+8);
-  ctx.fillStyle='#0a8a5c'; ctx.fillRect(lx+126,P.t+3,16,2);
-  ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillText('GT',lx+146,P.t+8);
+  // ── 圖例:直接把兩條公式畫成分數,取代原本的 "1/(2C₂)" 與 "new R" 兩個代號,
+  //    線的顏色和式子在同一行就綁定,讀者不必回頭對照別處。
+  //    公式比代號寬得多,窄面板(手機的 #analysis-col 只有 44% 寬)會爆出右邊界,
+  //    所以先量寬度再決定字級;縮到 6px 仍放不下就退回代號寫法。 ──
+  const midY=15, avail=gW-6, SW=14, GI=4, GAP=16;
+  let F=0, SF=0;
+  for(let f=8; f>=6; f-=0.5){
+    const sf=f*0.7;
+    ctx.font=f+'px JetBrains Mono,monospace';
+    const rw=ctx.measureText('R=').width, gtw=ctx.measureText('GT').width;
+    const w1=fracW(ctx,'1','2·C₂',null,f,sf);
+    const w2=fracW(ctx,'(1+C₁²)','2·|C₂|','3/2',f,sf);
+    const need=(SW+GI+rw+2+w1+GAP)+(SW+GI+rw+2+w2+GAP)+(SW+GI+gtw);
+    if(need<=avail){ F=f; SF=sf; break; }
+  }
+
+  let cx=P.l+4;
+  if(F){
+    ctx.font=F+'px JetBrains Mono,monospace';
+    const rw=ctx.measureText('R=').width;
+    const put=(c,num,den,sup)=>{
+      ctx.fillStyle=c; ctx.fillRect(cx,midY-1,SW,2); cx+=SW+GI;
+      ctx.font=F+'px JetBrains Mono,monospace'; ctx.fillStyle=c;
+      ctx.fillText('R=',cx,midY+F*0.38); cx+=rw+2;
+      cx+=legendFrac(ctx,cx,midY,c,num,den,sup,F,SF)+GAP;
+    };
+    put('#c2760b','1','2·C₂');
+    put('#0071e3','(1+C₁²)','2·|C₂|','3/2');
+    ctx.fillStyle='#0a8a5c'; ctx.fillRect(cx,midY-1,SW,2); cx+=SW+GI;
+    ctx.font=F+'px JetBrains Mono,monospace'; ctx.fillStyle='#0a8a5c';
+    ctx.fillText('GT',cx,midY+F*0.38);
+  } else {
+    ctx.font='7px JetBrains Mono,monospace';
+    const put=(c,t)=>{ ctx.fillStyle=c; ctx.fillRect(cx,midY-1,10,2); cx+=13;
+                       ctx.fillText(t,cx,midY+3); cx+=ctx.measureText(t).width+9; };
+    put('#c2760b','1/(2C₂)'); put('#0071e3','new R'); put('#0a8a5c','GT');
+  }
 }
 
 // ═══ Animation ════════════════════════════════════════════════════════════
@@ -435,12 +519,11 @@ function animate(now) {
   const dt=Math.min((now-lastT)/1000,.05); lastT=now;
   const t=now/1000;
 
-  const cycle=t%10;
-  const egoX=cycle<5?-Math.sin((cycle/5)*Math.PI)*1.3:0;
-
+  // 和上面 prefillHistory() 共用同一組 egoXAt/c1At,填進去的與接著畫的才連得上。
   // heading error C1 tracks the car's deviation, so the wave stays in sync with the car:
-  // car swings off-centre → C1 rises → old formula dips; car centred/straight → C1≈0 → 180
-  const C1=Math.abs(egoX)/1.3*0.32;
+  // car swings off-centre → C1 rises → old formula dips; car back on centre → C1≈0 → 180
+  const egoX = egoXAt(t);
+  const C1   = c1At(t);
   const [rC2, rT3] = radii(C1, 1.0);
 
   hC2R[hIdx]=rC2; hT3R[hIdx]=rT3;

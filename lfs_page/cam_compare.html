@@ -13,6 +13,9 @@
        會讓人以為兩張圖在講同一件事。blue 與 magenta 在這幾張面板裡
        沒有被指派過語意,而且兩者的色覺異常距離夠。 */
     --camA:#0071e3;--camB:#a3277a;
+    /* 左圖的散點沿用 fot_analysis 的 --green(#0a8a5c)。那裡 green 就是
+       「實車量測」,這裡也是同一個意思 —— 同色同義,反而是接得起來的線索。*/
+    --meas:#0a8a5c;
     --sans:"SF Pro TC",-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
     --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   }
@@ -30,19 +33,52 @@
 /* ============================================================
    同一把尺,兩顆相機 — View Range 差異如何決定 Fusion 邏輯
 
-   ---- 為什麼是現在這個版面(左圖右表兩張卡) ----
+   ---- 為什麼是現在這個版面(一張卡,圖在上、表在下) ----
 
    資料本來就是 2x2:兩顆相機 x 兩個速域。最早的版本把文字拆成圖上
    四個角的浮出方塊,等於把一張表打散成四塊各自漂浮;之後改成
    「圖在上、表在下」,動線是對的,但整張變得又高又窄,圖與表隔了
    半個畫面,讀者要記著曲線再往下找對應的那一列。
 
-   現在改成橫向兩張卡:左邊是證據(圖),右邊是結論(2x2 決策表)。
-     · 技術長讀表比讀圖快,他要的是「所以決策規則是什麼」——
-       右卡自己就站得住,左卡只是它的來源;
-     · 人資長只有三秒,他讀的是左卡那句副標,圖對他是背景。
-   兩張卡同高並排,曲線和它對應的那一列在同一個視線高度上,
-   眼睛左右掃一次就接得起來,不必上下捲。
+   之後改成橫向兩張卡並排(左圖右表),動線是對的,但表被寬度綁死:
+   920 的畫布分掉左卡之後,右卡內寬只剩 464,再扣掉列名欄,每欄
+   只有 190 —— 字級卡在 11px 還是有兩格會斷成三行。字小又長短不一,
+   看起來就是亂的。
+
+   ---- 上半部為什麼是兩塊圖 ----
+
+   右邊那條乾淨的折線,單看會像是規格書上抄來的。左邊補一塊原始量測
+   的散點、中間一個「擬合」箭頭,讀者才看得出這條線是從一團很吵的點
+   裡量出來的 —— 這一節導言講的就是「這些規律沒有人會給,是我一段
+   一段量、擬合成公式的」,兩塊圖就是那句話的圖解。
+
+   所以繞回「圖在上、表在下」,但這次成立,因為表已經瘦下來了:
+   當初否決這個版面是因為那時每格有長條、數值、「?」籤,四格疊起來
+   又高又窄,圖和表隔了半個畫面。現在每格只有兩行字,整張表約 140 高,
+   圖和表緊鄰,當初的理由不成立了。
+   表拿到整個 828 內寬,每欄 360,四格全部「一行現象、一行對策」,
+   字級推到 14 —— 比並排時大 27%,而且零斷行。
+     · 技術長讀表比讀圖快,他要的是「所以決策規則是什麼」,
+       表自己就站得住,圖只是它的來源;
+     · 由上而下就是證據 → 結論,不必記著曲線再左右對照。
+
+   ---- 右卡為什麼只剩文字 ----
+
+   右卡本來每格都有一條兩段式長條和一個數值(30 m / 105 m ...),
+   加上速域抬頭的「差 N m」籤,一格裡有四種東西在講同一件事:
+   誰遠、遠多少。可是「遠多少」左邊那張圖已經用填色面積講完了,
+   右卡再畫一次長條,等於同一個結論畫兩遍,而右卡真正該回答的
+   「所以要怎麼接」反而被擠成最小的一行字。
+   現在右卡只留四格「現象 → 對策」,兩欄就是兩顆相機(表頭的圖例
+   同時是欄頭),兩列就是兩個速域。數字全部留在左卡,右卡只講決策。
+
+   ---- 左卡為什麼只剩圖 ----
+
+   左卡本來有標題「同一把尺，兩顆相機」、一句副標、和一句結語
+   「評估一顆新相機要怎麼接,看這張圖就夠」。這三句話 lfs01.html 的
+   圖說(.ldemo-cap)一字不差地又講了一次 —— 這張面板是嵌在那句圖說
+   正上方的 iframe,同一個畫面裡連講兩遍。留給圖說,面板只出示證據。
+   標題沒了之後圖直接依卡片高度置中,順便放大到 250 高。
 
    圖上只剩四樣東西:兩條曲線、兩塊差距填色、兩個速域標籤、座標軸。
    差距不再用雙箭頭加白底標籤畫 —— 直接把兩條曲線之間的區域填起來,
@@ -53,8 +89,10 @@
      Camera A 的曲線沿用 fot_analysis「有效視野」那條模型(低速定值、
      約 40 kph 後線性成長)。
      Camera B 是對照組,目前是示意值 —— 要換成實測,改 CAM 裡的
-     lo / hi / knee 即可,填色、速域標籤上的差值全部跟著算
-     (表格裡的 v 是文字,要一起改)。
+     lo / hi / knee 即可,曲線、填色、速域標籤上的差值全部跟著算。
+     (表不再印數值,所以沒有第二處要手動同步的地方。)
+     左邊那塊散點也是示意(照真實形狀畫的,不是原始檔),圖上有標。
+     手邊若有那張 matplotlib 原圖,換成圖片會比畫的更有說服力。
 
    靜態圖,不做動畫 —— 只在改視窗大小或字體載完時重畫。
    ============================================================ */
@@ -71,10 +109,9 @@ const VMAX = 120, RMAX = 120;          // 車速上限 (kph) / 可用距離上�
 /* 兩個速域 = 表格的兩列。range 同時決定圖上填色的範圍與表格的列名,
    兩邊用同一組數字與同一個詞,讀者才連得起來「表的這一列 = 圖的那一塊」。
 
-   ⚠ at 是這一段的代表速度,右卡的長條、差值、格子裡印的數值三樣全部
-   由它算。它必須就是那格數值所指的速度 —— 高速那格印的是 105/60 m,
-   那是 120 kph 的值,所以 at 要寫 120。之前寫 105,長條會畫成 91 m
-   卻標著「105 m」,同一格自己打自己。 */
+   ⚠ at 是這一段的代表速度,圖上那塊填色標的「差 N m」由它算。它要取
+   這一段裡最能代表差距的速度 —— 高速段兩條曲線在 120 kph 差最開,
+   所以 at 寫 120,不是中間值。 */
 const BAND = [
   { k: '低速', range: [0, 40],   at: 20  },
   { k: '高速', range: [90, 120], at: 120 },
@@ -88,18 +125,18 @@ const CAM = [
   {
     name: 'ADAS Camera A', k: 'A', c: '--camA', lo: 30, hi: 105, knee: 40,
     reads: [
-      { v: '30 m',  t: '視距短，車道線尾端不穩',
+      { t: '視距短，車道線尾端不穩',
         fix: '依 Lane Degrade 受控降階，治「不穩」' },
-      { v: '105 m', t: '報得遠 —— 像素真的看得到這麼遠？', q: true,
+      { t: '報得遠 —— 像素真的看得到這麼遠？', q: true,
         fix: '依有效視野上界截斷，超過不進融合' },
     ],
   },
   {
     name: 'ADAS Camera B', k: 'B', c: '--camB', lo: 55, hi: 60, knee: 40,
     reads: [
-      { v: '55 m', t: '報得遠但不準，S 彎易「切西瓜」',
+      { t: '報得遠但不準，S 彎易「切西瓜」',
         fix: '遠端降權，並用周圍車輛交叉驗證' },
-      { v: '60 m', t: '視距沒跟著長 —— 橫向 ODD 夠嗎？', q: true,
+      { t: '視距沒跟著長 —— 橫向 ODD 夠嗎？', q: true,
         fix: '橫向 ODD 限速' },
     ],
   },
@@ -114,53 +151,78 @@ const gapAt = v => Math.abs(rangeAt(CAM[0], v) - rangeAt(CAM[1], v));
 /* ---------- 版面 ---------- */
 let L = null, scale = 1, offX = 0, offY = 0;
 
+/* 兩套尺寸,同一個版面 —— 圖在上、表在下,而表永遠是 A/B 兩欄並排。
+
+   以前窄的時候會換成「一顆相機一組」的直排,A 疊在 B 上面。那個備援
+   拿掉了:這張圖的主張是「同一個速域下 A 和 B 不一樣」,一旦上下疊,
+   要比較的兩格就不在同一個視線高度上,得靠記憶對照 —— 版面把論點
+   拆散了。窄的時候寧可整組縮一階(字級、欄寬、行距一起降),欄位關係
+   不動。 */
+const SIZES = {
+  wide:   { W: 920, H: 510, pad: 22, inset: 24,
+            panelW: 356, arrowW: 56, yLab: 40, titleY: 48, chartTop: 76, plotH: 140,
+            gutter: 84, colGap: 24, fs: 14, lh: 20, nameFs: 13.5, keyFs: 13.5,
+            rangeFs: 10, rangeDy: 16, fixDy: 9, sepDy: 18, bandGap: 30,
+            arrowX: 18, panelFs: 11.5, tickFs: 9 },
+  narrow: { W: 400, H: 520, pad: 16, inset: 16,
+            panelW: 146, arrowW: 36, yLab: 28, titleY: 36, chartTop: 58, plotH: 108,
+            gutter: 52, colGap: 12, fs: 10, lh: 14, nameFs: 10.5, keyFs: 11,
+            rangeFs: 8.5, rangeDy: 12, fixDy: 6, sepDy: 12, bandGap: 20,
+            arrowX: 13, panelFs: 9, tickFs: 7.5 },
+};
+
 function buildLayout(cssW, cssH) {
-  /* 左圖右表要 2.2 左右的比例才不會把兩張卡各自壓扁;比 1.5 更瘦時
-     整張會被縮到字都看不清,那就換直排(一顆相機一組)。 */
-  const vertical = cssW / cssH < 1.5;
+  /* 1.15 是換窄版的門檻。比這更瘦時,寬版會被 scale 縮到字看不清 ——
+     窄版的設計尺寸小,同一個容器裡 scale 反而接近 1,字比較大。 */
+  const S = cssW / cssH < 1.15 ? SIZES.narrow : SIZES.wide;
+  const { W, H, pad } = S;
 
-  if (vertical) {
-    const W = 360, H = 580, pad = 14;
-    return {
-      W, H, vertical, pad, headY: 26, subY: 44, subLh: 15,
-      plot: { x: 46, y: 84, w: W - 46 - pad, h: 150 }, axisY: 262,
-      col: { x: pad, w: W - pad * 2 },
-      groups: [{ y: 300 }, { y: 430 }],
-      // gap 96 是量出來的:速域名 + 數值 + 「?」籤三段之後才輪到說明文字,
-      // 給小一點就會像 "105 m報得遠" 那樣黏在一起。
-      row: { vx: 34, lh: 15, fs: 10, gap: 96 },
-      footY: H - 16,
-    };
-  }
+  const card = { x: pad, y: pad, w: W - pad * 2, h: H - pad * 2 };
+  const ci = card.x + S.inset, cw = card.w - S.inset * 2;  // 卡內緣 / 內寬
 
-  /* 橫版:兩張等高的卡並排。左卡 372 只夠放一張圖,剩下的寬度全給
-     右卡 —— 右卡裡有四格文字,窄一點就會每格都斷成三四行。 */
-  const W = 920, H = 404, pad = 22, gap = 16;
-  const cardY = pad, cardH = H - pad * 2;                 // 22 .. 382
-  const left  = { x: pad, y: cardY, w: 356, h: cardH };
-  const rx = left.x + left.w + gap;
-  const right = { x: rx, y: cardY, w: W - pad - rx, h: cardH };
+  /* 上半部是兩塊等寬的圖,中間一個箭頭:左邊原始量測、右邊擬合出來的
+     模型。兩塊加箭頭置中在卡片內寬裡,左右各留一樣的邊。 */
+  const blockW = S.panelW * 2 + S.arrowW;
+  const bx     = ci + (cw - blockW) / 2;
+  const panels = [bx, bx + S.panelW + S.arrowW];
+  const mk     = x => ({ x: x + S.yLab, y: S.chartTop, w: S.panelW - S.yLab, h: S.plotH });
 
-  const li = left.x + 18;                                 // 左卡內緣
-  const ri = right.x + 20, rw = right.w - 40;             // 右卡內緣 / 內寬
+  // 圖底 → 軸名 → 分隔線 → 圖例 → 表頭橫線 → 第一列,由上而下依序長出來
+  const plotBot  = S.chartTop + S.plotH;
+  const axisY    = plotBot + Math.round(S.lh * 1.6);
+  const dividerY = axisY + Math.round(S.lh * 1.2);
+  const headY    = dividerY + Math.round(S.lh * 1.7);
+  const ruleY    = headY + Math.round(S.lh * 0.7);
+  const colW     = (cw - S.gutter - S.colGap) / 2;
 
   return {
-    W, H, vertical, pad, left, right,
-    head: { x: li, titleY: 52, subY: 71, w: left.w - 36, lh: 14.5 },
-    plot: { x: li + 34, y: 108, w: (left.x + left.w - 18) - (li + 34), h: 186 },
-    axisY: 326,
-    /* 右卡是一列一列的對照,不是兩欄各自的清單:
-       A/B 兩條長條共用同一把 0–RMAX 的尺,長度差就是視距差;
-       每條長條後面接它自己的現象與對策,同一列讀完不必再對色。
-       文字欄 240 是量出來的:最長那句對策剛好一行放得下。 */
+    W, H, pad, card, ci, cw,
+    // [0] = 原始量測(散點),[1] = 擬合後的模型(曲線)
+    plots: [mk(panels[0]), mk(panels[1])],
+    panels, panelW: S.panelW, panelFs: S.panelFs, tickFs: S.tickFs,
+    titleY: S.titleY,
+    arrow: { x0: bx + S.panelW, x1: bx + S.panelW + S.arrowW,
+             y: S.chartTop + S.plotH / 2 },
+    axisY,
+    dividerY,                                             // 圖與表之間那條線
+    /* 表是一個矩陣:最左邊一條窄欄放列名(低速/高速),右邊兩欄是兩顆
+       相機,欄頭就是表頭那兩個色塊,所以欄的 x 和圖例的 x 同一組。
+
+       gutter 是列名那一欄的寬度:「90–120 kph」最長,寬版 10px mono
+       約 55px,留 84 才不會頂到欄的起點。剩下的均分成兩欄。
+       divX 落在 gutter 裡偏右(-12),靠內容欄近一點,線才像是欄的左
+       邊界而不是漂在中間。 */
     table: {
-      x: ri, w: rw, headY: 52, ruleY: 66,
-      legend: [ri, ri + 232],
-      bar: { x: ri + 16, w: 130, h: 10 },
-      vx: ri + 154, tx: ri + 224, tw: rw - 224,
-      top: 114, rowGap: 20, sepDy: 15, bandGap: 38, fs: 11, lh: 15.5,
+      x: ci, w: cw, headY, ruleY,
+      cols: [ci + S.gutter, ci + S.gutter + colW + S.colGap],
+      cw: colW, divX: ci + S.gutter - 12,
+      top: ruleY + Math.round(S.lh * 1.5),
+      nameFs: S.nameFs, keyFs: S.keyFs, rangeFs: S.rangeFs, rangeDy: S.rangeDy,
+      fixDy: S.fixDy, sepDy: S.sepDy, bandGap: S.bandGap,
+      // arrowX:「→」單獨畫在欄的起點,對策文字往後縮排 —— 四個箭頭
+      // 對齊成一條直線,而且對策若斷行,第二行也不會跑到箭頭底下。
+      arrowX: S.arrowX, fs: S.fs, lh: S.lh,
     },
-    footRuleY: 338, footY: 356, footW: left.w - 36,
   };
 }
 
@@ -260,16 +322,26 @@ function hline(x0, x1, y, color, w, alpha = 1) {
   ctx.restore();
 }
 
-/* ---------- 圖 ---------- */
-const px = v => L.plot.x + (v / VMAX) * L.plot.w;
-const py = m => L.plot.y + L.plot.h - (m / RMAX) * L.plot.h;
+function vline(x, y0, y1, color, w, alpha = 1) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = col(color); ctx.lineWidth = w;
+  ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+  ctx.restore();
+}
 
-function drawAxes() {
-  const p = L.plot;
+/* ---------- 圖 ----------
+   px / py 都吃一個 plot 矩形:同一組函式要畫兩塊圖(左邊原始量測、
+   右邊擬合模型),兩塊共用同一組 0–VMAX / 0–RMAX 的刻度。 */
+const px = (p, v) => p.x + (v / VMAX) * p.w;
+const py = (p, m) => p.y + p.h - (m / RMAX) * p.h;
+
+function drawAxes(p, tickFs) {
   ctx.save();
   ctx.strokeStyle = C('--grid'); ctx.lineWidth = 1;
   for (const m of [40, 80, 120]) {
-    ctx.beginPath(); ctx.moveTo(p.x, py(m)); ctx.lineTo(p.x + p.w, py(m)); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(p.x, py(p, m)); ctx.lineTo(p.x + p.w, py(p, m)); ctx.stroke();
   }
   ctx.restore();
 
@@ -281,27 +353,70 @@ function drawAxes() {
   ctx.restore();
 
   for (const m of [40, 80, 120]) {
-    text(String(m), p.x - 6, py(m) + 3.5,
-         { size: 9, font: 'mono', color: '--ink-3', align: 'right' });
+    text(String(m), p.x - 6, py(p, m) + 3.5,
+         { size: tickFs, font: 'mono', color: '--ink-3', align: 'right' });
   }
   for (const v of [0, 40, 80, 120]) {
-    text(String(v), px(v), p.y + p.h + 14,
-         { size: 9, font: 'mono', color: '--ink-3', align: 'center' });
+    text(String(v), px(p, v), p.y + p.h + 14,
+         { size: tickFs, font: 'mono', color: '--ink-3', align: 'center' });
   }
-  text('View Range (m)', p.x - 6, p.y - 9, { size: 9.5, font: 'mono', color: '--ink-3' });
-  text('車速 (kph) →', p.x, L.axisY, { size: 9.5, font: 'mono', color: '--ink-3' });
+  text('View Range (m)', p.x - 6, p.y - 9,
+       { size: tickFs + .5, font: 'mono', color: '--ink-3' });
+  text('車速 (kph) →', p.x, L.axisY,
+       { size: tickFs + .5, font: 'mono', color: '--ink-3' });
+}
+
+/* ---------- 左圖:原始量測 ----------
+   ⚠ 這裡的散點是「示意」,不是實測檔案。真實的那張是逐幀 View Range
+   對車速的散佈圖(每顆相機各一張),形狀就是這樣:轉折速度以下貼著
+   一條定值、以上跟著上界一起抬,而且整片很吵。這張的用途是讓讀者
+   看見「右邊那條乾淨的曲線是從這一團點擬合出來的」,所以只要形狀
+   對,不必是原檔 —— 但也因此左上角標了「示意」。
+
+   綠點 = 實車量測、琥珀點劃線 = 上界、藍虛線 = 下界,三個都沿用
+   fot_analysis 那張「有效視野」的色與義,兩張圖才接得起來。 */
+const rnd = i => { const s = Math.sin(i * 12.9898) * 43758.5453; return s - Math.floor(s); };
+
+function drawScatter(p) {
+  const cam = CAM[0];                      // 左圖只畫一顆:一顆相機一張原始圖
+  const hi  = v => rangeAt(cam, v) * 1.18; // 上界
+  const lo  = v => rangeAt(cam, v) * 0.55; // 下界
+
+  ctx.save();
+  ctx.fillStyle = C('--meas'); ctx.globalAlpha = .38;
+  for (let i = 1; i <= 420; i++) {
+    const v = rnd(i) * VMAX;
+    // 點集中在上下界之間,再讓少數往下漏 —— 真實資料的長尾在下面
+    const t = Math.pow(rnd(i + 517), 0.8);
+    const m = lo(v) * (1 - t) + hi(v) * t - (rnd(i + 91) < .12 ? rnd(i + 33) * 22 : 0);
+    if (m <= 0) continue;
+    ctx.beginPath(); ctx.arc(px(p, v), py(p, Math.min(m, RMAX)), 1.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  ctx.save();
+  ctx.lineWidth = 1.6;
+  for (const [f, c, dash] of [[hi, '--amber', [6, 3, 1.5, 3]], [lo, '--camA', [5, 4]]]) {
+    ctx.strokeStyle = C(c); ctx.setLineDash(dash);
+    ctx.beginPath();
+    for (let v = 0; v <= VMAX; v += 2) ctx.lineTo(px(p, v), py(p, Math.min(f(v), RMAX)));
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  ctx.restore();
 }
 
 /* 差距填色:直接把兩條曲線之間的區域填起來,那塊面積本身就是差距。
    前一版用雙箭頭 + 白底數字標籤畫同一件事,兩個元素、還會壓到曲線。 */
-function drawGap(band) {
+function drawGap(band, p) {
   const [v0, v1] = band.range;
   ctx.save();
   ctx.globalAlpha = .13;
   ctx.fillStyle = C('--ink-3');
   ctx.beginPath();
-  for (let v = v0; v <= v1; v += 2) ctx.lineTo(px(v), py(rangeAt(CAM[0], v)));
-  for (let v = v1; v >= v0; v -= 2) ctx.lineTo(px(v), py(rangeAt(CAM[1], v)));
+  for (let v = v0; v <= v1; v += 2) ctx.lineTo(px(p, v), py(p, rangeAt(CAM[0], v)));
+  for (let v = v1; v >= v0; v -= 2) ctx.lineTo(px(p, v), py(p, rangeAt(CAM[1], v)));
   ctx.closePath(); ctx.fill();
   ctx.restore();
 
@@ -311,129 +426,122 @@ function drawGap(band) {
      取整段最高點,高速那個標籤會飄在填色區上方很遠;只取左緣那一點,
      斜著爬上去的 A 曲線會從字中間穿過去。所以量標籤實際蓋到的
      速度區間,在那一段裡取最高的曲線再往上讓 8px。 */
+  const fs = L.tickFs + 1;
   const s = `${band.k}  差 ${Math.round(gapAt(band.at))} m`;
-  const lx = px(v0) + 5;
-  const lv1 = ((lx + measure(s, 10, 'mono', 700)) - L.plot.x) / L.plot.w * VMAX;
+  const lx = px(p, v0) + 5;
+  const lv1 = ((lx + measure(s, fs, 'mono', 700)) - p.x) / p.w * VMAX;
   let top = Infinity;
   for (let v = v0; v <= Math.min(lv1, v1); v += 1)
-    for (const c of CAM) top = Math.min(top, py(rangeAt(c, v)));
-  text(s, lx, top - 8, { size: 10, weight: 700, font: 'mono', color: '--ink-2' });
+    for (const c of CAM) top = Math.min(top, py(p, rangeAt(c, v)));
+  text(s, lx, top - 8, { size: fs, weight: 700, font: 'mono', color: '--ink-2' });
 }
 
-function drawCurve(cam) {
+function drawCurve(cam, p) {
   ctx.save();
   ctx.strokeStyle = C(cam.c); ctx.lineWidth = 2.6;
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   ctx.beginPath();
-  for (let v = 0; v <= VMAX; v += 1.5) ctx.lineTo(px(v), py(rangeAt(cam, v)));
+  for (let v = 0; v <= VMAX; v += 1.5) ctx.lineTo(px(p, v), py(p, rangeAt(cam, v)));
   ctx.stroke();
   ctx.fillStyle = C(cam.c);
-  ctx.beginPath(); ctx.arc(px(VMAX), py(cam.hi), 3.4, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(px(p, VMAX), py(p, cam.hi), 3.4, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
 }
 
-/* ---------- 右卡:速域內的兩顆對打 ----------
-   前一版是 2x2 的表:左欄 A、右欄 B,各自一疊文字。四格是對齊的,
-   但「差多少」要讀者自己拿兩個數字去減 —— 這張圖的主張就是差異,
-   卻要讀者自己算,那是把最重要的一步丟給他。
+/* 兩塊圖中間的箭頭:左邊是量到的,右邊是擬合出來的。箭頭上那行字
+   就是這張面板要講的動作 —— 「分速域統計、擬合」。 */
+function drawArrow() {
+  const a = L.arrow, mid = (a.x0 + a.x1) / 2, w = (a.x1 - a.x0) * .52;
+  ctx.save();
+  ctx.strokeStyle = C('--ink-3'); ctx.globalAlpha = .75;
+  ctx.lineWidth = 1.6; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(mid - w / 2, a.y); ctx.lineTo(mid + w / 2, a.y);
+  ctx.moveTo(mid + w / 2 - 5, a.y - 4.5);
+  ctx.lineTo(mid + w / 2, a.y);
+  ctx.lineTo(mid + w / 2 - 5, a.y + 4.5);
+  ctx.stroke();
+  ctx.restore();
+  text('擬合', mid, a.y - 12,
+       { size: L.panelFs - 1.5, weight: 700, color: '--ink-3', align: 'center' });
+}
 
-   改成一段速域配兩條長條:同一把 0–RMAX 的尺,長度差就是視距差,
-   誰遠、差多少不必讀數字;差值再用和圖上填色區一模一樣的「差 N m」
-   釘在速域抬頭上,兩張卡於是講同一句話。長條後面直接接它自己的現象
-   與對策 —— 同一列讀完就走,不必回頭對色。
+// 每塊圖的抬頭。左邊多一個「示意」小籤 —— 那團點是照真實形狀畫的,
+// 不是原始檔本身,不標的話會被當成真的量測輸出。
+function drawPanelHeads() {
+  const [a, b] = L.panels, fs = L.panelFs;
+  text('原始量測 · 逐幀 View Range', a, L.titleY, { size: fs, weight: 700 });
+  const nx = a + measure('原始量測 · 逐幀 View Range', fs, 'sans', 700) + 8;
+  const nw = measure('示意', fs - 2.5, 'sans', 700) + 10;
+  rrect(nx, L.titleY - fs + 1, nw, fs + 3, 3, '--bg-alt');
+  text('示意', nx + nw / 2, L.titleY,
+       { size: fs - 2.5, weight: 700, color: '--ink-3', align: 'center' });
+  text('擬合後的相機模型', b, L.titleY, { size: fs, weight: 700 });
+}
 
-   長條長度取 rangeAt(cam, band.at),和格子裡印的數值同源;要換實測
-   只改 CAM 的 lo/hi,長條、差值、曲線一起動(v 是文字,要一起改)。 */
+/* ---------- 表:2x2 的「現象 → 對策」 ----------
+   兩欄是兩顆相機,兩列是兩個速域,格子裡只有一句現象和一句對策。
+   數值與長條都不在這裡了 —— 「誰遠、差多少」上面那張圖的填色面積
+   已經講完,表只回答「所以要怎麼接」。
+
+   速域是「列」,所以列名放在最左邊自成一欄,和欄頭(A/B)構成一個
+   真正的矩陣 —— 抬頭橫跨兩欄的寫法看起來像是把表切成兩段,讀者會
+   以為那是兩張小表。列名原本還跟著一個「差 N m」籤,拿掉了 ——
+   那個數字在圖的填色區上已經有一份,同一張面板印兩次沒有加分。 */
 function drawTable() {
-  const T = L.table, B = T.bar;
+  const T = L.table;
 
-  // 表頭的色塊同時是三個東西:圖的圖例、長條的色鍵、下面 A/B 的定義
+  // 表頭的色塊同時是兩個東西:圖的圖例、下面這兩欄的欄頭。
+  // 起點對齊欄的起點(不是卡片內緣)—— 最左邊那條窄欄留給列名。
   CAM.forEach((cam, i) => {
-    const x = T.legend[i];
-    rrect(x, T.headY - 9, 9, 9, 2, cam.c);
-    text(cam.name, x + 15, T.headY, { size: 12.5, weight: 700, color: cam.c });
+    const x = T.cols[i], s = Math.round(T.nameFs * .75);
+    rrect(x, T.headY - s, s, s, 2, cam.c);
+    text(cam.name, x + s + 7, T.headY, { size: T.nameFs, weight: 700, color: cam.c });
   });
   hline(T.x, T.x + T.w, T.ruleY, '--line', 1);
 
-  let y = T.top;
+  const fopt = { size: T.fs, weight: 600 };
+  const fw   = T.cw - T.arrowX;          // 對策的可用寬度(扣掉箭頭那格縮排)
+
+  let y = T.top, last = T.top;
   BAND.forEach((band, r) => {
-    // 速域抬頭:名字 + 速域 + 這一段差多少。「差 N m」的字和圖上那塊
-    // 填色的標籤一樣,那是讀者把這一段接回圖上那一塊的唯一線索。
-    text(band.k, T.x, y, { size: 12.5, weight: 700 });
-    text(`${band.range[0]}–${band.range[1]} kph`,
-         T.x + measure(band.k, 12.5, 'sans', 700) + 8, y,
-         { size: 9.5, font: 'mono', color: '--ink-3' });
-    const gs = `差 ${Math.round(gapAt(band.at))} m`;
-    const gw = measure(gs, 10, 'mono', 700) + 18;
-    rrect(T.x + T.w - gw, y - 10, gw, 16, 8, '--bg-alt');
-    text(gs, T.x + T.w - gw / 2, y + 1, { size: 10, weight: 700, font: 'mono',
-                                          color: '--ink-2', align: 'center' });
+    // 列名:速域 + 速度範圍,疊成兩行放在最左欄。基線跟這一列的第一
+    // 行字對齊 —— 列名和它管的內容要從同一條線起跑,才讀得出是同一列。
+    text(band.k, T.x, y, { size: T.keyFs, weight: 700 });
+    text(`${band.range[0]}–${band.range[1]} kph`, T.x, y + T.rangeDy,
+         { size: T.rangeFs, font: 'mono', color: '--ink-3' });
 
-    let ry = y + 12;
+    /* 同一列的兩欄,「→ 對策」從同一條基線起跑。各接各的話,現象多
+       一行的那一欄會把自己的對策往下推,兩欄的箭頭錯開一行 —— 四個
+       箭頭沒站成兩排,掃過去就是亂的。取兩欄現象的最大行數當起跑點。*/
+    const tn = Math.max(...CAM.map(cam =>
+      lineCount(cam.reads[r].t, T.cw, { size: T.fs })));
+    const fy = y + tn * T.lh + T.fixDy;
+
+    let bot = fy;
     CAM.forEach((cam, i) => {
-      const d = cam.reads[r], base = ry + 9;
-
-      /* 兩段式長條:兩顆共有的那一段實色,多出來的那一段淡色。
-         淡色那段就是「差 N m」本人 —— 抬頭上的數字在長條上有對應的
-         實體,不必讀者拿兩個數字相減。短的那條 min 等於自己,整條實色。*/
-      const mine  = rangeAt(cam, band.at);
-      const other = rangeAt(CAM[1 - i], band.at);
-      const len = v => Math.max(B.h, v / RMAX * B.w);
-      rrect(B.x, ry, B.w, B.h, B.h / 2, '--grid');
-      rrect(B.x, ry, len(mine), B.h, B.h / 2, cam.c, .38);
-      rrect(B.x, ry, len(Math.min(mine, other)), B.h, B.h / 2, cam.c);
-      text(cam.k, T.x, base, { size: 10.5, weight: 700, font: 'mono', color: cam.c });
-      text(d.v, T.vx, base, { size: 12.5, weight: 700, font: 'mono', color: cam.c });
-      // 「?」= 這一格是要回去問供應商的,不是已經成立的結論。
-      // 不標的話,待確認的事會被讀成已知的事。
-      if (d.q) {
-        const qx = T.vx + measure(d.v, 12.5, 'mono', 700) + 7;
-        rrect(qx, base - 9, 13, 12, 3, '--bg-alt');
-        text('?', qx + 6.5, base, { size: 9, weight: 700, font: 'mono',
-                                    color: '--ink-3', align: 'center' });
-      }
-
-      const dn = wrapBalanced(d.t, T.tx, base, T.tw, T.lh,
-                              { size: T.fs, color: d.q ? '--ink-3' : '--ink-2' });
-      const fn = wrapBalanced('→ ' + d.fix, T.tx, base + dn * T.lh + 2, T.tw, T.lh,
-                              { size: T.fs, weight: 600 });
-      ry = base + dn * T.lh + 2 + (fn - 1) * T.lh + T.rowGap;
+      const d = cam.reads[r], x = T.cols[i];
+      // 帶問號的那格用更淡的字:它是要回去問供應商的,不是已成立的結論。
+      // 「?」小籤拿掉了 —— 句子本身就以問號結尾,籤是同一件事講第二次。
+      wrapBalanced(d.t, x, y, T.cw, T.lh,
+                   { size: T.fs, color: d.q ? '--ink-3' : '--ink-2' });
+      // 箭頭單獨畫、文字縮排:斷行時第二行不會滑到箭頭底下。
+      text('→', x, fy, fopt);
+      const fn = wrapBalanced(d.fix, x + T.arrowX, fy, fw, T.lh, fopt);
+      bot = Math.max(bot, fy + (fn - 1) * T.lh);
     });
 
-    const bot = ry - T.rowGap;
+    last = bot;
     if (r < BAND.length - 1) {
       hline(T.x, T.x + T.w, bot + T.sepDy, '--line', 1, .6);
       y = bot + T.sepDy + T.bandGap;
     }
   });
-}
 
-/* ---------- 直排:表格兩欄擠不開,改成一顆相機一組 ---------- */
-function drawGroups() {
-  const { x, w } = L.col, R = L.row;
-  CAM.forEach((cam, i) => {
-    const g = L.groups[i];
-    rrect(x, g.y - 17, 8, 8, 2, cam.c);
-    text(cam.name, x + 14, g.y - 9, { size: 11.5, weight: 700, color: cam.c });
-    hline(x, x + w, g.y, cam.c, 1.6, .9);
-
-    let y = g.y + 20;
-    BAND.forEach((band, r) => {
-      const d = cam.reads[r];
-      text(band.k, x, y, { size: R.fs, weight: 700, font: 'mono', color: '--ink-2' });
-      text(d.v, x + R.vx, y, { size: R.fs + 1, weight: 700, font: 'mono', color: cam.c });
-      if (d.q) {
-        const qx = x + R.vx + measure(d.v, R.fs + 1, 'mono', 700) + 6;
-        rrect(qx, y - 8, 12, 11, 3, '--bg-alt');
-        text('?', qx + 6, y, { size: 8.5, weight: 700, font: 'mono',
-                               color: '--ink-3', align: 'center' });
-      }
-      y += wrap(d.t, x + R.gap, y, w - R.gap, R.lh,
-                { size: R.fs, color: d.q ? '--ink-3' : '--ink-2' }) * R.lh;
-      y += wrap('→ ' + d.fix, x + R.gap, y, w - R.gap, R.lh,
-                { size: R.fs, weight: 600 }) * R.lh + 9;
-    });
-  });
+  /* 列名欄和內容欄之間的直線。橫線分列、直線分欄,兩條加起來讀者才
+     看得出這是一個矩陣,而不是兩疊各自的清單。從表頭橫線拉到最後一
+     列下面 —— 只圈住格子的範圍,不碰到圖例那一行。 */
+  vline(T.divX, T.ruleY, last + 12, '--line', 1, .55);
 }
 
 /* ---------- 畫一次 ---------- */
@@ -444,33 +552,19 @@ function draw() {
   ctx.clearRect(0, 0, L.W, L.H);
   ctx.fillStyle = C('--bg'); ctx.fillRect(0, 0, L.W, L.H);
 
-  // 橫版:先鋪兩張卡,標題/副標/圖/結語都在左卡裡,右卡只有表
-  if (!L.vertical) { card(L.left); card(L.right); }
+  card(L.card);
+  // 圖與表之間的分隔線:上面是證據,下面是結論。
+  hline(L.ci, L.ci + L.cw, L.dividerY, '--line', 1, .6);
 
-  if (L.vertical) {
-    text('同一把尺，兩顆相機', L.pad, L.headY, { size: 13.5, weight: 700 });
-    wrap('同一套方法重跑一次，曲線形狀就不同——差異直接決定融合層怎麼接',
-         L.pad, L.subY, L.W - L.pad * 2, L.subLh, { size: 10, color: '--ink-2' });
-  } else {
-    const h = L.head;
-    text('同一把尺，兩顆相機', h.x, h.titleY, { size: 15.5, weight: 700 });
-    wrapBalanced('同一套方法換一顆相機重跑一次，曲線形狀就不同——差異直接決定融合層要接什麼',
-                 h.x, h.subY, h.w, h.lh, { size: 10.5, color: '--ink-2' });
-  }
-
-  drawAxes();
-  BAND.forEach(drawGap);
-  CAM.forEach(drawCurve);
-  L.vertical ? drawGroups() : drawTable();
-
-  if (L.vertical) {
-    hline(L.pad, L.W - L.pad, L.footY - 17, '--line', 1, .6);
-    text('評估一顆新相機怎麼接，看這張圖就夠', L.pad, L.footY, { size: 10, weight: 600 });
-  } else {
-    hline(L.head.x, L.head.x + L.footW, L.footRuleY, '--line', 1, .6);
-    wrapBalanced('評估一顆新相機要怎麼接，看這張圖就夠——不必等下一次路測才知道',
-                 L.head.x, L.footY, L.footW, 15, { size: 10.5, weight: 600 });
-  }
+  const [raw, fit] = L.plots;
+  drawPanelHeads();
+  drawAxes(raw, L.tickFs);
+  drawScatter(raw);
+  drawArrow();
+  drawAxes(fit, L.tickFs);
+  BAND.forEach(b => drawGap(b, fit));
+  CAM.forEach(c => drawCurve(c, fit));
+  drawTable();
 
   ctx.restore();
 }

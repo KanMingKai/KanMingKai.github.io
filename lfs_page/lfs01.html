@@ -27,6 +27,14 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1
 
 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
 section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
+/* ★ 章節底色一律「白 / 灰」嚴格交錯,相鄰兩節絕不同色 —— 這是章節之間唯一的
+   視覺分界線(章節之間沒有分隔線也沒有標號)。同色相鄰時讀者會把兩章讀成
+   同一章:曾經 method+influence 就是這樣被誤認成一節。
+   ⚠ 新增或搬移章節時,務必把後面所有章節的 .band-alt 重新交錯一次,
+     只補新的那一節會讓某兩節黏在一起。目前順序:
+     method 白 / influence 灰 / safety 白 / simulation 灰 / root-cause 白 /
+     architecture 灰 / decision-1 白 / decision-2 灰 / validation 白 /
+     faq 灰 / reflection 白 */
 .band-alt{background:var(--bg-alt)}
 .unit{margin:0 auto}
 .unit-head{text-align:center;margin-bottom:32px}
@@ -158,12 +166,9 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 /* platform */
 .plat{max-width:640px;margin:0 auto}
 
-/* influence — 三張 .infl 卡已移除(內容和下面的 .vtab 重複),樣式跟著清掉 */
-
-/* vendor table */
-.vtab{max-width:640px;margin:24px auto 0;border-collapse:collapse;width:100%;font-size:12.5px}
-.vtab th,.vtab td{border:1px solid var(--line);padding:9px 12px;text-align:left}
-.vtab th{background:var(--bg-alt);font-weight:700}
+/* influence — 三張 .infl 卡與四家大廠的 .vtab 表都已移除,樣式跟著清掉。
+   那些內容導言已經講完(規律沒人給、我自己量、四家同一套方法),表和卡
+   是同一件事換句話再說一次。 */
 
 /* radius comparator */
 .rcmp{max-width:600px;margin:0 auto}
@@ -194,7 +199,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 /* 兩顆相機的比較是 920x404 的橫版(左卡是圖、右卡是 2x2 決策表);
    比例低於 1.5 它會自己攤成 360x580 的直排 —— 表格兩欄在 360 擠不開,
    那時改成一顆相機一組。窄螢幕的框要給夠高,否則卡在中間比例會被縮到看不清 */
-.ldemo--cam iframe{height:410px}
+.ldemo--cam iframe{height:510px}
 @media(max-width:760px){.ldemo--cam iframe{height:560px}}
 
 /* CTO 3-second scan badges */
@@ -229,6 +234,78 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 .tl-dot{width:14px;height:14px;border-radius:50%;background:var(--blue);margin:8px auto 14px;position:relative;z-index:1;border:3px solid #fff;box-shadow:0 0 0 1px var(--blue)}
 .tl-t{font-size:13px;font-weight:700}
 .tl-d{font-size:12px;color:var(--ink-2);margin-top:4px;line-height:1.5}
+
+/* ── development timeline(C1 bias 動畫下方)──
+   五個節點的橫向歷程:2022 通勤觀察 → 2024 量產上車。
+   >760px 橫排共用一條貫穿的軸線,圓圈用白底把軸線遮出斷點;
+   ≤760px 軸線轉成靠左的直線、節點改直排 —— 五欄在手機上每欄只剩 60px,
+   橫排硬塞會把說明文字擠成一字一行。 */
+.dtl{max-width:920px;margin:26px auto 0;background:#fff;border:1px solid var(--line);
+     border-radius:16px;padding:16px 18px 14px;box-shadow:var(--shadow)}
+.dtl .eb{margin-bottom:12px}
+/* 動畫併進同一張卡:上半是時間軸(它怎麼來的),下半是動畫(它在做什麼),
+   中間一條分隔線斷開,但共用同一個外框 —— 兩者是同一件事的兩面。
+   高度 240 是實測過的:HUD 標題與圖例移除後,這支動畫壓到 220 仍然清楚,
+   再低左上的量測值就會貼到車身,所以 240 留了一點餘裕。 */
+.dtl-demo{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);line-height:0}
+.dtl-demo iframe{width:100%;height:220px;border:0;display:block;border-radius:10px}
+@media(max-width:760px){.dtl-demo iframe{height:300px}}
+/* 每支動畫的最低可讀高度由它自己的內部版面決定,所以分成三級,不共用一個值:
+   .dtl-demo       220 — C1 Bias。HUD 只剩徽章與兩個量測值,220 是實測下限。
+   .dtl-demo--mid  240 — 跟車。它沒有 HUD/圖例,限制在 BEV 面板:再低 EGO 車
+                          會貼到面板下緣邊框(實測 210 開始擠、190 已被裁)。
+   .dtl-demo--tall 320 — 半徑。右欄折線圖的 y 軸「120」與右下「now →」需要
+                          這個高度(實測 320 完整、280 就開始掉)。 */
+.dtl-demo--mid iframe{height:240px}
+@media(max-width:760px){.dtl-demo--mid iframe{height:320px}}
+.dtl-demo--tall iframe{height:320px}
+@media(max-width:760px){.dtl-demo--tall iframe{height:420px}}
+.dtl-track{position:relative;display:grid;grid-template-columns:repeat(5,1fr)}
+.dtl-track--6{grid-template-columns:repeat(6,1fr)}
+/* 「正規解法：重訓感知模型」那格底下的代價標註(報價 + 時程)。
+   用頁面既有的琥珀警示色,和其他格的中性樣式區隔 —— 它標的是
+   「這條路要付什麼代價」,不是流程的一個步驟。 */
+.dtl-note{margin-top:10px;background:var(--amber-bg);border:1px solid var(--amber-line);
+     border-radius:10px;padding:8px 9px;color:var(--amber);text-align:left}
+.dtl-note-r{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:600;line-height:1.45}
+.dtl-note-r+.dtl-note-r{margin-top:5px}
+.dtl-note-r svg{width:13px;height:13px;flex-shrink:0}
+/* 04「我的解法」底下的對照卡:刻意用完全相同的兩個維度(成本、時程)與同一組
+   圖示,只換顏色 —— 兩張卡並排在同一條軸上,470–625K／數個月 vs 0／一週的
+   對比不必用文字解釋,看顏色和數字就懂。 */
+.dtl-note--ok{background:var(--green-bg);border-color:var(--green-line);color:var(--green)}
+/* 軸線與箭頭用 ::before/::after 而不是實體元素,節點才能維持 nth-child 1..6
+   給進場動畫排延遲。線的右端收在 18px,把箭頭那 12px 讓出來 */
+/* 幾何:節點 padding-top 22 + 圓圈 44/2 = 圓心 44。軸線 top:43 高 2 → 中心 44,
+   箭頭 top:37 高 14(7+7) → 中心 44。改任何一個數字,三個都要跟著算。 */
+.dtl-track::before{content:'';position:absolute;left:6px;right:18px;top:43px;height:2px;background:var(--blue)}
+.dtl-track::after{content:'';position:absolute;right:6px;top:37px;
+     border-left:12px solid var(--blue);border-top:7px solid transparent;border-bottom:7px solid transparent}
+.dtl-n{position:relative;padding:22px 7px 0;text-align:center}
+/* 年份絕對定位在圓圈上方:五個節點只有兩個有年份,若照一般流排版,
+   沒年份的節點圓圈會往上跑、對不齊那條軸線。padding-top 先把位子留好 */
+.dtl-yr{position:absolute;top:0;left:0;right:0;font-family:var(--mono);
+     font-size:14px;font-weight:700;color:var(--blue);line-height:1}
+.dtl-ic{width:44px;height:44px;margin:0 auto;border-radius:50%;border:2px solid var(--blue);
+     background:#fff;color:var(--blue);display:grid;place-items:center;position:relative;z-index:1}
+.dtl-ic svg{width:22px;height:22px;display:block}
+.dtl-t{font-size:13px;font-weight:700;color:var(--blue);margin-top:10px;line-height:1.4}
+.dtl-d{font-size:11.5px;color:var(--ink-2);margin-top:5px;line-height:1.55}
+@media(max-width:760px){
+  .dtl{padding:18px 16px 20px}
+  /* 直排時軸線轉 90°,箭頭改朝下。padding-bottom 是留給箭頭的跑道 ——
+     少了它,箭頭會疊在最後一顆圓圈上面 */
+  .dtl-track{grid-template-columns:1fr;row-gap:18px;padding-bottom:26px}
+  .dtl-track::before{left:22px;right:auto;top:6px;bottom:16px;width:2px;height:auto}
+  .dtl-track::after{left:16px;right:auto;top:auto;bottom:4px;
+       border-left:7px solid transparent;border-right:7px solid transparent;
+       border-top:12px solid var(--blue);border-bottom:0}
+  .dtl-n{padding:0 0 0 56px;text-align:left;min-height:44px}
+  .dtl-yr{position:static;margin-bottom:3px}
+  .dtl-ic{position:absolute;left:0;top:0;margin:0}
+  .dtl-t{margin-top:0}
+  .dtl-d{font-size:12px}
+}
 
 /* faq */
 .faq{max-width:760px;margin:0 auto}
@@ -290,6 +367,11 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 .tl.on .tl-node:nth-child(2){transition-delay:.4s}
 .tl.on .tl-node:nth-child(3){transition-delay:.75s}
 
+/* 開發歷程時間軸刻意「不」做進場動畫:同一張卡下半已經有一支循環播放的
+   3D 動畫,上半再依序亮起會兩邊搶注意力。時間軸是讀者要停下來逐格讀的
+   靜態資訊,一開始就全部到位比較好讀。(原本的 .dtl-n 淡入規則已移除,
+   ../assets 的 observer 也不再觀察 .dtl) */
+
 @media(prefers-reduced-motion:reduce){
   .beamG,.gapG,.jitG,.flow{animation:none}
   .pyr svg polygon,.pyr svg text,.tl-node{opacity:1;transform:none;transition:none}
@@ -327,8 +409,28 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
    padding(其餘 section 維持 clamp(56,9vw,104) 的全頁節奏)。 */
 #method{padding:clamp(44px,5vw,56px) 0}
 #method .unit-head{margin-bottom:20px}
-/* 導言放寬到 640:同樣的字數少掉一行(560 寬會斷成三行) */
-#method .unit-lead{max-width:640px}
+/* #architecture 同理,而且更嚴格:這一節要能一個畫面看完(標題+導言+合併卡
+   共 681px),若沿用全頁的 clamp(56,9vw,104),光上下留白就吃掉兩百多 px,
+   從導覽列點進來會被切掉下緣。unit-head 的 32 也收成 24。 */
+#architecture{padding:clamp(36px,4vw,48px) 0}
+#architecture .unit-head{margin-bottom:24px}
+/* 從導覽列點進來時,全頁預設 scroll-margin-top:96 會讓內容從 156px 開始,
+   在 800 高的視窗剛好把卡片下緣切掉 31px。這裡收成 72 —— 被推到導覽列
+   底下的那 35px 全是 section 自己的留白,標題不會被蓋到。 */
+#architecture{scroll-margin-top:72px}
+/* 這三節的導言是四五行的敘事段落(其餘各節都在兩行內)。多行置中每行起點不齊,
+   眼睛回行要重新找開頭,所以這幾節改靠左 —— 標題與 tag 仍然置中。
+   寬度統一 640:560 會再多斷一行,再寬則每行超過 50 個中文字。
+   (#architecture 是後來加進來的:導言補上 V&V 的來歷與客訴那段之後變成五行;
+    #simulation 同理,補上感知模型、地圖與「先模擬再上路」的流程後也到五行) */
+#method .unit-lead,
+#influence .unit-lead,
+#architecture .unit-lead,
+#simulation .unit-lead{max-width:640px;text-align:left}
+/* 導言和下面那張圖中間疊了兩段間距(unit-head 的 32 + .ldemo 的 28 = 60),
+   中間空一大塊,讀起來像斷掉。這裡歸零,只留 .ldemo 自己的 28 —— 和 #method
+   的 20 差不多,兩節的節奏才一致。 */
+#influence .unit-head{margin-bottom:0}
 .povr{max-width:920px;margin:0 auto}
 /* 角色標示(人形 +「我」+「主導」籤)與上下兩截莖線、「功用」籤都拿掉了。
    理由是同一件事在這一段講了四次:導言的「我先把資料做完」、STEP 02 標題的
@@ -412,33 +514,24 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   <div class="in">
     <a href="#method" data-sec="method">方法論</a>
     <a href="#influence" data-sec="influence">影響力</a>
+    <a href="#safety" data-sec="safety">安全流程</a>
+    <a href="#simulation" data-sec="simulation">模擬環境</a>
     <a href="#root-cause" data-sec="root-cause">根因拆解</a>
-    <a href="#architecture" data-sec="architecture">系統架構</a>
+    <a href="#architecture" data-sec="architecture">C1 Bias 補償</a>
     <a href="#decision-1" data-sec="decision-1">決策① Lane Degrade</a>
     <a href="#decision-2" data-sec="decision-2">決策② 半徑公式</a>
-    <a href="#validation" data-sec="validation">驗證</a>
-    <a href="#simulation" data-sec="simulation">模擬環境</a>
-    <a href="#faq" data-sec="faq">FAQ</a>
     <a href="#reflection" data-sec="reflection">反思</a>
   </div>
 </nav>
 
-<!-- ===== 1. HERO ===== -->
-<section class="l1">
-  <div class="wrap l1-inner">
-    <div class="l1-role">用 <span class="grad">5 個步驟</span>，解決 <span class="grad">20+ 種複雜場景</span><br>的車道線感知問題</div>
-    <div class="l1-sub">感知不會完美——與其花千萬追求完美感知，我主導設計車道融合系統（LFS），在融合層把感知的不完美，收斂成 AEB／ACC／LFC／LCC 都能穩定依賴的<b>同一條車道線</b>。</div>
-  </div>
-</section>
-
-<!-- ===== 2.5 METHOD ===== -->
+<!-- ===== 1. METHOD ===== -->
 <section id="method">
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">METHOD · 一切的起點</div>
-        <div class="unit-title">這 20+ 種場景<br>不是想出來的，是跑出來的</div>
-        <p class="unit-lead">動手改任何一行融合邏輯之前，我先把資料做完：<b>100 km 連續路況、逐幀標註、統計成一把可重跑的尺</b>。這把尺用來量四家相機、定相機模型，不是拿來宣稱信心區間。後面每個案例，都掛在它的下游。</p>
+        <div class="unit-title">先跑 100 km 摸清 ADAS 相機性能<br>再改融合邏輯</div>
+        <p class="unit-lead">接到車道線融合這題，第一件事是搞清楚感知的極限在哪。我先拿手邊現有的數據做了一份小統計，確認值得投資源，才把實驗規劃寫成提案向主管報告。後續我主導 <b>100 km 連續路況實車測試</b>，協調驗證部門收數據、跑標準化標註流程。Mobileye EQ3/EQ4、Horizon J2/J3/J5、Stradvision，我們都用<b>同一套標準</b>驗證過。這批結果後來不只是軟體優化的依據，也做成模擬環境的相機模型，更回頭成為自研感知團隊的驗收標準。</p>
       </div>
 
       <!-- 總覽:先給三秒鐘讀得完的版本,細節在下面的 STEP 卡片 -->
@@ -509,39 +602,49 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   </div>
 </section>
 
-<!-- ===== 7. INFLUENCE ===== -->
-<section id="influence">
+<!-- ===== 2. INFLUENCE ===== -->
+<section class="band-alt" id="influence">
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">INFLUENCE · 標準與賦能</div>
-        <div class="unit-title">我制定的驗證方法<br>成了四家大廠的共同語言</div>
-        <p class="unit-lead">一個人能把系統做穩，是實力；能讓別人也照著你的方法做，才是影響力。車道線驗證，我做的不只是「驗過」，而是定出一套大家都能用的標準。</p>
+        <div class="unit-title">分析各感知器差異<br>據此制定感知對策</div>
+        <p class="unit-lead">規格書只寫標稱偵測距離，不會寫這顆相機在什麼條件下開始失效。<b>這部分沒有廠商會給</b>，我只能自己從 100 km 的資料裡分速域、分場景一段一段量，再把量到的規律<b>擬合成公式</b>。有了公式，融合層才有依據判斷什麼時候該信相機、什麼時候該切換。同一套方法我用在四家相機上，量出來的差異直接決定了各自的融合對策。</p>
       </div>
 
-      <!-- 這裡原本有 01 定標準 / 02 對接四大廠 / 03 賦能兩團隊 三張卡,拿掉了:
-           三張卡講的東西下面全都再講一次 —— 四家大廠有 .vtab 那張表(還多了
-           每一家我實際做的事),賦能兩團隊有後面那段 (1)(2)(3)。留著等於同一
-           段話說兩遍,而且它擋在導言和「量出來的差異」那張圖中間。 -->
+      <!-- 這一節原本在圖與圖說之後,還有四家大廠的 .vtab 表、「一個人能把
+           系統做穩…」那句、以及賦能三樣 (1)(2)(3)。全部拿掉了 —— 導言已經
+           講完「規律沒人給、我自己量、四家用同一套方法」,那些是同一件事
+           換句話再說一次。
+           西門子/DEKRA 那兩段與收尾金句也移走了,獨立成下一節 #safety ——
+           那講的是流程與稽核,和本節的「量測感知器差異」是兩個主題,
+           擠在同一節會讓讀者以為金句在總結這張相機比較圖。
+           現在這節只剩:導言 → 圖。 -->
 
       <!-- 「同一把尺」原本是一張概念圖(尺掃過四個廠商方塊),已移除 ——
            這張直接秀量出來的差異,而且差異指向對策,比概念圖有力 -->
       <div class="ldemo ldemo--cam">
         <iframe src="cam_compare.html" title="同一把尺，兩顆相機 — View Range 差異如何決定 Fusion 邏輯" loading="lazy"></iframe>
       </div>
-      <p class="ldemo-cap"><b>同一把尺，量四家相機——差別是真的量得出來的。</b>同一套統計方法換一顆相機重跑，兩條 View Range 曲線的形狀就不一樣——低速差 25 m、高速差 32 m，而形狀不同代表融合層要接的東西也不同。<b>評估一顆新相機要怎麼接，看這張圖就夠，不必等下一次路測。</b></p>
 
-      <table class="vtab">
-        <tr><th>大廠</th><th>角色</th><th>我做的事</th></tr>
-        <tr><td>Mobileye (J2)</td><td>最早基準</td><td>建立 baseline 與 VRE 公式</td></tr>
-        <tr><td>PCT (FIH)</td><td>承接方法</td><td>5 輪驗測、逐一排查 DBC 映射</td></tr>
-        <tr><td>Stradvision (SV)</td><td>新相機對比</td><td>以 J2/PCT 為基線量化差異</td></tr>
-        <tr><td>Horizon Robotics</td><td>新創供應商</td><td>回饋評測方法與失效案例，支援其車道偵測演算法研發</td></tr>
-      </table>
+    </div>
+  </div>
+</section>
 
-      <p class="p-narr" style="margin-top:24px">賦能的具體內容是三樣：<b>(1)</b> 可重複的驗證方法與 KPI 定義，讓他們知道「做到什麼程度才算好」；<b>(2)</b> 我踩過的坑（DBC 映射、近距盲區、鄰道護欄誤判），讓他們少走冤枉路；<b>(3)</b> 設計階段的技術對焦，一起確認輸出能符合下游融合要求。</p>
+<!-- ===== 3. SAFETY PROCESS =====
+     原本是 INFLUENCE 的後半段。獨立出來是因為它跟前一節不是同一件事:
+     前一節講「怎麼量出四家相機的差異」,這一節講「怎麼把東西交得出去」——
+     稽核、標準、流程。共用一節時,結尾那句金句會被讀成在總結相機比較圖。 -->
+<section id="safety">
+  <div class="wrap">
+    <div class="unit">
+      <div class="unit-head">
+        <div class="unit-tag">SAFETY PROCESS · 稽核與交付</div>
+        <div class="unit-title">演算法跑得動<br>不等於交得出去</div>
+        <p class="unit-lead">演算法能不能跑，我自己驗得出來；<b>能不能交到別人手上，得照工業標準的規矩走</b>。西門子聯合驗證與德凱 ISO 26262／ASPICE 稽核，是我把「會做」練成「交得出去」的兩段訓練。</p>
+      </div>
 
-      <p class="p-narr" style="margin-top:16px">這種對外協作與交付能力不是一夕養成的。<b>最早與西門子聯合驗證 LFS、依 MAAB 工業標準重構交付</b>時，就打下了底子——那時我學到的不只是演算法，而是「如何把內部原型，變成別人信得過、接得住的交付物」。這套流程涵蓋 LFS 與 OFS 兩個系統，我負責的是 LFS，實際參與了 ASIL 分解、FMEA 與安全需求追溯。</p>
+      <p class="p-narr" style="margin-top:24px"><b>最早與西門子聯合驗證 LFS、依 MAAB 工業標準重構交付</b>時，就打下了底子——那時我學到的不只是演算法，而是「如何把內部原型，變成別人信得過、接得住的交付物」。這套流程涵蓋 LFS 與 OFS 兩個系統，我負責的是 LFS，實際參與了 ASIL 分解、FMEA 與安全需求追溯。</p>
 
       <p class="p-narr" style="margin-top:16px">後續，我們 ADAS 團隊也在另一階段整體通過德凱（DEKRA）的 ISO 26262 / ASPICE 認證，我個人另外完成官方 80 小時培訓。<b>這兩段經驗，讓我對安全流程的理解，從「自己執行、被稽核」延伸到「團隊層級的稽核與標準內化」——這也是我後來能定出驗證方法、讓四家大廠與兩個團隊都能照著做的底氣來源。</b></p>
 
@@ -550,7 +653,29 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   </div>
 </section>
 
-<section class="band-alt" id="root-cause">
+<!-- ===== 4. SIMULATION =====
+     這一節原本排在 VALIDATION 之後(舊編號 6.5),移到這裡是因為它和 METHOD、
+     INFLUENCE 是同一件事的三個階段:METHOD 收 100 km 的資料、INFLUENCE 把資料
+     擬合成相機模型、SIMULATION 拿那個模型把路測變成可重跑的測資。這三節連著
+     讀,後面的每個案例才有共同的地基;夾在驗證後面等於把地基放到最後才交代。 -->
+<section class="band-alt" id="simulation">
+  <div class="wrap">
+    <div class="unit">
+      <div class="unit-head">
+        <div class="unit-tag">SIMULATION · 基礎設施</div>
+        <div class="unit-title">難複現的問題<br>變成可重跑的測資</div>
+        <p class="unit-lead">實車路測最難處理的不是問題本身，是<b>它只發生那一次</b>。改完演算法想確認問題有沒有對策掉，得再開一次車、還要剛好碰上同樣的路況，這非常耗時，也耗成本。我用 Mini-FOT 累積的資料建了一套<b>相機感知模型</b>，再用真實數據產生對應的道路場景，把「重新開到那段路上測一次」換成「再跑一次腳本」：<b>先在模擬裡確認問題解掉了，才實際到該路段驗證</b>，省下無效的來回車程。</p>
+      </div>
+
+      <div class="ldemo ldemo--tall" style="margin-top:26px">
+        <iframe src="sim_env.html" title="資料驅動的車道線模擬環境 — 相機模型、道路模型與場景合成" loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 5. ROOT CAUSE ===== -->
+<section id="root-cause">
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
@@ -635,100 +760,110 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
         </svg>
         <p class="svgcap">側向表現看似三個獨立現象，往下追都收斂到具體根因：<b>現象①（方向盤左右甩動）</b>來自 1.1 車道線尾端不穩與 1.2 軌跡銜接不平滑；<b>現象②（汽車偏邊行駛）</b>來自 2.1 車輛參數不夠精準與 2.2 車道線 C1 bias；<b>現象③（車道線缺失）</b>來自 3.1 路口／隧道短暫失明、3.2 前車／護欄遮擋與 3.3 新舊線交替跳動。</p>
       </div>
-
-      <p class="p-narr" style="margin-top:24px;text-align:center">這不是「哪個功能沒寫好」，而是<b>我們把四個安全功能，直接接到了一個不確定的外部世界上</b>。光是 J2 相機，我就記錄了五類實際路測問題：路緣石遮蔽左線、大貨車切入拉歪右線、S 形彎道擬合不出、上下坡未補正、新舊線跳動。</p>
-
-      <p class="p-mid">面對這個不確定的外部世界，我沒有一次解完——<span class="grad">先用一套三柱架構把系統撐起來，再用兩個關鍵決策拆掉最痛的單點。</span></p>
-
-      <div class="rmap">
-        <div class="rmap-n arch"><div class="k">架構 ①</div><div class="t">三柱系統</div><div class="d">補償偏差 · 接管缺失<br>交叉驗證誤判</div></div>
-        <div class="rmap-a">→</div>
-        <div class="rmap-n"><div class="k">決策 ②</div><div class="t">Lane Degrade</div><div class="d">受控降階，治「不穩」<br>省下千萬級重訓</div></div>
-        <div class="rmap-a">→</div>
-        <div class="rmap-n"><div class="k">決策 ③</div><div class="t">半徑封閉解</div><div class="d">修正公式，治「算錯」<br>成為量產標準</div></div>
-      </div>
     </div>
   </div>
 </section>
 
-<!-- ===== 3. SYSTEM DEPTH ===== -->
-<section id="architecture">
+<!-- ===== 6. SYSTEM DEPTH ===== -->
+<section class="band-alt" id="architecture">
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-tag">ARCHITECTURE · 核心</div>
-        <div class="unit-title">一套穩定的車道線<br>養活四個功能</div>
-        <p class="unit-lead">三類問題，對上三根柱子。真正難的不是解掉一個個案例，而是把它們撐成一個系統——讓 AEB、ACC、LFC、LCC 都直接信任同一條車道線，不必各自為不同場景重新調校。</p>
+        <!-- 這節原本掛「ARCHITECTURE · 核心 / 一套穩定的車道線養活四個功能」,
+             講的是三柱架構。柱子一深度那段移除後,整節只剩 C1 Bias 這條線,
+             標題再談三根柱子就對不上內容,所以改成 C1 Bias 自己的題目。
+             (根因章那兩句「三柱架構」的預告先維持原樣) -->
+        <div class="unit-tag">OWNERSHIP · 自己找的題目</div>
+        <div class="unit-title">從驗證的工具<br>轉變為量產的策略</div>
+        <p class="unit-lead">ADAS 相機輸出的車道線，<b>只要校正不確實就會帶著偏差</b>。2022 年一次搭車途中我想到：本車已經走過的軌跡，本身就是一把現成的尺——拿它回頭比對相機當下看到的車道線，偏得多少就量得出來。這支腳本原本是用來判斷 V&amp;V Team 校正相機是否確實，估測的偏差精準，所以主管建議<b>2024 年直接上了量產車</b>，成為相機車道線的即時補償，系統穩定性大幅提升，<b>此後也未再收到廠商車道偏差導致的客訴</b>。</p>
       </div>
 
-      <!-- 柱子一深度故事 -->
-      <div class="blk" style="margin-top:38px">
-        <div class="eb">柱子一深度 · 量產前的最後一哩路</div>
-        <p class="p-narr">量產前的最後一哩路，理論上該是最平靜的階段——規格凍結、產線流程也驗證過了。但我在做 Pre-Production 車輛下線覆核時注意到：這些車明明通過了 EOL 標準校正，橫向控制卻仍有些微飄移。</p>
-        <p class="p-narr" style="margin-top:14px">大部分人看到「已通過校正」的車還有問題，第一直覺是懷疑個別工站出錯。我選擇先把資料攤開來看——結果發現這不是某一站的異常，是校正流程本身的殘餘誤差疊加 ONL 現場刷寫失敗率，系統性地存在。也就是說，就算把產線校正做到工藝極限，車輛出廠仍會帶著一定機率的殘餘偏移上路。</p>
+      <!-- 開發歷程:這條線講的是「它怎麼來的」—— 從 2022 通勤路上的一個觀察,
+           到 2024 變成每台車都在跑的模組;下面的動畫接著演「補償後長什麼樣」。
+           先來歷、後實測,所以時間軸排在動畫上面。 -->
+      <div class="dtl">
+        <div class="eb">開發歷程 · 從通勤觀察到量產標配</div>
+        <div class="dtl-track">
 
-        <div class="svgcard" style="margin-top:24px;max-width:640px">
-          <svg viewBox="0 0 620 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="決策岔路：加嚴產線校正 vs 軟體即時閉環修正">
-            <defs>
-              <linearGradient id="forkg" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#0a84ff"/>
-                <stop offset=".5" stop-color="#0071e3"/>
-                <stop offset="1" stop-color="#28c6e8"/>
-              </linearGradient>
-            </defs>
+          <div class="dtl-n">
+            <div class="dtl-yr">2022</div>
+            <div class="dtl-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="9.8" r="5.4"/>
+                <path d="M9.6 15.6v2.2h4.8v-2.2M10.2 20.3h3.6"/>
+                <path d="M12 1.6v1.4M4.6 5.1 5.6 6.1M19.4 5.1 18.4 6.1M2.5 12h1.4M20.1 12h1.4"/>
+              </svg>
+            </div>
+            <div class="dtl-t">靈感發想</div>
+            <div class="dtl-d">日常通勤途中，注意到車道線偏移與校正問題。</div>
+          </div>
 
-            <path d="M126,105 C170,105 175,40 220,40" fill="none" stroke="#8a8a8f" stroke-width="2" opacity=".5"/>
-            <path d="M126,105 C170,105 175,170 220,170" fill="none" stroke="#0071e3" stroke-width="2.4" opacity=".7"/>
+          <!-- 「完成開發」與「驗證有效」併成這一格。圖示留放大鏡+波形(檢測訊號),
+               比原本的 </> 更貼近「驗證工具」這個定位 -->
+          <div class="dtl-n">
+            <div class="dtl-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="10.6" cy="10.6" r="6.4"/><path d="M15.3 15.3 20.6 20.6"/>
+                <path d="M7 10.6h1.7l1.3-2.6 1.7 4.4 1.1-1.8h1.6"/>
+              </svg>
+            </div>
+            <div class="dtl-t">作為校正即時驗證工具</div>
+            <div class="dtl-d">作為 V&amp;V Team 校正後的即時驗證工具，驗證精確度受肯定。</div>
+          </div>
 
-            <rect x="16" y="79" width="110" height="52" rx="14" fill="url(#forkg)"/>
-            <text x="71" y="101" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">抉擇點</text>
-            <text x="71" y="118" text-anchor="middle" font-size="9" fill="#fff" opacity=".85">系統性殘留偏移</text>
+          <div class="dtl-n">
+            <div class="dtl-yr">2024</div>
+            <div class="dtl-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3.2 15.2v-2.6l2-4.4a1.9 1.9 0 0 1 1.7-1.1h10.2a1.9 1.9 0 0 1 1.7 1.1l2 4.4v2.6"/>
+                <path d="M3.2 15.2h17.6M5.2 12.6h13.6"/>
+                <circle cx="7.6" cy="16.9" r="1.7"/><circle cx="16.4" cy="16.9" r="1.7"/>
+              </svg>
+            </div>
+            <div class="dtl-t">導入量產車</div>
+            <div class="dtl-d">以即時相機車道補償模組的形式部署上車。</div>
+          </div>
 
-            <rect x="220" y="12" width="384" height="56" rx="14" fill="#f5f5f7" stroke="#d2d2d7" stroke-width="1.2"/>
-            <circle cx="246" cy="40" r="11" fill="#8a8a8f"/>
-            <text x="246" y="44.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">✕</text>
-            <text x="268" y="34" font-size="13" font-weight="700" fill="#6e6e73">加嚴產線校正／供應商重新校正</text>
-            <text x="268" y="52" font-size="10.5" fill="#8a8a8f">產線改造・時程延誤・SOP 保不住</text>
+          <div class="dtl-n">
+            <div class="dtl-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2.8" y="5.2" width="18.4" height="13.6" rx="3.2"/>
+                <path d="M6.2 12h2.3l1.5-3.4 2.5 6.8 1.5-3.4h2.3"/>
+              </svg>
+            </div>
+            <div class="dtl-t">即時補償</div>
+            <div class="dtl-d">實際行駛中線上估算並補償車道偏差。</div>
+          </div>
 
-            <rect x="220" y="142" width="384" height="56" rx="14" fill="#eef4ff" stroke="#0071e3" stroke-width="1.6"/>
-            <circle cx="246" cy="170" r="11" fill="#0a8a5c"/>
-            <text x="246" y="174.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">✓</text>
-            <text x="268" y="164" font-size="13" font-weight="700" fill="#0071e3">軟體即時閉環修正（我的選擇）</text>
-            <text x="268" y="182" font-size="10.5" fill="#0071e3" opacity=".8">不修硬體・車輛行駛中自我修正</text>
-          </svg>
-          <p class="svgcap">問題的根不在「校得準不準」，而在「校正這件事本身有極限」——往產線加更多人力設備治標不治本，我選擇讓車輛能在行駛中自己持續修正。</p>
+          <div class="dtl-n">
+            <div class="dtl-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3.6 20.4h16.8"/>
+                <rect x="5.4" y="13.6" width="3.2" height="6.8" rx="1"/>
+                <rect x="10.4" y="10.2" width="3.2" height="10.2" rx="1"/>
+                <rect x="15.4" y="6.4" width="3.2" height="14" rx="1"/>
+              </svg>
+            </div>
+            <div class="dtl-t">量產穩定性提升</div>
+            <div class="dtl-d">車道線偵測穩定性與系統整體強健性顯著提升。</div>
+          </div>
+
         </div>
 
-        <p class="p-narr" style="margin-top:24px">我設計的 <b>C1 Bias 閉迴路補償</b>，用四道關卡確保系統只學真的偏差、不學錯、也不暴衝：</p>
-
-        <div class="rmap" style="margin-top:18px;max-width:820px;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr">
-          <div class="rmap-n"><div class="k">關卡 1</div><div class="t">六道門檻</div><div class="d">只在理想直線<br>穩定車速才學習</div></div>
-          <div class="rmap-a">→</div>
-          <div class="rmap-n"><div class="k">關卡 2</div><div class="t">Rate Limit</div><div class="d">限制修正速率<br>不暴衝</div></div>
-          <div class="rmap-a">→</div>
-          <div class="rmap-n"><div class="k">關卡 3</div><div class="t">積分 Integration</div><div class="d">平滑收斂<br>不受單筆雜訊干擾</div></div>
-          <div class="rmap-a">→</div>
-          <div class="rmap-n arch"><div class="k">關卡 4</div><div class="t">Fault Diagnosis</div><div class="d">確認無異常<br>才真正輸出</div></div>
-        </div>
-
-        <div class="rc-result" style="margin-top:24px">
-          <div class="rc-chip">EOL 殘留角度 0.77°</div>
-          <div class="rc-chip">三階段量產落地</div>
-          <div class="rc-chip rc-chip--main">CIL 5cm 修正率 86.81%</div>
+        <!-- 動畫收進同一張卡(原本是卡外一個獨立的 .ldemo) -->
+        <div class="dtl-demo">
+          <iframe src="c1_bias_corrected_light.html" title="C1 Bias 閉迴路補償實測動畫" loading="lazy"></iframe>
         </div>
       </div>
-
-      <div class="ldemo" style="margin-top:26px">
-        <iframe src="c1_bias_corrected_light.html" title="C1 Bias 閉迴路補償實測動畫" loading="lazy"></iframe>
-      </div>
-      <p class="ldemo-cap"><b>柱子一實測</b>：相機裝歪造成的橫向偏移，經 <b>C1 Bias 閉迴路補償</b>後被拉回車道中心——這套機制最終分三階段落地，成為每一台車出廠後都在跑的標準能力，不再靠產線一次性校準賭運氣。</p>
-
-      <p class="p-mid">三根柱子撐起的，就是第 1 章說的那條——<span class="grad">四個功能免調校、直接能用的穩定車道線。</span>下面兩章，是柱子一與柱子二背後最關鍵的兩個決策。</p>
+      <!-- 動畫的 .ldemo-cap 圖說與收尾的 .p-mid 都移除了。圖說講的三階段落地、
+           產線一次性校準,以及收尾那句「三根柱子…柱子一與柱子二」,都是柱子一
+           深度那段留下的說法,那段內容已經不在這一節。導言現在自己把故事講完,
+           動畫直接收尾。 -->
     </div>
   </div>
 </section>
 
-<!-- ===== 4. LANE DEGRADE ===== -->
+<!-- ===== 7. LANE DEGRADE ===== -->
 <section id="decision-1">
   <div class="wrap">
     <div class="unit">
@@ -763,17 +898,124 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 
       <p class="p-narr" style="margin-top:24px">這不是免費的——降階時我確實放棄了高階曲率的精度。但關鍵判斷是：<b>在感知本來就不可靠的那一刻，高階係數本來就是雜訊，放棄它反而更安全。</b> 我用實車 log 交叉比對，確認降階後的車道線行為，與供應商重訓要達到的目標一致。</p>
 
-      <div class="ldemo" style="margin-top:26px">
-        <iframe src="follow_gap_10m_light.html" title="跟車情境 前車距離 10m 實測動畫" loading="lazy"></iframe>
+      <!-- 決策流程 + 動畫,合成一張卡(排版比照 #architecture 與 #decision-2)。
+           02 那格底下掛一個琥珀色的代價標註,把「不走這條路」的理由當場秀出來。 -->
+      <div class="dtl" style="margin-top:26px">
+        <div class="eb">Lane Degrade · 從報價單到幾行數學</div>
+        <div class="dtl-track dtl-track--6">
+
+          <div class="dtl-n">
+            <div class="dtl-yr">01</div>
+            <div class="dtl-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="10.8" cy="10.8" r="6.6"/><path d="M15.6 15.6 20.8 20.8"/>
+              </svg>
+            </div>
+            <div class="dtl-t">問題發現</div>
+          </div>
+
+          <div class="dtl-n">
+            <div class="dtl-yr">02</div>
+            <div class="dtl-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M9 4.4H7.2A1.6 1.6 0 0 0 5.6 6v12.8a1.6 1.6 0 0 0 1.6 1.6h9.6a1.6 1.6 0 0 0 1.6-1.6V6a1.6 1.6 0 0 0-1.6-1.6H15"/>
+                <rect x="9" y="2.6" width="6" height="3.6" rx="1"/>
+                <path d="M8.8 11.4h6.4M8.8 14.8h4.4"/>
+              </svg>
+            </div>
+            <div class="dtl-t">正規解法：重訓感知模型</div>
+            <div class="dtl-note">
+              <div class="dtl-note-r">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="8" cy="8" r="6.4"/>
+                  <path d="M8 4.1v7.8M10 5.8H7.1a1.35 1.35 0 0 0 0 2.7h1.8a1.35 1.35 0 0 1 0 2.7H6"/>
+                </svg>
+                <span>USD 470–625K</span>
+              </div>
+              <div class="dtl-note-r">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4.4 2.2h7.2M4.4 13.8h7.2"/>
+                  <path d="M5.4 2.2v2.3L8 7.2l2.6-2.7V2.2M5.4 13.8v-2.3L8 8.8l2.6 2.7v2.3"/>
+                </svg>
+                <span>需要數個月時程</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dtl-n">
+            <div class="dtl-yr">03</div>
+            <div class="dtl-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="9.8" r="5.4"/>
+                <path d="M9.6 15.6v2.2h4.8v-2.2M10.2 20.3h3.6"/>
+                <path d="M12 1.6v1.4M4.6 5.1 5.6 6.1M19.4 5.1 18.4 6.1M2.5 12h1.4M20.1 12h1.4"/>
+              </svg>
+            </div>
+            <div class="dtl-t">重新思考：我們真正需要的是？</div>
+          </div>
+
+          <div class="dtl-n">
+            <div class="dtl-yr">04</div>
+            <div class="dtl-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="6.2"/><circle cx="12" cy="12" r="2.5"/>
+                <path d="M12 2.6v2.6M12 18.8v2.6M21.4 12h-2.6M5.2 12H2.6M18.6 5.4 16.8 7.2M7.2 16.8l-1.8 1.8M18.6 18.6 16.8 16.8M7.2 7.2 5.4 5.4"/>
+              </svg>
+            </div>
+            <div class="dtl-t">我的解法：在融合層動手</div>
+            <div class="dtl-note dtl-note--ok">
+              <div class="dtl-note-r">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="8" cy="8" r="6.4"/>
+                  <path d="M8 4.1v7.8M10 5.8H7.1a1.35 1.35 0 0 0 0 2.7h1.8a1.35 1.35 0 0 1 0 2.7H6"/>
+                </svg>
+                <span>USD 0</span>
+              </div>
+              <div class="dtl-note-r">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4.4 2.2h7.2M4.4 13.8h7.2"/>
+                  <path d="M5.4 2.2v2.3L8 7.2l2.6-2.7V2.2M5.4 13.8v-2.3L8 8.8l2.6 2.7v2.3"/>
+                </svg>
+                <span>僅需 1 週的測試</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dtl-n">
+            <div class="dtl-yr">05</div>
+            <div class="dtl-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3.6 20h16.8"/>
+                <path d="M4.8 16.6 9.6 11.4l3.4 3 5.4-6.2"/>
+                <path d="M14.8 8.2h3.6v3.6"/>
+              </svg>
+            </div>
+            <div class="dtl-t">驗證效果</div>
+          </div>
+
+          <div class="dtl-n">
+            <div class="dtl-yr">06</div>
+            <div class="dtl-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.8"/><circle cx="12" cy="12" r="1.3"/>
+              </svg>
+            </div>
+            <div class="dtl-t">成果與導入</div>
+          </div>
+
+        </div>
+
+        <div class="dtl-demo dtl-demo--mid">
+          <iframe src="follow_gap_10m_light.html" title="跟車情境 前車距離 10m 實測動畫" loading="lazy"></iframe>
+        </div>
       </div>
-      <p class="ldemo-cap"><b>成果實測 · 跟車（ACC／LFC）</b>：EGO 與前車吃的是<b>同一條 Lane Degrade 降階後的穩定車道線</b>，10m 近距跟車時兩車都穩穩貼齊車道中心——不必為跟車場景另外調校，行為與供應商重訓目標一致。</p>
 
       <p class="gold">最貴的解法通常最直覺；但問對問題，往往能用最便宜的方式拿到一樣的結果。</p>
     </div>
   </div>
 </section>
 
-<!-- ===== 5. RADIUS FORMULA ===== -->
+<!-- ===== 8. RADIUS FORMULA ===== -->
 <section class="band-alt" id="decision-2">
   <div class="wrap">
     <div class="unit">
@@ -785,39 +1027,80 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
         <p class="unit-lead">全團隊用了多年的半徑公式，在車道有夾角時其實系統性算錯——<b>看下面橘線怎麼亂跳</b>。這不是我被分配的任務，但我沒放過它。</p>
       </div>
 
-      <!-- HERO 動畫（一進來就在動） -->
-      <div class="ldemo" style="margin-top:26px">
-        <iframe src="lka_radius_compare_light.html" title="LKA 半徑估測實測動畫" loading="lazy"></iframe>
-      </div>
-      <p class="ldemo-cap"><b>橘線</b>＝舊公式，偏航一變大就低估半徑（最大 <b>25m</b> 誤差）；<b>藍線</b>＝新封閉解，不論偏航多大都穩定貼住真實 180m。</p>
+      <!-- 流程時間軸 + 動畫,合成一張卡(排版比照 #architecture 的開發歷程卡)。
+           原流程有 7 格,依指示拿掉「問題回報與確認」與「效果與價值」兩格,
+           剩下的重新編號成 01–05(留 01,02,04,05,06 的跳號會看起來像漏排)。 -->
+      <div class="dtl" style="margin-top:26px">
+        <div class="eb">道路半徑公式 · 問題發現與優化流程</div>
+        <div class="dtl-track">
 
-      <!-- 根因與解法（舊 vs 新 對照） -->
-      <div class="blk">
-        <div class="eb">根因與解法 · 被忘記的分母</div>
-        <p class="line">車與車道有夾角 <b>C₁</b> 時，舊式把 C₁ 當成 0 就出錯——補回那項分母即可。</p>
-        <div class="cmp">
-          <div class="cmp-col cmp--old">
-            <div class="cmp-k">產業界常用算法</div>
-            <div class="cmp-eq"><span class="eqn eqn--old">R =<span class="frac struck"><span class="num">1</span><span class="den">2·C₂</span></span></span></div>
-            <div class="cmp-tag">低估 25m ↓</div>
+          <div class="dtl-n">
+            <div class="dtl-yr">01</div>
+            <div class="dtl-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="8.6"/><path d="M12 6.8V12l3.4 2"/>
+              </svg>
+            </div>
+            <div class="dtl-t">長期使用</div>
+            <div class="dtl-d">道路半徑公式已使用多年，在各種場景下運作穩定，未曾出現明顯問題。</div>
           </div>
-          <div class="cmp-mid"><b>→</b><span>補回分母</span></div>
-          <div class="cmp-col cmp--new">
-            <div class="cmp-k">我推導的正解</div>
-            <div class="cmp-eq"><span class="eqn eqn--new">R =<span class="frac"><span class="num"><span class="hl">(1+C₁²)<sup>3/2</sup></span></span><span class="den">2·|C₂|</span></span></span></div>
-            <div class="cmp-tag">貼住真值 ✓</div>
-          </div>
-        </div>
-      </div>
 
-      <!-- 成果 -->
-      <div class="blk">
-        <div class="eb">成果</div>
-        <div class="rc-result">
-          <div class="rc-chip rc-chip--main">✓ 已成為 LKA 所有半徑閘控與前饋邏輯的量產標準</div>
+          <div class="dtl-n">
+            <div class="dtl-yr">02</div>
+            <div class="dtl-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3.4 4.6v14.8M20.6 4.6v14.8"/>
+                <path d="M7.6 14.2v-1.6l1.1-2.5a1.4 1.4 0 0 1 1.3-.8h4a1.4 1.4 0 0 1 1.3.8l1.1 2.5v1.6"/>
+                <path d="M7.6 14.2h8.8"/>
+                <circle cx="9.7" cy="15.2" r="1.1"/><circle cx="14.3" cy="15.2" r="1.1"/>
+              </svg>
+            </div>
+            <div class="dtl-t">LKA 測試發現問題</div>
+            <div class="dtl-d">在 LKA 測試中發現，當車道線夾角較大時，道路半徑誤差會隨之變大，影響系統表現。</div>
+          </div>
+
+          <div class="dtl-n">
+            <div class="dtl-yr">03</div>
+            <div class="dtl-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="10.8" cy="10.8" r="6.6"/><path d="M15.6 15.6 20.8 20.8"/>
+                <path d="M8.1 10.8a2.7 2.7 0 1 0 5.4 0 2.7 2.7 0 1 0-5.4 0"/>
+              </svg>
+            </div>
+            <div class="dtl-t">根因分析與驗證</div>
+            <div class="dtl-d">查找相關資料，並以三點畫圓等方式驗證原公式的誤差來源，確認問題在大夾角時更明顯。</div>
+          </div>
+
+          <div class="dtl-n">
+            <div class="dtl-yr">04</div>
+            <div class="dtl-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 20h4.2L19.4 8.8a2 2 0 0 0 0-2.8l-1.4-1.4a2 2 0 0 0-2.8 0L4 15.8V20Z"/>
+                <path d="M14.6 6.4 17.6 9.4"/>
+              </svg>
+            </div>
+            <div class="dtl-t">修正公式並驗證</div>
+            <div class="dtl-d">修正道路半徑計算公式，並以大量場景與實車數據驗證，確保誤差大幅降低。</div>
+          </div>
+
+          <div class="dtl-n">
+            <div class="dtl-yr">05</div>
+            <div class="dtl-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="9" cy="9.4" r="2.9"/>
+                <path d="M3.6 18.6c0-2.7 2.4-4.6 5.4-4.6s5.4 1.9 5.4 4.6"/>
+                <circle cx="16.9" cy="10.5" r="2.2"/>
+                <path d="M15.2 14.4c.5-.2 1.1-.3 1.7-.3 2.3 0 3.7 1.5 3.7 3.5"/>
+              </svg>
+            </div>
+            <div class="dtl-t">推廣與導入</div>
+            <div class="dtl-d">將修正後公式整合至共用模組，並導入所有 ADAS 功能，確保一致性與穩定性。</div>
+          </div>
+
         </div>
-        <div class="detwrap">
-          <details><summary>延伸：同樣「精度夠、成本近零」的判斷</summary><div class="a">在 Kalman 車道線濾波上，我沒盲信 Siemens 預設協方差，而是讓前瞻距離隨車速動態調整（City 縮短、Highway 拉長），用最小改動讓所有場景都優於固定值。</div></details>
+
+        <div class="dtl-demo dtl-demo--tall">
+          <iframe src="lka_radius_compare_light.html" title="LKA 半徑估測實測動畫" loading="lazy"></iframe>
         </div>
       </div>
 
@@ -826,100 +1109,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
         <p class="gold--hero">這條公式存在太久，久到沒人再懷疑它。是我選擇不放過那個跳動的數字，才發現我們所有人都忘了那個分母。</p>
       </div>
 
-    </div>
-  </div>
-</section>
-
-<!-- ===== 6. VALIDATION ===== -->
-<section class="band-alt" id="validation">
-  <div class="wrap">
-    <div class="unit">
-      <div class="unit-head">
-        <div class="unit-tag">VALIDATION · 驗證</div>
-        <div class="unit-title">穩定不是形容詞<br>是驗出來的結果</div>
-        <p class="unit-lead">四層驗證、深圳→上海 1,600 km Mini-FOT 實路資料、70°C 極端環境——LFS 的「穩」，不是我說的，是每一層驗證留下的證據說的。</p>
-      </div>
-
-      <div class="pyr" style="margin-top:36px">
-        <svg width="200" height="150" viewBox="0 0 200 150" role="img" aria-label="V&V 四層金字塔">
-          <polygon points="100,10 130,50 70,50" fill="#0071e3"/>
-          <polygon points="65,56 135,56 155,96 45,96" fill="#28c6e8" opacity="0.85"/>
-          <polygon points="40,102 160,102 175,140 25,140" fill="#93c5fd" opacity="0.8"/>
-          <text x="100" y="38" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">Road</text>
-          <text x="100" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">CIL / HIL</text>
-          <text x="100" y="126" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">MIL</text>
-        </svg>
-        <div class="pyr-tags">
-          <div class="pyr-tag"><b>四層驗證</b>　MIL→CIL→HIL→Road，每層都真的走完</div>
-          <div class="pyr-tag"><b>1600 km</b>　Mini-FOT 深圳→上海，LFS 為主要橫向演算法</div>
-          <div class="pyr-tag"><b>流程可追溯</b>　需求 → 實作 → 驗證全程留痕，依 ASPICE 精神管理</div>
-          <div class="pyr-tag"><b>極端環境</b>　驗證做到中國新疆沙漠 ↓</div>
-        </div>
-      </div>
-
-      <div class="turpan">
-        <div class="turpan-big">70°C</div>
-        <div class="turpan-lbl">吐魯番地表溫度實車驗測</div>
-        <div class="turpan-desc">熱浪讓遠處車道線扭曲、正午強光讓白線過曝、ECU 面臨降頻。車道線演算法要能在這種極端條件下不崩，才敢說它穩定。</div>
-      </div>
-
-      <div class="detwrap">
-        <details><summary>C1 Bias 估算的六個門檻</summary><div class="a">Vx=0 初始化確認、感測器 OK、車速 &gt;60kph、車道半徑 &gt;2500m（確保直線）、View Range &gt;40m、Yaw &lt;0.5°。六條全滿足才更新，確保只在最理想條件學偏差。</div></details>
-        <details><summary>感測器失效矩陣 &amp; 不盲從前車</summary><div class="a">用 Camera/Radar 四種組合窮舉每種降級行為；並設計前車偏置測試，確保系統不盲目跟隨偏移前車（跟隨偏移 &lt;30%），永遠以車道線為主基準。</div></details>
-        <details><summary>量化嚴謹：KPI 與 Ground Truth</summary><div class="a">Lane Valid Rate &gt;97%、車道品質分四級管理；以 Robosense Lidar 當 Ground Truth 反向量化相機距離-誤差特性；Free Space 三步驟降維（64 不等距點→100 等距點）供 AEB 直接查詢可行駛距離。</div></details>
-      </div>
-
-      <p class="p-mid">但四層驗證有一個前提——<span class="grad">你得先能把問題重現出來。</span></p>
-    </div>
-  </div>
-</section>
-
-<!-- ===== 6.5 SIMULATION ===== -->
-<section id="simulation">
-  <div class="wrap">
-    <div class="unit">
-      <div class="unit-head">
-        <div class="unit-tag">SIMULATION · 基礎設施</div>
-        <div class="unit-title">難複現的問題<br>變成可重跑的測資</div>
-        <p class="unit-lead">實車路測最難處理的不是問題本身，是<b>它只發生那一次</b>。改完演算法想確認有沒有變好，得再開一次車、還要剛好碰上同樣的路況。我用 Mini-FOT 累積的資料建了一套模擬環境，把「再開一次車」換成「再跑一次腳本」。</p>
-      </div>
-
-      <div class="ldemo ldemo--tall" style="margin-top:26px">
-        <iframe src="sim_env.html" title="資料驅動的車道線模擬環境 — 相機模型、道路模型與場景合成" loading="lazy"></iframe>
-      </div>
-      <p class="ldemo-cap"><b>前三格建環境，第四格才是拿它做事</b>：相機模型決定車道線「看得到多遠、錯得像不像真的」，場景記錄提供真實的路型與車流軌跡，兩者到位才有資格合成沒發生過的情境——而這一切的用途，是改完程式碼之後能立刻重跑比對。</p>
-
-      <div class="p-narr" style="margin-top:26px">
-        <p class="p-narr">關鍵在第一層。從 CAN log 錄下車道線係數與物件的位置、速度不難，難的是<b>讓模擬出來的車道線「錯得跟真的一樣」</b>。這一層的參數不是設出來的，是<a href="#method">開頭 METHOD 章 STEP 03 那三張切面的最後一張</a>直接接過來的：<b>有效視野距離與車速的關係</b>——低速穩定在一個定值，約 40 kph 之後隨車速線性成長，上下界明確。這條分段折線就是相機模型，模擬時車道線該在多遠開始不可信由它決定。</p>
-        <p class="p-narr" style="margin-top:14px">這也是為什麼那 100 km 的統計要先做完。<b>先有感知驗證，才有可信的感知模擬</b>——沒有量過這顆相機，模擬出來的只是我對它的想像。</p>
-        <p class="p-narr" style="margin-top:14px">第二層是把跑過的路整段記錄下來：<b>四條車道線的起點（<code>C0</code>）與所有物件的位置，逐幀累積</b>，畫在以本車為原點的座標上——縱軸是縱向距離，負值代表已經開過的路。開得越久，尾巴越長；過彎時整條尾巴會相對現在的車頭甩出去。</p>
-        <p class="p-narr" style="margin-top:14px">要讓這條尾巴是平滑的、而不是波浪狀，有一步不能少：<b><code>C0</code> 量的是「車道線相對本車」</b>，本車在車道內左右晃時記錄到的值就跟著擺，必須用<b>本車動態把自身的晃動扣掉</b>才能對齊到世界座標。這跟融合層做的是同一件事——車道線偵測必須和本車動態一起看，單獨看任何一邊都不夠。</p>
-        <p class="p-narr" style="margin-top:14px">物件的黑點軌跡還有一個附帶好處：<b>前車實際走過的路，和車道線推出來的路會疊在一起</b>。兩個獨立來源互相印證，記錄有沒有歪掉一眼就看得出來。</p>
-        <p class="p-narr" style="margin-top:14px">環境建好之後，用途是這樣的：<b>改完融合邏輯，把同一段記錄的場景重跑一次，直接看下游拿到的車道線有沒有變穩</b>。動畫最後一格用左轉車道當例子——直行車道的左側邊線在路口前岔出去，融合層若跟著那條線走，本車就會被帶離直行車道。<b>輸入完全一樣，唯一的變數是程式碼</b>，所以改動有沒有效，是比對出來的，不是等下一次路測碰運氣。</p>
-        <p class="p-narr" style="margin-top:14px">整套是自研的 <b>MATLAB</b> 腳本。它最後<span class="grad">驗證了 50 個以上的問題</span>，也是 LFS 車道融合系統能一路補齊的原因——每次改完融合邏輯，都能拿同一批資料重跑，直接看下游拿到的車道線有沒有變穩，而不是等下一次路測。</p>
-      </div>
-
-      <p class="p-mid">能重現、能重跑、能比對——<span class="grad">這才是那套方法能交到四家大廠手上的底氣。</span></p>
-    </div>
-  </div>
-</section>
-
-<!-- ===== 8. FAQ ===== -->
-<section class="band-alt" id="faq">
-  <div class="wrap">
-    <div class="unit">
-      <div class="unit-head">
-        <div class="unit-tag">面試官可能會問</div>
-        <div class="unit-title">Q &amp; A</div>
-      </div>
-      <div class="faq">
-        <details><summary><span class="qb">Q</span>&nbsp;Lane Degrade 怎麼證明和「重訓感知」行為等價？</summary><div class="a">用實車 log replay 交叉比對：同一批不穩定場景下，比較「降階後係數」與「重訓目標的穩定行為」，兩者收斂趨勢與下游控制表現一致。我要的不是還原原始感知的每個細節，而是下游四功能拿到的車道線夠穩——這個目標達到了。</div></details>
-        <details><summary><span class="qb">Q</span>&nbsp;半徑封閉解怎麼推的？</summary><div class="a">直接從弧長曲率恆等式推導，不做 (1+C₁²)^(3/2)≈1 的截斷，就得封閉解。它只比舊式多一次乘法、一次乘冪，運算成本幾乎為零，卻在整個 C₁ 範圍都準確。我用 CAN log replay 驗證：不論偏航角多大，估算半徑都穩定貼住真實值。</div></details>
-        <details><summary><span class="qb">Q</span>&nbsp;C1 Bias 偏右案例修正率只有 43%，為什麼？</summary><div class="a">偏右偏移量小（2.5cm），訊號對比不明顯，估算器在 50 樣本內還沒完全收斂；偏左 5cm 對比明顯就收斂到 86.81%。這也是我後續要優化的方向——收斂速度與樣本策略還有空間，我不會假裝它已完美。</div></details>
-        <details><summary><span class="qb">Q</span>&nbsp;SV 相機為什麼要 override 訊號？</summary><div class="a">SV 在靜止、曲線段有幾何失真，初始化時 Confidence 還會從 0 緩升，直接用會產生假異常。所以 LFS 暫時 override Confidence 與 Quality，由自身估算把關——這是融合層該扮演的守門角色，不該讓感知的問題直接流進規劃。</div></details>
-        <details><summary><span class="qb">Q</span>&nbsp;柱子三的「用周圍車輛驗證車道線」，實際怎麼運作？</summary><div class="a">抓路上所有可視車輛的行進方向（heading），反推出一組獨立於相機的 C1~C3 估計，跟感知輸出的車道線係數交叉比對——如果兩者差太多，代表車道線本身可能選錯或算錯，不能盲目信。這跟柱子一、柱子二不同：柱子一二是處理「車道線自己的訊號品質」，柱子三是引入車道線以外的資訊源做合理性檢查。</div></details>
-        <details><summary><span class="qb">Q</span>&nbsp;有什麼是你到現在還沒解決的？</summary><div class="a">有。路口跟車變道誤判、路口前錯誤單邊線導致偏轉，這兩個邊界案例柱子三目前還沒有完全可靠的解——車流少或多車同時變道時，用來交叉驗證的 heading 樣本會不夠乾淨。下一步計畫把車流軌跡（Traffic Flow Trajectory）做得更完整來補強。我寧可誠實說還沒解，也不會假裝 LFS 是完美的。</div></details>
-      </div>
     </div>
   </div>
 </section>

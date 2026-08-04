@@ -15,9 +15,10 @@
     body { background: #ffffff; overflow: hidden; font-family: var(--sans); color: var(--ink); }
     #canvas-container { position: absolute; top: 0; left: 0; width: 50vw; height: 100vh; }
 
-    #hud { position: absolute; top: 20px; left: 20px; color: var(--ink-2); font-size: 13px; line-height: 1.85; pointer-events: none; }
-    #hud .title { font-size: 19px; font-weight: 700; color: var(--ink); letter-spacing: 0.02em; margin-bottom: 2px; }
-    #hud .subtitle { font-size: 11px; color: var(--green); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; font-family: var(--mono); }
+    /* 標題「C1 Bias 補償」與副標(感知裝歪→…／已補償—回歸車道中心)都移除了:
+       外層頁面的章節標題已經講完這件事,這裡重複一次只是佔掉高度。
+       HUD 現在只留補償進度與兩個量測值。 */
+    #hud { position: absolute; top: 18px; left: 20px; color: var(--ink-2); font-size: 13px; line-height: 1.85; pointer-events: none; }
     .badge { display: inline-block; border-radius: 6px; padding: 2px 9px; font-size: 11px; margin-right: 5px; font-weight: 600; }
     .badge.green  { background: rgba(10,138,92,0.1);  border: 1px solid rgba(10,138,92,0.4);  color: var(--green); }
     .badge.orange { background: rgba(234,106,10,0.1);  border: 1px solid rgba(234,106,10,0.4);  color: var(--amber); }
@@ -39,33 +40,18 @@
     #callout-label .co-dot { width: 8px; height: 8px; border-radius: 2px; background: var(--green); flex-shrink: 0; }
     #callout-label .co-sub { font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--ink-3); }
 
-    #legend { position: absolute; bottom: 24px; left: 20px; color: var(--ink-2); font-size: 12px; line-height: 2.2; pointer-events: none; }
-    .legend-row { display: flex; align-items: center; gap: 8px; }
-    .legend-swatch { width: 28px; height: 3px; border-radius: 2px; }
+    /* #legend(真實車道線／感知車道線)已移除 —— 它固定在 bottom:24px,
+       高度一壓低就會跟左上的 HUD 撞在一起,是這支動畫縮不下去的主因。 */
   </style>
 </head>
 <body>
 <div id="canvas-container"></div>
 <!-- HUD -->
 <div id="hud">
-  <div class="title">C1 Bias 補償</div>
-  <div class="subtitle" id="hud-subtitle">感知裝歪 → 系統把車拉回車道中心</div>
   <span class="badge green" id="badge-comp">補償中 0%</span>
-  <br/><br/>
+  <br/>
   <div>橫向誤差:&nbsp;&nbsp;<span class="hval" id="hud-lat" style="color:var(--amber)">+1.00 m</span></div>
   <div>C1 偏差:&nbsp;&nbsp;&nbsp;&nbsp;<span class="hval" id="hud-c1" style="color:var(--amber)">+4.9°</span></div>
-</div>
-
-<!-- Legend -->
-<div id="legend">
-  <div class="legend-row">
-    <div class="legend-swatch" style="background:repeating-linear-gradient(90deg,#9a9aa0 0 8px,transparent 8px 14px)"></div>
-    真實車道線
-  </div>
-  <div class="legend-row" id="leg-perceived">
-    <div class="legend-swatch" style="background:#ea6a0a;" id="leg-swatch-perceived"></div>
-    <span id="leg-text-perceived">感知車道線（C1 偏差）</span>
-  </div>
 </div>
 
 <!-- BEV Panel -->
@@ -102,8 +88,15 @@ const EGO_OFFSET = LANE_HALF - 0.9;
 const LOOK_AHEAD = 12;
 
 let liveC1       = C1_BIAS;
-let corrStarted  = false;
-let corrComplete = false;
+
+// ─── 循環播放的三個階段 ────────────────────────────────────────────────────
+// 原本跑完就永遠停在「補償完成」,晚一步捲到這裡的讀者只看得到結果,
+// 看不到「本來歪成什麼樣」—— 而那個對比才是這張圖要講的事。
+// 改成循環:偏差保持 → 補償收斂 → 完成後停一下 → 重來。
+const T_HOLD_BIAS = 1.8;   // 先讓讀者看清楚歪掉的狀態
+const T_CORRECT   = 5.0;   // 補償收斂(原本的速率就是 5 秒歸零)
+const T_HOLD_DONE = 2.6;   // 停在「補償完成 ✓」,讓結果被看見
+const T_CYCLE     = T_HOLD_BIAS + T_CORRECT + T_HOLD_DONE;
 
 // ─── Scene (light) ──────────────────────────────────────────────────────────
 const scene = new THREE.Scene();
@@ -540,11 +533,15 @@ function animate(now) {
   const timeSec = now / 1000;
   const elapsed = (now - startTime) / 1000;
 
-  if (elapsed > 1.5 && !corrStarted) corrStarted = true;
-  if (corrStarted && liveC1 > 0) {
-    const rate = C1_BIAS / 5.0;
-    liveC1 = Math.max(0, liveC1 - rate * dt);
-    if (liveC1 === 0) corrComplete = true;
+  // 直接用 elapsed 取餘數算出當下的 liveC1,而不是每幀相減 —— 這樣不會
+  // 累積浮點誤差,分頁切走再切回來也會落在正確的相位上,不會卡在半途。
+  const phase = elapsed % T_CYCLE;
+  if (phase < T_HOLD_BIAS) {
+    liveC1 = C1_BIAS;
+  } else if (phase < T_HOLD_BIAS + T_CORRECT) {
+    liveC1 = C1_BIAS * (1 - (phase - T_HOLD_BIAS) / T_CORRECT);
+  } else {
+    liveC1 = 0;
   }
 
   const corr = 1 - liveC1 / C1_BIAS;
@@ -579,23 +576,12 @@ function animate(now) {
   const compBadge = document.getElementById('badge-comp');
   if (compBadge) compBadge.textContent = pct >= 100 ? '✓ 補償完成' : `補償中 ${pct}%`;
 
-  const laneBadge = document.getElementById('badge-lane');
-  if (laneBadge) {
-    const ok = liveC1 < 0.01;
-    laneBadge.textContent = ok ? '✓ 車道正常' : '⚠ 壓線';
-    laneBadge.className = ok ? 'badge green' : 'badge dim';
-  }
+  // (原本這裡還有一個 #badge-lane「車道正常／壓線」的更新,HTML 裡沒有這個
+  //  元素,是永遠不會執行的死碼,一併移除。)
 
-  const subtitle = document.getElementById('hud-subtitle');
-  if (subtitle && liveC1 < 0.002) subtitle.textContent = '已補償 — 回歸車道中心 ✓';
-
-  const legSwatch = document.getElementById('leg-swatch-perceived');
-  if (legSwatch) {
-    const r = Math.round(lerp(234, 10, corr)), gv = Math.round(lerp(106, 138, corr)), bv = Math.round(lerp(10, 92, corr));
-    legSwatch.style.background = `rgb(${r},${gv},${bv})`;
-  }
-  const legText = document.getElementById('leg-text-perceived');
-  if (legText) legText.textContent = pct >= 100 ? '感知車道線（已修正）' : `感知車道線（修正中 ${pct}%）`;
+  // 副標與圖例的更新邏輯已移除(元素不在了)。原本這裡還會把圖例色塊從
+  // 琥珀漸變到綠、並改寫「感知車道線(修正中 x%)」—— 那個進度現在由上面的
+  // #badge-comp 一個人表示就夠。
 
   drawBEV(totalScroll, timeSec);
   controls.update();

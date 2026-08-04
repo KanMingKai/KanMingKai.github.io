@@ -624,16 +624,16 @@ function frame(now) {
   ctx.restore();
 
   const tail = '個問題以此定位與驗證';
+  // 頁尾原本左邊還有一句「路上只發生一次的狀況,在這裡可以重跑、也可以改參數
+  // 生成變體」(直排版本用字略短),已移除,只留右邊的 50+ 統計。
+  // 直排版的 50+ 原本在 footY+16(讓開上面那句),句子拿掉後往上收到 footY+2,
+  // 否則會和上面那條分隔線之間空一大塊。
   if (L.vertical) {
-    text('路上只發生一次的狀況,這裡可以重跑、也可以生成變體', 22, L.footY - 4,
-         { size: 11, weight: 600 });
     const nw = measure('50+', 15, 'mono');
-    text('50+', 22, L.footY + 16,
+    text('50+', 22, L.footY + 2,
          { size: 15, weight: 700, font: 'mono', color: '--blue' });
-    text(tail, 26 + nw, L.footY + 16, { size: 11, color: '--ink-2' });
+    text(tail, 26 + nw, L.footY + 2, { size: 11, color: '--ink-2' });
   } else {
-    text('路上只發生一次的狀況,在這裡可以重跑、也可以改參數生成變體', 22, L.footY,
-         { size: 12, weight: 600 });
     const tw = measure(tail, 11, 'sans');
     text(tail, L.W - 22, L.footY,
          { size: 11, color: '--ink-2', align: 'right' });
