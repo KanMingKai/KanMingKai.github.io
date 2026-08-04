@@ -265,11 +265,15 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 /* 「正規解法：重訓感知模型」那格底下的代價標註(報價 + 時程)。
    用頁面既有的琥珀警示色,和其他格的中性樣式區隔 —— 它標的是
    「這條路要付什麼代價」,不是流程的一個步驟。 */
+/* 每一行都要單行不折:「USD 470–625K」被折成兩行會讓數字看起來像兩筆金額。
+   欄寬在 800px 視窗下只剩 106px,所以圖示、間距、內距都收緊,字級降到 10px,
+   再用 nowrap 保證不折 —— 三者要一起調,只加 nowrap 會讓字溢出琥珀色框。 */
 .dtl-note{margin-top:10px;background:var(--amber-bg);border:1px solid var(--amber-line);
-     border-radius:10px;padding:8px 9px;color:var(--amber);text-align:left}
-.dtl-note-r{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:600;line-height:1.45}
-.dtl-note-r+.dtl-note-r{margin-top:5px}
-.dtl-note-r svg{width:13px;height:13px;flex-shrink:0}
+     border-radius:10px;padding:7px 8px;color:var(--amber);text-align:left}
+.dtl-note-r{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;
+     line-height:1.45;white-space:nowrap}
+.dtl-note-r+.dtl-note-r{margin-top:4px}
+.dtl-note-r svg{width:12px;height:12px;flex-shrink:0}
 /* 04「我的解法」底下的對照卡:刻意用完全相同的兩個維度(成本、時程)與同一組
    圖示,只換顏色 —— 兩張卡並排在同一條軸上,470–625K／數個月 vs 0／一週的
    對比不必用文字解釋,看顏色和數字就懂。 */
