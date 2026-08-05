@@ -42,7 +42,14 @@
 
     /* #legend(真實車道線／感知車道線)已移除 —— 它固定在 bottom:24px,
        高度一壓低就會跟左上的 HUD 撞在一起,是這支動畫縮不下去的主因。 */
-  </style>
+      /* 示意標籤:這支動畫的數值是程式即時算出來的,不是實車 log。
+       同頁的 fot_drive / fot_analysis / cam_compare 都有標,這裡不標會讓
+       讀者合理推論「沒標的就是真的」。 */
+    .simnote{position:absolute;left:20px;bottom:14px;z-index:30;pointer-events:none;
+      font-family:var(--sans);font-size:10px;font-weight:600;color:var(--ink-3);
+      background:rgba(255,255,255,.85);border:1px solid var(--line);
+      border-radius:999px;padding:3px 9px;white-space:nowrap;}
+</style>
 </head>
 <body>
 <div id="canvas-container"></div>
@@ -59,6 +66,7 @@
   <canvas id="bev"></canvas>
 </div>
 <!-- overlay above the BEV so the frame + leader share one coordinate system -->
+<div class="simnote">示意動畫 · 非實測數據</div>
 <svg id="proj-beam" aria-hidden="true" preserveAspectRatio="none"></svg>
 
 <!-- Concept 2: callout title, positioned by layoutBeam() to sit at the leader end -->

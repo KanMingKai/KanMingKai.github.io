@@ -398,7 +398,21 @@ function frame(now) {
   ctx.fillStyle = C('--bg'); ctx.fillRect(0, 0, L.W, L.H);
 
   if (!L.compact) {
-    text('逐幀人工標註 → Excel', L.pad, L.headY, { size: L.vertical ? 13 : 15, weight: 700 });
+    const hfs = L.vertical ? 13 : 15;
+    text('逐幀人工標註 → Excel', L.pad, L.headY, { size: hfs, weight: 700 });
+    // 「示意」小籤,做法比照 cam_compare。表格裡只有欄位名稱是真的,
+    // 格子內容是畫出來的 —— 不標的話這張 Excel 樣式的圖會被當成真的標註檔。
+    (() => {
+      ctx.save();
+      ctx.font = `700 ${hfs}px ${C('--sans')}`;
+      const nx = L.pad + ctx.measureText('逐幀人工標註 → Excel').width + 8;
+      ctx.font = `700 ${hfs - 3}px ${C('--sans')}`;
+      const nw = ctx.measureText('示意').width + 10;
+      ctx.restore();
+      rrect(nx, L.headY - hfs + 1, nw, hfs + 3, 3, '--bg-alt');
+      text('示意', nx + nw / 2, L.headY,
+           { size: hfs - 3, weight: 700, color: '--ink-3', align: 'center' });
+    })();
     text(L.vertical ? '三人分段包乾 · 判讀成結構化資料'
                     : '驗證部門三位工程師,把 100 km 切成三段各自包乾,逐幀判讀成腳本讀得動的資料',
          L.pad, L.subY, { size: L.vertical ? 9.5 : 11, color: '--ink-2' });
