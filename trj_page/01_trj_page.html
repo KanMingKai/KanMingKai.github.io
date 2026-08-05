@@ -14,6 +14,8 @@
 :root{
   --grad-warm:linear-gradient(120deg,#0071e3,#9f5cff);
   --red:#ef4444;
+  /* 方法比較表「採用」那一欄用(與 lfs01.html 的綠同一階) */
+  --green:#0a8a5c;--green-bg:#ecfdf5;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth;overflow-x:hidden}
@@ -33,8 +35,6 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 /* ===== LAYER 1 : 5-second card ===== */
 .l1{padding:clamp(80px,12vw,120px) 0 clamp(64px,9vw,96px);text-align:center}
 .l1-inner{max-width:680px;margin:0 auto}
-.l1-role{font-size:clamp(26px,4vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1.35;margin-bottom:22px}
-.l1-role .em{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .l1-badge{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-2);background:var(--bg-alt);border-radius:980px;padding:8px 18px;margin-bottom:36px}
 .l1-badge b{color:var(--ink);font-weight:600}
 .l1-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:28px}
@@ -306,6 +306,106 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 }
 /* ===== Vehicle Showcase ===== */
 .veh-showcase{width:100%;max-width:800px;margin:0 auto;}
+/* ============================================================
+   以下兩節(#problem 題目與限制 / #methods 方法比較)原本是獨立的
+   method_compare.html,搬進本頁 —— 它回答的是 DECISION 02「為什麼是
+   三段式」,拆成另一頁的話讀者得離開這條敘事線才看得到理由。
+   .unit-head / .unit-tag / .unit-title 沿用本頁既有的,不另外定義。
+   ============================================================ */
+.unit-lead{font-size:13.5px;color:var(--ink-2);margin-top:12px;max-width:600px;margin-left:auto;margin-right:auto;line-height:1.75}
+.unit-lead b{color:var(--ink)}
+/* #problem 的導言是三行以上的敘事。多行置中每行起點不齊,眼睛回行要重新找開頭,
+   所以它靠左、標題與 tag 仍置中(與 lfs01.html 同一個處理)。
+   其餘各節的導言都在兩行內,維持置中。 */
+#problem .unit-lead{text-align:left;max-width:640px}
+
+/* ===== 題目與三個限制 ===== */
+.cons{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:820px;margin:28px auto 0}
+.cons-c{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 16px}
+.cons-c b{display:block;font-size:13.5px;font-weight:700;margin-bottom:6px}
+.cons-c span{font-size:12px;color:var(--ink-2);line-height:1.7;display:block}
+.cons-n{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--ink-3);letter-spacing:.08em;margin-bottom:8px}
+@media(max-width:680px){.cons{grid-template-columns:1fr;max-width:420px}}
+
+/* ===== 圖 + 維度:同一張表 =====
+   附件也是三張圖並排、四列文字矩陣接在下面,但那三張圖來自三個來源
+   (深色截圖 / 折線圖 / 白底示意),各自帶著自己的座標與標題,擺在一起
+   像三份文件疊在一頁上;而且圖與矩陣是兩件分開的東西,對不起欄位。
+
+   這裡三張圖重畫成同一個場景(3.5 m 換道)、同一組座標、同一套配色,
+   然後跟五個維度「併成同一張表」:圖是第一列,維度是後四列,共用
+   MPPI / S-L / 三段式這三個欄位。一個欄位由上到下讀完,就是一個方法的
+   全部;橫著讀任何一列,就是三個方法在同一件事上的差距。
+
+   ★ 曾經拆成「三種畫法」與「四個維度」兩節,中間隔著章節標題與整段留白 ——
+     同一欄的圖和數字對不起來,讀者得來回捲。合併前先想清楚這件事。
+
+   每一格是「等級 + 一句原因」橫排一行:等級用顏色與 mono 字負責三秒掃完,
+   原因留給願意細看的人。顏色只上在「分得出高下」的格子 —— MPPI 已經被
+   運算量與可解釋性刷掉,整欄轉灰;可解釋性那一列 S-L 與三段式都是「高」,
+   打平也轉灰。剩下還有顏色的地方,就是這個決策真正卡住的地方。
+
+   ★ 值與原因「同一行」而不是上下兩行:上下排會讓每列長到 80px 以上,
+     四列加表頭就快 450px,得捲一個畫面才看得完一張本來要一眼看完的表。
+     橫排壓到 35px 上下。改回上下排前也先想清楚這件事。 */
+.ctab{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;max-width:900px;margin:0 auto;
+  background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}
+/* table-layout:fixed —— 三個方法欄一定要等寬。交給瀏覽器自動分配的話,
+   欄寬會被最長的那句原因拉開,三張圖跟著以不同比例縮放,
+   同一個場景的三條軌跡便失去可比性(這張表存在的理由就沒了)。 */
+.ctab th,.ctab td{padding:9px 12px;text-align:left;vertical-align:middle;border-top:1px solid var(--line)}
+.ctab thead th{border-top:0;background:var(--bg-alt);font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap}
+.ctab thead th.k{width:140px}
+.ctab tbody th.k{width:140px;font-size:12.5px;font-weight:700;color:var(--ink);white-space:nowrap}
+.ctab tbody th.k small{display:block;font-family:var(--mono);font-size:9.5px;font-weight:600;
+  color:var(--ink-3);margin-top:2px;letter-spacing:.02em;white-space:nowrap}
+/* 表頭的英文副標:換行放在方法名底下,不放同一行 —— 同一行會把欄寬吃掉,
+   而欄寬是三張圖的顯示尺寸 */
+.ctab thead th small{display:block;font-size:10px;font-weight:500;color:var(--ink-3);
+  margin-top:3px;letter-spacing:.01em}
+/* 圖那一列:三張軌跡圖,和下面五列共用同一組欄位。
+   整列靠上對齊 —— 列名「換道軌跡」若跟著全表的 middle 走,會被推到
+   260px 高的圖中間,和其他五列的列名對不齊 */
+.figrow th,.figrow td{padding-top:14px;padding-bottom:16px;vertical-align:top}
+.fig svg{width:100%;height:auto;display:block;background:#fff;
+  border:1px solid var(--line);border-radius:12px}
+.ctab .pick{background:var(--green-bg)}
+.ctab thead th.pick{color:var(--green)}
+.pick-b{display:inline-block;font-size:9.5px;font-weight:700;color:#fff;background:var(--green);
+  border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:1px;letter-spacing:.04em}
+/* auto + 1fr:等級欄自己多寬就多寬,原因吃掉剩下的寬度並在自己的欄裡折行,
+   不會折到等級底下 */
+.ctab td>div{display:grid;grid-template-columns:auto 1fr;gap:9px;align-items:baseline}
+.lv{font-size:13px;font-weight:700;line-height:1.45;font-family:var(--mono);white-space:nowrap}
+.lv--g{color:var(--green)}.lv--a{color:var(--amber)}
+/* 轉灰的格子:MPPI 整欄,加上「可解釋性」那一列打平的兩格。
+   灰不參與好壞編碼 —— 它說的是「這一格分不出高下,不用看」 */
+.ctab td.dim .lv,.ctab td.dim .why{color:var(--ink-3)}
+.why{font-size:10.5px;color:var(--ink-2);line-height:1.45}
+.ctab-note{font-size:11.5px;color:var(--ink-3);line-height:1.75;max-width:900px;margin:14px auto 0}
+@media(max-width:760px){
+  /* 四欄在手機上每欄只剩 70px,「低(方向盤甩動)」會被擠成一字一行。
+     改成一個維度一張卡,三種方法直排 */
+  .ctab,.ctab tbody,.ctab tr,.ctab td,.ctab th{display:block}
+  .ctab{border:0;background:none;box-shadow:none;overflow:visible}
+  .ctab thead{display:none}
+  .ctab tbody tr{background:#fff;border:1px solid var(--line);border-radius:16px;
+    padding:12px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
+  .ctab tbody th.k{width:auto;border-top:0;padding:0 0 8px;font-size:14px}
+  .ctab tbody th.k small{white-space:normal}
+  .ctab td{padding:7px 0;display:grid;grid-template-columns:60px 1fr;gap:10px;align-items:baseline}
+  .ctab td::before{content:attr(data-m);font-size:11px;font-weight:700;color:var(--ink-3);
+    font-family:var(--mono)}
+  /* 手機欄寬只剩 200px 出頭,等級與原因擠一行會讓原因折成三行,反而更高 */
+  .ctab td>div{grid-template-columns:1fr;gap:2px}
+  /* 圖那一列改成方法名在上、圖佔滿整個寬度:留 60px 給標籤會把圖壓到
+     只剩 240px,圖裡的標註跟著糊掉 —— 這一列是全頁最需要寬度的地方 */
+  .figrow td{grid-template-columns:1fr;gap:6px;padding:10px 0}
+  .figrow td+td{border-top:1px solid var(--line);padding-top:14px}
+  .ctab .pick{background:none}
+  .ctab td.pick>div{background:var(--green-bg);border-radius:10px;padding:8px 10px;margin:-8px -10px}
+}
+
 </style>
 </head>
 <body>
@@ -324,7 +424,8 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 <!-- 章節快速跳轉。data-sec 必須等於對應 <section> 的 id,捲動高亮才會生效。 -->
 <nav class="chnav" aria-label="章節導覽">
   <div class="in">
-    <a href="#root-cause"    data-sec="root-cause">根因拆解</a>
+    <a href="#problem"       data-sec="problem">題目與限制</a>
+    <a href="#methods"       data-sec="methods">方法比較</a>
     <a href="#decisions"     data-sec="decisions">關鍵決策</a>
     <a href="#architecture"  data-sec="architecture">系統架構</a>
     <a href="#functions"     data-sec="functions">功能 Demo</a>
@@ -337,10 +438,6 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 <!-- ============ LAYER 1 : 5-second card ============ -->
 <section class="l1">
   <div class="wrap l1-inner">
-    <div class="l1-role">
-      不是哪個功能寫得不好。是每個功能都在重複算同一件事。<br>
-      <span style="font-size:clamp(18px,2.6vw,26px);font-weight:500;color:var(--ink-2)">我主導設計了共用軌跡模組，CPU 降到 <span class="em">37%</span>，新功能開發從 <span class="em">4 個月</span>壓到 <span class="em">2~3 天</span>。</span>
-    </div>
     <div class="l1-metrics">
       <div class="mc-card">
         <div class="mc-accent mc-accent--safety"></div>
@@ -374,60 +471,239 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   </div>
 </section>
 
-<!-- ============ LAYER 2 ============ -->
-
-<!-- 2-1 根因圖 -->
-<section id="root-cause" class="band-alt">
+<!-- ============ 題目 ============ -->
+<section id="problem" class="band-alt">
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-tag">ROOT CAUSE</div>
-        <div class="unit-title">五個問題，其實是同一個根因</div>
-        <p style="font-size:13.5px;color:var(--ink-2);margin-top:10px;max-width:520px;margin-left:auto;margin-right:auto">降頻之後 CPU 確實降下來了——但下次還是爆。我看了幾輪這個循環才意識到：這五個問題不是五個 bug，它們是同一件事的不同表現。只要每個功能繼續各自定義軌跡邏輯，這些問題就是結構性的必然，砍掉任何一個都會從別處長出來。</p>
+        <div class="unit-tag">THE PROBLEM</div>
+        <div class="unit-title">先把題目講清楚，比較才有意義</div>
+        <p class="unit-lead">三種方法的輸入輸出其實一樣：給定<b>當前位置與航向</b>、<b>目標橫向位移</b>、<b>可用的縱向距離</b>，輸出一條車輛能跟隨的橫向軌跡。差異不在數學能不能算，而在下面這三個限制——它們是量產專案給的，不是我挑的。</p>
       </div>
-      <svg viewBox="0 0 600 262" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:600px;display:block;margin:0 auto" role="img" aria-label="五個問題收斂到同一根因">
-        <defs>
-          <marker id="rcgArrow" markerWidth="7" markerHeight="7" refX="5" refY="2.5" orient="auto">
-            <path d="M0,0 L5,2.5 L0,5 Z" fill="#93c5fd"/>
-          </marker>
-        </defs>
-
-        <!-- symptom boxes (5), each 44px tall, 10px gap -->
-        <rect x="0" y="0"   width="205" height="44" rx="12" fill="#f5f5f7" stroke="#d2d2d7" stroke-width="1"/>
-        <text x="102" y="26"  text-anchor="middle" font-size="12.5" font-weight="600" fill="#6e6e73" font-family="var(--sans)">CPU 超載 &gt;100%</text>
-
-        <rect x="0" y="54"  width="205" height="44" rx="12" fill="#f5f5f7" stroke="#d2d2d7" stroke-width="1"/>
-        <text x="102" y="80"  text-anchor="middle" font-size="12.5" font-weight="600" fill="#6e6e73" font-family="var(--sans)">新功能開發要 4 個月</text>
-
-        <rect x="0" y="108" width="205" height="44" rx="12" fill="#f5f5f7" stroke="#d2d2d7" stroke-width="1"/>
-        <text x="102" y="134" text-anchor="middle" font-size="12.5" font-weight="600" fill="#6e6e73" font-family="var(--sans)">各功能邏輯互不相容</text>
-
-        <rect x="0" y="162" width="205" height="44" rx="12" fill="#f5f5f7" stroke="#d2d2d7" stroke-width="1"/>
-        <text x="102" y="188" text-anchor="middle" font-size="12.5" font-weight="600" fill="#6e6e73" font-family="var(--sans)">方向盤響應容易抖動</text>
-
-        <rect x="0" y="216" width="205" height="46" rx="12" fill="#f5f5f7" stroke="#d2d2d7" stroke-width="1"/>
-        <text x="102" y="234" text-anchor="middle" font-size="12" font-weight="600" fill="#6e6e73" font-family="var(--sans)">每對應一個新車型</text>
-        <text x="102" y="252" text-anchor="middle" font-size="12" font-weight="600" fill="#6e6e73" font-family="var(--sans)">需大量調教，無法共用</text>
-
-        <!-- five paths converging to root cause (center y=130) -->
-        <path d="M205,22  C 282,22  282,130 360,130" fill="none" stroke="#93c5fd" stroke-width="1.5" marker-end="url(#rcgArrow)"/>
-        <path d="M205,76  C 282,76  282,130 360,130" fill="none" stroke="#93c5fd" stroke-width="1.5" marker-end="url(#rcgArrow)"/>
-        <path d="M205,130 L360,130"                  fill="none" stroke="#93c5fd" stroke-width="1.5" marker-end="url(#rcgArrow)"/>
-        <path d="M205,184 C 282,184 282,130 360,130" fill="none" stroke="#93c5fd" stroke-width="1.5" marker-end="url(#rcgArrow)"/>
-        <path d="M205,239 C 282,239 282,130 360,130" fill="none" stroke="#93c5fd" stroke-width="1.5" marker-end="url(#rcgArrow)"/>
-
-        <!-- root cause box, centered at y=130 -->
-        <rect x="360" y="85" width="234" height="90" rx="14" fill="#eef4ff" stroke="#93c5fd" stroke-width="1.5"/>
-        <text x="477" y="106" text-anchor="middle" font-size="10" font-weight="700" letter-spacing="1" fill="#86868b" font-family="var(--sans)">根因</text>
-        <text x="477" y="128" text-anchor="middle" font-size="13" font-weight="700" fill="#1d1d1f" font-family="var(--sans)">每個功能各自</text>
-        <text x="477" y="147" text-anchor="middle" font-size="13" font-weight="700" fill="#1d1d1f" font-family="var(--sans)">重複計算軌跡</text>
-      </svg>
+      <div class="cons">
+        <div class="cons-c">
+          <div class="cons-n">限制 01</div>
+          <b>單週期算得完</b>
+          <span>軌跡規劃只是整條 pipeline 的一層，跟感知、決策、控制共用同一顆車用 MCU。算不完就是掉幀，不是慢一點而已。</span>
+        </div>
+        <div class="cons-c">
+          <div class="cons-n">限制 02</div>
+          <b>方向盤不能抖</b>
+          <span>銜接處只要有一點跳動，駕駛就會對系統失去信任。這是 ADAS 能不能真正接手的關鍵，不只是體感問題。</span>
+        </div>
+        <div class="cons-c">
+          <div class="cons-n">限制 03</div>
+          <b>出事要能解釋</b>
+          <span>功能安全要求每一段輸出都能追回輸入。無法逐段說明「為什麼是這條線」的方法，過不了審查。</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
+<!-- ============ 三種方法 × 五個維度:同一張表 ============ -->
+<section id="methods">
+  <div class="wrap">
+    <div class="unit">
+      <div class="unit-head">
+        <div class="unit-tag">THREE APPROACHES</div>
+        <div class="unit-title">三種畫法，攤在同一張表上</div>
+        <p class="unit-lead">第一列的三張圖是<b>同一個 3.5 m 換道場景</b>，同一組座標、同一套配色——灰色是道路與參考線，虛線車是目標位置，彩色線是各方法算出來的軌跡。下面四列是同一組維度：一個欄位由上到下讀完就是一個方法，橫著讀一列就是三個方法在同一件事上的差距。</p>
+      </div>
+      <table class="ctab">
+        <thead>
+          <tr>
+            <th class="k"></th>
+            <th>MPPI<small>Model Predictive Path Integral</small></th>
+            <th>S-L 方法<small>Frenet 座標 · 先 d(s) 再查表</small></th>
+            <th class="pick">三段式<span class="pick-b">採用</span><small>Line → Curve → Line</small></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="figrow">
+            <th class="k">換道軌跡<small>3.5 m · 示意圖</small></th>
+            <td class="dim" data-m="MPPI">
+              <figure class="fig">
+                <svg viewBox="52 -8 216 248" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MPPI:從本車位置隨機採樣大量軌跡，加權平均後的輸出仍有轉折">
+                  <!-- 3.5 m 橫向位移標註(三張圖共用同一個尺寸線) -->
+                  <line x1="112" y1="14" x2="208" y2="14" stroke="#c7ccd1" stroke-width="1"/>
+                  <line x1="112" y1="10" x2="112" y2="18" stroke="#c7ccd1" stroke-width="1"/>
+                  <line x1="208" y1="10" x2="208" y2="18" stroke="#c7ccd1" stroke-width="1"/>
+                  <text x="160" y="9" text-anchor="middle" font-size="10" fill="#86868b" font-family="var(--sans)">3.5 m</text>
+                  <!-- 道路 -->
+                  <rect x="64" y="26" width="192" height="206" fill="#fafafa"/>
+                  <line x1="64"  y1="26" x2="64"  y2="232" stroke="#d2d2d7" stroke-width="2"/>
+                  <line x1="256" y1="26" x2="256" y2="232" stroke="#d2d2d7" stroke-width="2"/>
+                  <line x1="160" y1="26" x2="160" y2="232" stroke="#c7ccd1" stroke-width="1.5" stroke-dasharray="10 9"/>
+                  <!-- 隨機採樣的軌跡束 -->
+                  <g fill="none" stroke="#ccd4de" stroke-width="1" opacity=".8">
+                    <path d="M208,196 C208,152 132,116 70,72"/>
+                    <path d="M208,196 C208,152 140,116 84,84"/>
+                    <path d="M208,196 C208,152 155,116 112,80"/>
+                    <path d="M208,196 C208,152 171,116 140,86"/>
+                    <path d="M208,196 C208,152 186,116 168,78"/>
+                    <path d="M208,196 C208,152 201,116 196,82"/>
+                    <path d="M208,196 C208,152 209,116 210,66"/>
+                    <path d="M208,196 C208,152 217,116 224,80"/>
+                    <path d="M208,196 C208,152 224,116 238,70"/>
+                    <path d="M208,196 C208,152 231,116 250,84"/>
+                  </g>
+                  <!-- 成本較低、權重較高的少數幾條 -->
+                  <g fill="none" stroke="#93c5fd" stroke-width="1.3">
+                    <path d="M208,196 C208,152 148,116 98,66"/>
+                    <path d="M208,196 C208,152 163,116 126,70"/>
+                    <path d="M208,196 C208,152 178,116 154,64"/>
+                  </g>
+                  <!-- 加權平均後的輸出:有轉折 -->
+                  <path d="M208,196 L206,176 L197,160 L196,140 L182,132 L173,116 L158,112 L149,96 L134,90 L126,74 L112,66"
+                        fill="none" stroke="#ef4444" stroke-width="2.6" stroke-linejoin="miter"/>
+                  <circle cx="196" cy="140" r="3.2" fill="#ef4444"/>
+                  <circle cx="149" cy="96"  r="3.2" fill="#ef4444"/>
+                  <!-- 本車與目標 -->
+                  <rect x="196" y="196" width="24" height="36" rx="7" fill="#fff" stroke="#6e6e73" stroke-width="1.5"/>
+                  <rect x="200" y="202" width="16" height="10" rx="3" fill="#e5e5ea"/>
+                  <rect x="100" y="30" width="24" height="36" rx="7" fill="none" stroke="#a1a1a6" stroke-width="1.3" stroke-dasharray="4 4"/>
+                  <text x="94" y="52" text-anchor="end" font-size="10" fill="#86868b" font-family="var(--sans)">目標</text>
+                </svg>
+              </figure>
+            </td>
+            <td data-m="S-L">
+              <figure class="fig">
+                <svg viewBox="52 -8 216 248" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="S-L:沿基礎中心線取樣，點與點之間以直線相接">
+                  <line x1="112" y1="14" x2="208" y2="14" stroke="#c7ccd1" stroke-width="1"/>
+                  <line x1="112" y1="10" x2="112" y2="18" stroke="#c7ccd1" stroke-width="1"/>
+                  <line x1="208" y1="10" x2="208" y2="18" stroke="#c7ccd1" stroke-width="1"/>
+                  <text x="160" y="9" text-anchor="middle" font-size="10" fill="#86868b" font-family="var(--sans)">3.5 m</text>
+                  <rect x="64" y="26" width="192" height="206" fill="#fafafa"/>
+                  <line x1="64"  y1="26" x2="64"  y2="232" stroke="#d2d2d7" stroke-width="2"/>
+                  <line x1="256" y1="26" x2="256" y2="232" stroke="#d2d2d7" stroke-width="2"/>
+                  <line x1="160" y1="26" x2="160" y2="232" stroke="#c7ccd1" stroke-width="1.5" stroke-dasharray="10 9"/>
+                  <!-- 基礎中心線 d=0:整套座標的 s 軸就架在它上面 -->
+                  <line x1="208" y1="196" x2="208" y2="40" stroke="#a1a1a6" stroke-width="1.5" stroke-dasharray="5 5"/>
+                  <text x="214" y="46" font-size="9.5" fill="#86868b" font-family="var(--mono)">d = 0</text>
+                  <!-- 取樣點 + 點間直線 -->
+                  <polyline points="208,196 204,168 191,140 166,113 138,88 112,66"
+                            fill="none" stroke="#0071e3" stroke-width="2.6" stroke-linejoin="miter"/>
+                  <!-- 曲率跳最兇的那個轉折 -->
+                  <circle cx="166" cy="113" r="9" fill="none" stroke="#b45309" stroke-width="1.2" stroke-dasharray="3 3"/>
+                  <g fill="#fff" stroke="#0071e3" stroke-width="1.8">
+                    <circle cx="208" cy="196" r="3.2"/>
+                    <circle cx="204" cy="168" r="3.2"/>
+                    <circle cx="191" cy="140" r="3.2"/>
+                    <circle cx="166" cy="113" r="3.2"/>
+                    <circle cx="138" cy="88"  r="3.2"/>
+                    <circle cx="112" cy="66"  r="3.2"/>
+                  </g>
+                  <rect x="196" y="196" width="24" height="36" rx="7" fill="#fff" stroke="#6e6e73" stroke-width="1.5"/>
+                  <rect x="200" y="202" width="16" height="10" rx="3" fill="#e5e5ea"/>
+                  <rect x="100" y="30" width="24" height="36" rx="7" fill="none" stroke="#a1a1a6" stroke-width="1.3" stroke-dasharray="4 4"/>
+                  <text x="94" y="52" text-anchor="end" font-size="10" fill="#86868b" font-family="var(--sans)">目標</text>
+                </svg>
+              </figure>
+            </td>
+            <td class="pick" data-m="三段式">
+              <figure class="fig">
+                <svg viewBox="52 -8 216 248" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="三段式:直線、poly4 曲線、直線，銜接點 C0+C1 連續">
+                  <line x1="112" y1="14" x2="208" y2="14" stroke="#c7ccd1" stroke-width="1"/>
+                  <line x1="112" y1="10" x2="112" y2="18" stroke="#c7ccd1" stroke-width="1"/>
+                  <line x1="208" y1="10" x2="208" y2="18" stroke="#c7ccd1" stroke-width="1"/>
+                  <text x="160" y="9" text-anchor="middle" font-size="10" fill="#86868b" font-family="var(--sans)">3.5 m</text>
+                  <rect x="64" y="26" width="192" height="206" fill="#fafafa"/>
+                  <line x1="64"  y1="26" x2="64"  y2="232" stroke="#d2d2d7" stroke-width="2"/>
+                  <line x1="256" y1="26" x2="256" y2="232" stroke="#d2d2d7" stroke-width="2"/>
+                  <line x1="160" y1="26" x2="160" y2="232" stroke="#c7ccd1" stroke-width="1.5" stroke-dasharray="10 9"/>
+                  <!-- 段1 直線 → 段2 曲線 → 段3 直線。曲線兩端的切線都是垂直的,
+                       所以銜接處沒有折角 —— 這張圖要讓人看見的就是這件事 -->
+                  <path d="M208,196 L208,158" fill="none" stroke="#0a8a5c" stroke-width="3.2" stroke-linecap="round"/>
+                  <path d="M208,158 C208,126 112,126 112,98" fill="none" stroke="#0071e3" stroke-width="3.2"/>
+                  <path d="M112,98 L112,66"  fill="none" stroke="#b45309" stroke-width="3.2" stroke-linecap="round"/>
+                  <circle cx="208" cy="158" r="3.6" fill="#fff" stroke="#1d1d1f" stroke-width="1.6"/>
+                  <circle cx="112" cy="98"  r="3.6" fill="#fff" stroke="#1d1d1f" stroke-width="1.6"/>
+                  <text x="252" y="180" text-anchor="end" font-size="10" fill="#0a8a5c" font-family="var(--sans)" font-weight="700">段 1</text>
+                  <text x="252" y="132" text-anchor="end" font-size="10" fill="#0071e3" font-family="var(--sans)" font-weight="700">段 2</text>
+                  <text x="106" y="86"  text-anchor="end" font-size="10" fill="#b45309" font-family="var(--sans)" font-weight="700">段 3</text>
+                  <rect x="196" y="196" width="24" height="36" rx="7" fill="#fff" stroke="#6e6e73" stroke-width="1.5"/>
+                  <rect x="200" y="202" width="16" height="10" rx="3" fill="#e5e5ea"/>
+                  <rect x="100" y="30" width="24" height="36" rx="7" fill="none" stroke="#a1a1a6" stroke-width="1.3" stroke-dasharray="4 4"/>
+                  <text x="94" y="52" text-anchor="end" font-size="10" fill="#86868b" font-family="var(--sans)">目標</text>
+                </svg>
+              </figure>
+            </td>
+          </tr>
+          <tr>
+            <th class="k">運算量</th>
+            <td class="dim" data-m="MPPI"><div>
+              <div class="lv">&gt;100%</div>
+              <span class="why">上千次 rollout，單週期算不完</span>
+            </div></td>
+            <td data-m="S-L"><div>
+              <div class="lv lv--a">100%</div>
+              <span class="why">取樣數固定，要平順就得加密</span>
+            </div></td>
+            <td class="pick" data-m="三段式"><div>
+              <div class="lv lv--g">37%</div>
+              <span class="why">距離參數化，單點查詢 O(1)</span>
+            </div></td>
+          </tr>
+          <tr>
+            <th class="k">軌跡平順性</th>
+            <td class="dim" data-m="MPPI"><div>
+              <div class="lv">低</div>
+              <span class="why">每幀取樣不同，方向盤會甩動</span>
+            </div></td>
+            <td data-m="S-L"><div>
+              <div class="lv lv--a">中</div>
+              <span class="why">點間是直線，轉折處曲率跳變</span>
+            </div></td>
+            <td class="pick" data-m="三段式"><div>
+              <div class="lv lv--g">高</div>
+              <span class="why">C0 + C1 連續，全段無斷點</span>
+            </div></td>
+          </tr>
+          <tr>
+            <th class="k">可解釋性</th>
+            <td class="dim" data-m="MPPI"><div>
+              <div class="lv">極低</div>
+              <span class="why">統計結果，無法逐段說明</span>
+            </div></td>
+            <td class="dim" data-m="S-L"><div>
+              <div class="lv">高</div>
+              <span class="why">每個點對得回 d(s) 上的一段</span>
+            </div></td>
+            <td class="pick dim" data-m="三段式"><div>
+              <div class="lv">高</div>
+              <span class="why">三個輸入數字決定整條線</span>
+            </div></td>
+          </tr>
+          <!-- 前四列談軌跡本身,這一列談它讓團隊付出什麼 —— 放最後,是因為
+               它是前四項的後果:介面只剩三個數字,別人才接得上去。 -->
+          <tr>
+            <th class="k">開發新功能週期</th>
+            <td class="dim" data-m="MPPI"><div>
+              <div class="lv">未知</div>
+              <span class="why">未採用，無可比數據</span>
+            </div></td>
+            <td data-m="S-L"><div>
+              <div class="lv lv--a">4 個月+</div>
+              <span class="why">每項功能各自調教，無法共用</span>
+            </div></td>
+            <td class="pick" data-m="三段式"><div>
+              <div class="lv lv--g">2~3 天</div>
+              <span class="why">介面三個數字，同事自己接</span>
+            </div></td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="ctab-note">顏色只表示「這件事在量產上是好是壞」，不表示方法本身好壞——所以同一個方法會同時出現綠色與紅色，那正是它的取捨。三張軌跡圖為示意圖，幾何為說明用途，非實測軌跡。運算量為同一顆 TC397、同一組側向功能下的相對佔用，以 S-L 版本為 100% 基準；&gt;100% 表示單週期內算不完。平順性與可解釋性為工程評估等級，非量測值；開發週期為專案實際經驗值，MPPI 未進入開發，故無數據。</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ LAYER 2 ============ -->
+
 <!-- 2-2 決策卡片 -->
-<section id="decisions">
+<section id="decisions" class="band-alt">
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
@@ -591,7 +867,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 </section>
 
 <!-- 2-3 架構圖 -->
-<section id="architecture" class="band-alt">
+<section id="architecture">
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
