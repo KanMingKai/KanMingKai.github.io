@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RMA + co-Drive Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #ffffff; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+    #canvas-container { width: 100vw; height: 100vh; }
+
+    #title-label {
+      position: absolute; top: 22px; left: 24px;
+      pointer-events: none;
+    }
+    #title-label .t1 {
+      font-size: 15px; font-weight: 700; color: #1a1a1e;
+      letter-spacing: 0.04em; line-height: 1;
+      display: flex; align-items: center; gap: 8px;
+    }
+    #title-label .t1::before {
+      content: ''; display: block;
+      width: 3px; height: 16px; border-radius: 2px;
+      background: #ff6600;
+    }
+    #title-label .t2 {
+      font-size: 10.5px; color: #888; font-weight: 400;
+      letter-spacing: 0.02em; margin-top: 5px; padding-left: 11px;
+    }
+    /* 左右分割:同一個 scene 用兩台相機各畫一次 viewport,中間拉一條分隔線 */
+    #split-divider {
+      position: fixed; top: 0; bottom: 0; left: 50%;
+      width: 1px; background: #e3e3e8;
+      pointer-events: none;
+    }
+    .view-tag {
+      position: fixed; top: 24px;
+      font-size: 10px; font-weight: 600; color: #9a9aa0;
+      letter-spacing: 0.09em; text-transform: uppercase;
+      pointer-events: none;
+    }
+    #tag-chase { right: calc(50% + 16px); }
+    #tag-bird  { right: 16px; }
+
+      /* 示意標籤:畫面完全由程式生成(Math.sin/cos/random + rAF),沒有引用任何
+       實測資料檔。不標會被當成實車 log。 */
+    .simnote{position:fixed;left:14px;bottom:12px;z-index:9999;pointer-events:none;
+      font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+      font-size:10px;font-weight:600;color:#86868b;
+      background:rgba(255,255,255,.85);border:1px solid #d2d2d7;
+      border-radius:999px;padding:3px 9px;white-space:nowrap;}
+</style>
+</head>
+<body>
+<div class="simnote">示意動畫 · 非實測數據</div>
+<div id="canvas-container"></div>
+<div id="split-divider"></div>
+<div class="view-tag" id="tag-chase">Chase View</div>
+<div class="view-tag" id="tag-bird">Bird&rsquo;s-Eye View</div>
+
+<div id="title-label">
+  <div class="t1">Advance Lateral Function</div>
+  <div class="t2">Presented to 10+ Automakers · Received with High Praise</div>
+</div>
+
+<script>
+(function() {
+  const show = msg => {
+    let d = document.getElementById('_err');
+    if (!d) { d = document.createElement('pre'); d.id='_err'; Object.assign(d.style,{position:'fixed',top:'0',left:'0',zIndex:'9999',background:'rgba(0,0,0,0.92)',color:'#f66',padding:'12px',maxWidth:'90vw',maxHeight:'60vh',overflow:'auto',fontSize:'12px',whiteSpace:'pre-wrap'}); document.body.appendChild(d); }
+    d.textContent += msg + '\n';
+  };
+  window.addEventListener('error', e => show('ERROR: ' + e.message + '\n  at ' + e.filename + ':' + e.lineno));
+  window.addEventListener('unhandledrejection', e => show('IMPORT ERROR: ' + (e.reason?.message || e.reason || 'unknown')));
+})();
+</script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three":          "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+    "three/addons/":  "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { Line2 }        from 'three/addons/lines/Line2.js';
+import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+
+// ─── Scene ────────────────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xffffff);
+scene.fog = new THREE.Fog(0xffffff, 55, 110);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.setScissorTest(true);
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+// ─── Split screen ─────────────────────────────────────────────────────────
+// 兩個 viewport 一樣大,所以 Line2 只需要一份 resolution。
+function panelW() { return Math.floor(window.innerWidth / 2); }
+const LINE_RES = new THREE.Vector2(panelW(), window.innerHeight);
+
+// fov 從 55 拉到 60:panel 變窄後水平視角會被砍掉一半,補回來才看得到整條路
+const camera = new THREE.PerspectiveCamera(60, panelW() / window.innerHeight, 0.1, 200);
+camera.position.set(0, 8, -14);
+camera.lookAt(0, 0, 10);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableZoom = false;
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.target.set(0, 0, 6);
+controls.maxPolarAngle = Math.PI / 2.1;
+controls.minDistance = 4;
+controls.maxDistance = 60;
+controls.update();
+
+// 只有拖左半邊才轉 chase camera,右半邊的俯視圖固定不動。
+// 掛在 window 的 capture 階段,才會排在 OrbitControls 自己的 pointerdown 前面。
+window.addEventListener('pointerdown', e => {
+  controls.enabled = e.clientX < window.innerWidth / 2;
+}, true);
+
+// ─── Bird's-eye camera (right panel) ──────────────────────────────────────
+// 正交、正上方往下看,跟著本車走(本車固定在 scene 原點,是 worldGroup 在動),
+// 所以本車一直在畫面同一個位置,路面與軌跡在底下平移/轉動。
+const BIRD_Z_BACK   = -15;   // 畫面下緣的世界 z
+const BIRD_Z_FRONT  =  65;   // 畫面上緣的世界 z
+const BIRD_CENTER_Z = (BIRD_Z_BACK + BIRD_Z_FRONT) / 2;
+const BIRD_HALF_H   = (BIRD_Z_FRONT - BIRD_Z_BACK) / 2;
+const BIRD_HEIGHT   = 30;    // 壓在 scene.fog 的 near(55)以內,俯視圖才不會整片褪色
+
+const birdCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 200);
+birdCam.up.set(0, 0, 1);     // +Z(車頭方向)朝畫面上方,左右才跟 chase view 一致
+birdCam.position.set(0, BIRD_HEIGHT, BIRD_CENTER_Z);
+birdCam.lookAt(0, 0, BIRD_CENTER_Z);
+
+function updateBirdCam() {
+  const halfW = BIRD_HALF_H * (panelW() / window.innerHeight);
+  birdCam.left   = -halfW;        birdCam.right  = halfW;
+  birdCam.top    =  BIRD_HALF_H;  birdCam.bottom = -BIRD_HALF_H;
+  birdCam.updateProjectionMatrix();
+}
+updateBirdCam();
+
+function renderViews() {
+  const w = window.innerWidth, h = window.innerHeight, half = panelW();
+  renderer.setViewport(0, 0, half, h);
+  renderer.setScissor(0, 0, half, h);
+  renderer.render(scene, camera);
+
+  renderer.setViewport(half, 0, w - half, h);
+  renderer.setScissor(half, 0, w - half, h);
+  renderer.render(scene, birdCam);
+}
+
+// ─── Lights ───────────────────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.4);
+dirLight.position.set(8, 18, -10);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(2048, 2048);
+dirLight.shadow.camera.near = 0.1; dirLight.shadow.camera.far = 100;
+dirLight.shadow.camera.left = -30; dirLight.shadow.camera.right = 30;
+dirLight.shadow.camera.top  = 30;  dirLight.shadow.camera.bottom = -30;
+scene.add(dirLight);
+const rimLight = new THREE.DirectionalLight(0xaabbdd, 0.5);
+rimLight.position.set(-8, 5, 4);
+scene.add(rimLight);
+
+// ─── Ground ───────────────────────────────────────────────────────────────
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(200, 200),
+  new THREE.MeshBasicMaterial({ color: 0xffffff })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.02;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+function straightPts(x, zFrom, zTo, n = 80) {
+  const pts = [];
+  for (let i = 0; i <= n; i++)
+    pts.push(new THREE.Vector3(x, 0.02, zFrom + (zTo - zFrom) * (i / n)));
+  return pts;
+}
+
+function makeDashedLine(points, color, dashLen = 1.2, gapLen = 0.8, opacity = 0.75) {
+  const group = new THREE.Group();
+  const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
+  let acc = 0, drawing = true, buf = [];
+  const flush = () => {
+    if (buf.length >= 2)
+      group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(buf), mat));
+    buf = [];
+  };
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i], b = points[i + 1];
+    const segLen = a.distanceTo(b);
+    const dir = b.clone().sub(a).normalize();
+    let t = 0;
+    while (t < segLen) {
+      const limit = drawing ? dashLen : gapLen;
+      const step  = Math.min(limit - acc, segLen - t);
+      if (drawing) buf.push(a.clone().addScaledVector(dir, t));
+      t += step; acc += step;
+      if (acc >= limit - 1e-6) {
+        if (drawing) { buf.push(a.clone().addScaledVector(dir, t)); flush(); }
+        drawing = !drawing; acc = 0;
+      }
+    }
+  }
+  if (drawing && buf.length >= 2) flush();
+  return group;
+}
+
+// ─── Constants — RMA ──────────────────────────────────────────────────────
+const LANE_HALF  = 1.9;
+const ROAD_LEN   = 80;
+const LANE_CYCLE = 4.0;
+
+const D         = LANE_HALF * 2;   // RMA target: R2 center = 3.8 m
+const D2        = LANE_HALF * 4;   // second target: R3 center = 7.6 m
+const Z1        = 20;
+const Z2        = 80;
+const SEG3_LEN  = 60;
+const EGO_SPEED = 60 / 3.6;
+
+const CANCEL_SEG1  = 10;
+const CANCEL_SEG2  = 40;
+const CANCEL_SEG3  = 40;
+const CANCEL_TOTAL = CANCEL_SEG1 + CANCEL_SEG2 + CANCEL_SEG3;
+const CANCEL_S     = 0.45;
+
+const NEW_SEG1  = 10;
+const NEW_SEG2  = 50;
+const NEW_SEG3  = SEG3_LEN;
+
+const NPC_SPEED      = 120 / 3.6;
+const NPC_REL_SPEED  = NPC_SPEED - EGO_SPEED;
+const NPC_INIT_Z     = -50;
+const NPC_LC_START_Z = 0;
+const NPC_LC_LEN     = 40;
+
+const PASS_HOLD  = 2.5;
+const IDLE_DUR   = 1.5;
+const NORMAL_DUR = 3.0;
+
+// ─── Constants — LFCP ─────────────────────────────────────────────────────
+const D_LFCP          = 0.5;
+const LFCP_Z1         = 20;
+const LFCP_Z2         = 80;
+const LFCP_SEG3       = 60;
+const TRUCK_SPEED     = 40 / 3.6;
+const TRUCK_INIT_Z    = 40;
+const TRUCK_X         = -LANE_HALF * 2;   // R2 center = -3.8 m in worldGroup
+const LFCP_NORMAL_DUR = 3.0;
+const LFCP_PASS_HOLD  = 1.5;
+const LFCP_IDLE_DUR   = 1.5;
+
+// ─── Math helpers ─────────────────────────────────────────────────────────
+function poly4(s) {
+  const s2 = s*s, s3 = s2*s, s4 = s3*s;
+  return 3*s4 - 8*s3 + 6*s2;
+}
+function poly4Prime(s) {
+  const s2 = s*s;
+  return 12*s2*s - 24*s2 + 12*s;
+}
+function ease5(t) {
+  t = Math.max(0, Math.min(1, t));
+  return t*t*t * (6*t*t - 15*t + 10);
+}
+
+// ─── RMA trajectory path functions ────────────────────────────────────────
+function trajWX(relZ) {
+  if (relZ <= Z1) return 0;
+  if (relZ <= Z2) return D * poly4((relZ - Z1) / (Z2 - Z1));
+  return D;
+}
+function trajReturnWX(relZ) {
+  if (relZ <= Z1) return D;
+  if (relZ <= Z2) return D + (D2 - D) * poly4((relZ - Z1) / (Z2 - Z1));
+  return D2;
+}
+
+// ─── LFCP trajectory path functions ───────────────────────────────────────
+function lfcpTrajWX(relZ) {
+  if (relZ <= LFCP_Z1) return 0;
+  if (relZ <= LFCP_Z2) return -D_LFCP * poly4((relZ - LFCP_Z1) / (LFCP_Z2 - LFCP_Z1));
+  return -D_LFCP;
+}
+function lfcpRetWX(relZ) {
+  if (relZ <= LFCP_Z1) return -D_LFCP;
+  if (relZ <= LFCP_Z2) return -D_LFCP * (1 - poly4((relZ - LFCP_Z1) / (LFCP_Z2 - LFCP_Z1)));
+  return 0;
+}
+
+// ─── worldGroup ───────────────────────────────────────────────────────────
+const worldGroup = new THREE.Group();
+scene.add(worldGroup);
+
+const laneGroup = new THREE.Group();
+
+function makeThickLine(x, zFrom, zTo, color, width) {
+  const pts = straightPts(x, zFrom, zTo);
+  const flat = [];
+  for (const p of pts) flat.push(p.x, p.y, p.z);
+  const geo = new LineGeometry(); geo.setPositions(flat);
+  const mat = new LineMaterial({
+    color, linewidth: width,
+    resolution: LINE_RES,
+    worldUnits: false
+  });
+  const line = new Line2(geo, mat);
+  line.frustumCulled = false;
+  return line;
+}
+
+function makeThickDashedLine(x, zFrom, zTo, color, width, dashLen = 2.5, gapLen = 1.5) {
+  const group = new THREE.Group();
+  let z = zFrom;
+  while (z < zTo) {
+    const zEnd = Math.min(z + dashLen, zTo);
+    const flat = [x, 0.02, z, x, 0.02, zEnd];
+    const geo = new LineGeometry(); geo.setPositions(flat);
+    const mat = new LineMaterial({
+      color, linewidth: width,
+      resolution: LINE_RES,
+      worldUnits: false
+    });
+    const seg = new Line2(geo, mat);
+    seg.frustumCulled = false;
+    group.add(seg);
+    z = zEnd + gapLen;
+  }
+  return group;
+}
+
+// 本車道邊界：粗深灰虛線
+laneGroup.add(makeThickDashedLine(-LANE_HALF,   -10, ROAD_LEN, 0x444444, 3));
+laneGroup.add(makeThickDashedLine( LANE_HALF,   -10, ROAD_LEN, 0x444444, 3));
+// 外側車道線：稍細深灰虛線
+laneGroup.add(makeThickDashedLine(-LANE_HALF*3, -10, ROAD_LEN, 0x666666, 2));
+laneGroup.add(makeThickDashedLine( LANE_HALF*3, -10, ROAD_LEN, 0x666666, 2));
+// 最外側路邊線：實線
+laneGroup.add(makeThickLine(-LANE_HALF*5, -10, ROAD_LEN, 0x666666, 2));
+laneGroup.add(makeThickLine( LANE_HALF*5, -10, ROAD_LEN, 0x666666, 2));
+// 中心線：細橘色實線
+const centerLine = makeThickLine(0, -10, ROAD_LEN, 0xff6600, 1.5);
+laneGroup.add(centerLine);
+worldGroup.add(laneGroup);
+
+// ─── RMA trajectory groups ────────────────────────────────────────────────
+const trajGroup = new THREE.Group();
+trajGroup.frustumCulled = false;
+worldGroup.add(trajGroup);
+
+// 三段軌跡:seg1 紅、seg2 綠、seg3 藍。純 0x00ff00 / 0x0000ff 在白底上偏螢光又偏暗,
+// 這裡用調過的紅綠藍,彩度接近、在白底和俯視圖都讀得出來。
+const TRAJ_COLORS    = [0xff2200, 0x00a651, 0x0066ff];
+// 原本用 0.35/0.70/1.00 的濃淡來分三段;現在顏色已經分得開,再壓透明度只會讓紅綠藍失真。
+const TRAJ_OPACITIES = [1.00, 1.00, 1.00];
+let trajLines = [];
+
+const retTrajGroup = new THREE.Group();
+retTrajGroup.frustumCulled = false;
+worldGroup.add(retTrajGroup);
+let retTrajLines = [];
+
+const cancelTrajGroup = new THREE.Group();
+cancelTrajGroup.frustumCulled = false;
+worldGroup.add(cancelTrajGroup);
+let cancelTrajLines = [];
+
+const newTrajGroup = new THREE.Group();
+newTrajGroup.frustumCulled = false;
+worldGroup.add(newTrajGroup);
+let newTrajLines = [];
+
+function addLine3(group, flat, color, opacity, store) {
+  const geo = new LineGeometry(); geo.setPositions(flat);
+  const mat = new LineMaterial({
+    color, opacity, transparent: true, linewidth: 5,
+    resolution: LINE_RES,
+    worldUnits: false
+  });
+  const line = new Line2(geo, mat);
+  line.frustumCulled = false;
+  group.add(line); store.push(line);
+  return line;
+}
+
+// ─── 段與段之間的黑點 ─────────────────────────────────────────────────────
+// 用球不用貼地的圓片：chase view 從 y=8 看向 z=80 只有約 5 度仰角,圓片會被壓成
+// 一條線幾乎看不見,球從任何角度都是同一顆點。
+const JOINT_R   = 0.3;
+const jointGeo  = new THREE.SphereGeometry(JOINT_R, 16, 12);   // 共用,不隨重建 dispose
+
+let trajDots = [], retDots = [], cancelDots = [], newDots = [], lfcpDots = [], lfcpRetDots = [];
+
+// pts = [[x, z], ...]（group 局部座標）。用 store.length = 0 保留陣列本身,
+// animate 裡持有的 trajDots[1] 這種參照才不會在重建後指到舊的點。
+function setJointDots(group, store, pts) {
+  for (const d of store) { d.material.dispose(); group.remove(d); }
+  store.length = 0;
+  for (const [x, z] of pts) {
+    const dot = new THREE.Mesh(jointGeo, new THREE.MeshBasicMaterial({
+      color: 0x000000, transparent: true
+    }));
+    dot.position.set(x, JOINT_R, z);   // 底部剛好貼在路面
+    dot.frustumCulled = false;
+    dot.renderOrder = 1;               // 疊在軌跡線上面
+    group.add(dot); store.push(dot);
+  }
+}
+
+function setDotsOpacity(store, o) {
+  for (const d of store) d.material.opacity = o;
+}
+
+// seg3 line 引用，供每幀更新
+let rmaSeg3Line, retSeg3Line, cancelSeg3Line, newSeg3Line, lfcpSeg3Line, lfcpRetSeg3Line;
+
+// 每幀更新 seg3：終點固定在世界 z=ROAD_LEN，起點 = seg3Start（group 局部座標）
+// group 局部終點 = ROAD_LEN - groupRelZ
+// dot = seg2/seg3 的接點，seg3 縮到消失時要跟著收起來
+function updateSeg3(line, xVal, seg3Start, groupRelZ, dot) {
+  const localEnd = ROAD_LEN + groupRelZ;
+  if (localEnd <= seg3Start) {
+    line.visible = false;
+    if (dot) dot.visible = false;
+    return;
+  }
+  line.visible = true;
+  if (dot) dot.visible = true;
+  const flat = [];
+  for (let i = 0; i <= 30; i++) flat.push(xVal, 0.05, seg3Start + i / 30 * (localEnd - seg3Start));
+  line.geometry.setPositions(flat);
+}
+
+function buildRMALines() {
+  for (const l of trajLines) { l.geometry.dispose(); l.material.dispose(); trajGroup.remove(l); }
+  trajLines = [];
+  const f1 = []; for (let i=0;i<=30;i++) f1.push(0, 0.05, i/30*Z1);
+  addLine3(trajGroup, f1, TRAJ_COLORS[0], TRAJ_OPACITIES[0], trajLines);
+  const f2 = []; for (let i=0;i<=80;i++) { const s=i/80; f2.push(-D*poly4(s), 0.05, Z1+s*(Z2-Z1)); }
+  addLine3(trajGroup, f2, TRAJ_COLORS[1], TRAJ_OPACITIES[1], trajLines);
+  const f3 = []; for (let i=0;i<=30;i++) f3.push(-D, 0.05, Z2+i/30*SEG3_LEN);
+  rmaSeg3Line = addLine3(trajGroup, f3, TRAJ_COLORS[2], TRAJ_OPACITIES[2], trajLines);
+  setJointDots(trajGroup, trajDots, [[0, Z1], [-D, Z2]]);
+}
+
+function buildRMAReturnLines() {
+  for (const l of retTrajLines) { l.geometry.dispose(); l.material.dispose(); retTrajGroup.remove(l); }
+  retTrajLines = [];
+  const f1 = []; for (let i=0;i<=30;i++) f1.push(-D, 0.05, i/30*Z1);
+  addLine3(retTrajGroup, f1, TRAJ_COLORS[0], TRAJ_OPACITIES[0], retTrajLines);
+  const f2 = []; for (let i=0;i<=80;i++) { const s=i/80; f2.push(-(D+(D2-D)*poly4(s)), 0.05, Z1+s*(Z2-Z1)); }
+  addLine3(retTrajGroup, f2, TRAJ_COLORS[1], TRAJ_OPACITIES[1], retTrajLines);
+  const f3 = []; for (let i=0;i<=30;i++) f3.push(-D2, 0.05, Z2+i/30*SEG3_LEN);
+  retSeg3Line = addLine3(retTrajGroup, f3, TRAJ_COLORS[2], TRAJ_OPACITIES[2], retTrajLines);
+  setJointDots(retTrajGroup, retDots, [[-D, Z1], [-D2, Z2]]);
+}
+
+function buildCancelLines(s_cv, x_seg1_end_v) {
+  for (const l of cancelTrajLines) { l.geometry.dispose(); l.material.dispose(); cancelTrajGroup.remove(l); }
+  cancelTrajLines = [];
+  const f1 = [];
+  for (let i=0;i<=30;i++) { const dz=i/30*CANCEL_SEG1; const s=Math.min(s_cv+dz/(Z2-Z1),1); f1.push(-D*poly4(s), 0.05, dz); }
+  addLine3(cancelTrajGroup, f1, TRAJ_COLORS[0], TRAJ_OPACITIES[0], cancelTrajLines);
+  const f2 = [];
+  for (let i=0;i<=80;i++) { const s2=i/80; const x=x_seg1_end_v+(LANE_HALF-x_seg1_end_v)*poly4(s2); f2.push(-x, 0.05, CANCEL_SEG1+s2*CANCEL_SEG2); }
+  addLine3(cancelTrajGroup, f2, TRAJ_COLORS[1], TRAJ_OPACITIES[1], cancelTrajLines);
+  const f3 = [];
+  for (let i=0;i<=30;i++) f3.push(-LANE_HALF, 0.05, CANCEL_SEG1+CANCEL_SEG2+i/30*CANCEL_SEG3);
+  cancelSeg3Line = addLine3(cancelTrajGroup, f3, TRAJ_COLORS[2], TRAJ_OPACITIES[2], cancelTrajLines);
+  setJointDots(cancelTrajGroup, cancelDots,
+    [[-x_seg1_end_v, CANCEL_SEG1], [-LANE_HALF, CANCEL_SEG1 + CANCEL_SEG2]]);
+}
+
+function buildNewTrajLines() {
+  for (const l of newTrajLines) { l.geometry.dispose(); l.material.dispose(); newTrajGroup.remove(l); }
+  newTrajLines = [];
+  const f1 = []; for (let i=0;i<=30;i++) f1.push(-LANE_HALF, 0.05, i/30*NEW_SEG1);
+  addLine3(newTrajGroup, f1, TRAJ_COLORS[0], TRAJ_OPACITIES[0], newTrajLines);
+  const f2 = []; for (let i=0;i<=80;i++) { const s=i/80; f2.push(-LANE_HALF-(D-LANE_HALF)*poly4(s), 0.05, NEW_SEG1+s*NEW_SEG2); }
+  addLine3(newTrajGroup, f2, TRAJ_COLORS[1], TRAJ_OPACITIES[1], newTrajLines);
+  const f3 = []; for (let i=0;i<=30;i++) f3.push(-D, 0.05, NEW_SEG1+NEW_SEG2+i/30*NEW_SEG3);
+  newSeg3Line = addLine3(newTrajGroup, f3, TRAJ_COLORS[2], TRAJ_OPACITIES[2], newTrajLines);
+  setJointDots(newTrajGroup, newDots, [[-LANE_HALF, NEW_SEG1], [-D, NEW_SEG1 + NEW_SEG2]]);
+}
+
+buildRMALines();       trajGroup.visible       = false;
+buildRMAReturnLines(); retTrajGroup.visible    = false;
+cancelTrajGroup.visible = false;
+newTrajGroup.visible    = false;
+
+// ─── LFCP trajectory groups ───────────────────────────────────────────────
+const lfcpTrajGroup = new THREE.Group();
+lfcpTrajGroup.frustumCulled = false;
+worldGroup.add(lfcpTrajGroup);
+let lfcpTrajLines = [];
+
+const lfcpRetGroup = new THREE.Group();
+lfcpRetGroup.frustumCulled = false;
+worldGroup.add(lfcpRetGroup);
+let lfcpRetLines = [];
+
+function buildLFCPLines() {
+  for (const l of lfcpTrajLines) { l.geometry.dispose(); l.material.dispose(); lfcpTrajGroup.remove(l); }
+  lfcpTrajLines = [];
+  lfcpTrajGroup.position.x = -D2;  // group offset: align x=0 with ego's lane center
+  const f1 = []; for (let i=0;i<=30;i++) f1.push(0, 0.05, i/30*LFCP_Z1);
+  addLine3(lfcpTrajGroup, f1, TRAJ_COLORS[0], TRAJ_OPACITIES[0], lfcpTrajLines);
+  const f2 = []; for (let i=0;i<=80;i++) { const s=i/80; f2.push(-D_LFCP*poly4(s), 0.05, LFCP_Z1+s*(LFCP_Z2-LFCP_Z1)); }
+  addLine3(lfcpTrajGroup, f2, TRAJ_COLORS[1], TRAJ_OPACITIES[1], lfcpTrajLines);
+  const f3 = []; for (let i=0;i<=30;i++) f3.push(-D_LFCP, 0.05, LFCP_Z2+i/30*LFCP_SEG3);
+  lfcpSeg3Line = addLine3(lfcpTrajGroup, f3, TRAJ_COLORS[2], TRAJ_OPACITIES[2], lfcpTrajLines);
+  setJointDots(lfcpTrajGroup, lfcpDots, [[0, LFCP_Z1], [-D_LFCP, LFCP_Z2]]);
+}
+
+function buildLFCPReturnLines() {
+  for (const l of lfcpRetLines) { l.geometry.dispose(); l.material.dispose(); lfcpRetGroup.remove(l); }
+  lfcpRetLines = [];
+  lfcpRetGroup.position.x = -D2;
+  const f1 = []; for (let i=0;i<=30;i++) f1.push(-D_LFCP, 0.05, i/30*LFCP_Z1);
+  addLine3(lfcpRetGroup, f1, TRAJ_COLORS[0], TRAJ_OPACITIES[0], lfcpRetLines);
+  const f2 = []; for (let i=0;i<=80;i++) { const s=i/80; f2.push(-D_LFCP*(1-poly4(s)), 0.05, LFCP_Z1+s*(LFCP_Z2-LFCP_Z1)); }
+  addLine3(lfcpRetGroup, f2, TRAJ_COLORS[1], TRAJ_OPACITIES[1], lfcpRetLines);
+  const f3 = []; for (let i=0;i<=30;i++) f3.push(0, 0.05, LFCP_Z2+i/30*LFCP_SEG3);
+  lfcpRetSeg3Line = addLine3(lfcpRetGroup, f3, TRAJ_COLORS[2], TRAJ_OPACITIES[2], lfcpRetLines);
+  setJointDots(lfcpRetGroup, lfcpRetDots, [[-D_LFCP, LFCP_Z1], [0, LFCP_Z2]]);
+}
+
+buildLFCPLines();       lfcpTrajGroup.visible = false;
+buildLFCPReturnLines(); lfcpRetGroup.visible  = false;
+
+// ─── Slow truck (co-Drive scenario) ───────────────────────────────────────
+function buildTruck() {
+  const g = new THREE.Group();
+  const cabMat = new THREE.MeshPhysicalMaterial({ color: 0x1b3a6e, metalness: 0.4, roughness: 0.4, clearcoat: 0.5 });
+  const hood = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.7, 2.6), cabMat);
+  hood.position.set(0, 0.75, 5.3); hood.castShadow = true; g.add(hood);
+  const cab = new THREE.Mesh(new THREE.BoxGeometry(2.3, 1.6, 2.4), cabMat);
+  cab.position.set(0, 1.60, 3.1); cab.castShadow = true; g.add(cab);
+  const wind = new THREE.Mesh(
+    new THREE.BoxGeometry(2.31, 0.72, 0.06),
+    new THREE.MeshPhysicalMaterial({ color: 0x0a1a35, transparent: true, opacity: 0.75 })
+  );
+  wind.position.set(0, 1.95, 4.41); g.add(wind);
+  const chassis = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.45, 2.2), cabMat);
+  chassis.position.set(0, 0.52, 1.4); chassis.castShadow = true; g.add(chassis);
+  const stackGeo = new THREE.CylinderGeometry(0.07, 0.07, 2.0, 8);
+  const stackMat = new THREE.MeshLambertMaterial({ color: 0x555555 });
+  for (const x of [-1.05, 1.05]) {
+    const s = new THREE.Mesh(stackGeo, stackMat); s.position.set(x, 2.1, 3.3); g.add(s);
+  }
+  const trailerMat = new THREE.MeshPhysicalMaterial({ color: 0xd8d8d8, metalness: 0.1, roughness: 0.6 });
+  const trailer = new THREE.Mesh(new THREE.BoxGeometry(2.7, 2.6, 11.5), trailerMat);
+  trailer.position.set(0, 1.6, -4.75); trailer.castShadow = true; g.add(trailer);
+  const rStripe = new THREE.Mesh(new THREE.BoxGeometry(2.71, 0.12, 0.04),
+    new THREE.MeshBasicMaterial({ color: 0xff2200 }));
+  rStripe.position.set(0, 0.80, -10.52); g.add(rStripe);
+  const yStripe = new THREE.Mesh(new THREE.BoxGeometry(2.71, 0.12, 0.04),
+    new THREE.MeshBasicMaterial({ color: 0xffdd00 }));
+  yStripe.position.set(0, 0.66, -10.52); g.add(yStripe);
+  for (const x of [-1.18, 1.18]) {
+    const tl = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.22, 0.05),
+      new THREE.MeshBasicMaterial({ color: 0xff1100, transparent: true, opacity: 0.9 }));
+    tl.position.set(x, 1.05, -10.52); g.add(tl);
+  }
+  const wGeo  = new THREE.CylinderGeometry(0.45, 0.45, 0.28, 16);
+  const wGeoD = new THREE.CylinderGeometry(0.45, 0.45, 0.60, 16);
+  const wMat  = new THREE.MeshLambertMaterial({ color: 0x111111 });
+  for (const x of [-1.15, 1.15]) {
+    const w = new THREE.Mesh(wGeo, wMat); w.rotation.z = Math.PI/2;
+    w.position.set(x, 0.45, 4.8); g.add(w);
+  }
+  for (const x of [-1.25, 1.25]) {
+    const w = new THREE.Mesh(wGeoD, wMat); w.rotation.z = Math.PI/2;
+    w.position.set(x, 0.45, 1.1); g.add(w);
+  }
+  for (const z of [-7.6, -9.0, -10.4]) {
+    for (const x of [-1.25, 1.25]) {
+      const w = new THREE.Mesh(wGeoD, wMat); w.rotation.z = Math.PI/2;
+      w.position.set(x, 0.45, z); g.add(w);
+    }
+  }
+  return g;
+}
+
+const truckMesh = buildTruck();
+truckMesh.visible = false;
+worldGroup.add(truckMesh);
+
+// ─── Ego car ──────────────────────────────────────────────────────────────
+function buildEgo() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(1.8, 0.6, 4.2),
+    new THREE.MeshPhysicalMaterial({ color: 0xf4f4f2, metalness: 0.45, roughness: 0.22, clearcoat: 1.0, clearcoatRoughness: 0.08 })
+  );
+  body.position.y = 0.55; body.castShadow = true; g.add(body);
+  const cabin = new THREE.Mesh(
+    new THREE.BoxGeometry(1.5, 0.5, 2.2),
+    new THREE.MeshPhysicalMaterial({ color: 0x3a4a5a, metalness: 0.2, roughness: 0.3, transparent: true, opacity: 0.78 })
+  );
+  cabin.position.set(0, 1.05, -0.3); cabin.castShadow = true; g.add(cabin);
+  const stripe = new THREE.Mesh(
+    new THREE.BoxGeometry(1.82, 0.04, 4.22),
+    new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.7 })
+  );
+  stripe.position.y = 0.28; g.add(stripe);
+  const wGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.22, 24);
+  const wMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
+  for (const [x, y, z] of [[-0.95,0.32,-1.35],[0.95,0.32,-1.35],[-0.95,0.32,1.35],[0.95,0.32,1.35]]) {
+    const w = new THREE.Mesh(wGeo, wMat); w.rotation.z = Math.PI/2; w.position.set(x,y,z); w.castShadow=true; g.add(w);
+  }
+  for (const x of [-0.65, 0.65]) {
+    const hl = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.12, 0.06),
+      new THREE.MeshBasicMaterial({ color: 0xfff8e0 }));
+    hl.position.set(x, 0.5, 2.12); g.add(hl);
+    const tl = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.10, 0.06),
+      new THREE.MeshBasicMaterial({ color: 0xff2200, transparent: true, opacity: 0.9 }));
+    tl.position.set(x, 0.5, -2.12); g.add(tl);
+  }
+  return g;
+}
+
+function buildNPCCar() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(1.8, 0.6, 4.2),
+    new THREE.MeshPhysicalMaterial({ color: 0xc02010, metalness: 0.45, roughness: 0.22, clearcoat: 1.0, clearcoatRoughness: 0.08 })
+  );
+  body.position.y = 0.55; body.castShadow = true; g.add(body);
+  const cabin = new THREE.Mesh(
+    new THREE.BoxGeometry(1.5, 0.5, 2.2),
+    new THREE.MeshPhysicalMaterial({ color: 0x2a3040, metalness: 0.2, roughness: 0.3, transparent: true, opacity: 0.78 })
+  );
+  cabin.position.set(0, 1.05, -0.3); cabin.castShadow = true; g.add(cabin);
+  const stripe = new THREE.Mesh(
+    new THREE.BoxGeometry(1.82, 0.04, 4.22),
+    new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.8 })
+  );
+  stripe.position.y = 0.28; g.add(stripe);
+  const wGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.22, 24);
+  const wMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
+  for (const [x,y,z] of [[-0.95,0.32,-1.35],[0.95,0.32,-1.35],[-0.95,0.32,1.35],[0.95,0.32,1.35]]) {
+    const w = new THREE.Mesh(wGeo, wMat); w.rotation.z = Math.PI/2; w.position.set(x,y,z); w.castShadow=true; g.add(w);
+  }
+  for (const x of [-0.65, 0.65]) {
+    const hl = new THREE.Mesh(new THREE.BoxGeometry(0.3,0.12,0.06), new THREE.MeshBasicMaterial({color:0xfff8e0}));
+    hl.position.set(x, 0.5, 2.12); g.add(hl);
+    const tl = new THREE.Mesh(new THREE.BoxGeometry(0.3,0.10,0.06), new THREE.MeshBasicMaterial({color:0xff2200,transparent:true,opacity:0.9}));
+    tl.position.set(x, 0.5, -2.12); g.add(tl);
+  }
+  return g;
+}
+
+const ego    = buildEgo(); scene.add(ego);
+const npcCar = buildNPCCar(); npcCar.visible = false; worldGroup.add(npcCar);
+
+// ─── Phase state machine ──────────────────────────────────────────────────
+let totalScroll = 0;
+let cancel_scroll = 0, s_cancel = 0, x_cancel_seg1_end = 0;
+let new_deploy_scroll = 0;
+let lfcp_cycle_start_scroll = 0, lfcp_deploy_scroll = 0, lfcp_return_scroll = 0;
+let isSecondPass = false;
+const PH = {
+  NORMAL:0, DETECT:1, MOVE:2, PASS:3, RETURN:4, IDLE:5,
+  CANCEL:6, NEW_DETECT:7, NEW_MOVE:8,
+  LFCP_NORMAL:9, LFCP_DETECT:10, LFCP_MOVE:11, LFCP_PASS:12, LFCP_RETURN:13, LFCP_IDLE:14
+};
+let phase       = PH.NORMAL;
+let phaseStartS = 0;
+let deploy_scroll  = 0;
+let return_scroll  = 0;
+let idle_start_x   = 0;
+let lastTime = performance.now();
+
+// ─── Animation loop ───────────────────────────────────────────────────────
+function animate(now) {
+  requestAnimationFrame(animate);
+
+  const dt      = Math.min((now - lastTime) / 1000, 0.05);
+  lastTime = now;
+  const timeSec = now / 1000;
+
+  totalScroll += EGO_SPEED * dt;
+  const relZ = totalScroll - deploy_scroll;
+
+  // ── Phase transitions ────────────────────────────────────────────────
+  if (phase === PH.NORMAL) {
+    if (timeSec - phaseStartS >= NORMAL_DUR) {
+      phase = PH.DETECT; phaseStartS = timeSec;
+      deploy_scroll = totalScroll;
+      trajGroup.visible = true;
+    }
+  } else if (phase === PH.DETECT) {
+    if (relZ >= Z1) { phase = PH.MOVE; phaseStartS = timeSec; }
+  } else if (phase === PH.MOVE) {
+    const s_now = (relZ - Z1) / (Z2 - Z1);
+    if (s_now >= CANCEL_S) {
+      phase = PH.CANCEL; phaseStartS = timeSec;
+      cancel_scroll    = totalScroll;
+      s_cancel         = s_now;
+      x_cancel_seg1_end = D * poly4(Math.min(s_cancel + CANCEL_SEG1 / (Z2 - Z1), 1));
+      trajGroup.visible = false;
+      buildCancelLines(s_cancel, x_cancel_seg1_end);
+      cancelTrajGroup.visible = true;
+    } else if (relZ >= Z2) {
+      phase = PH.PASS; phaseStartS = timeSec;
+      isSecondPass = false;
+    }
+  } else if (phase === PH.PASS) {
+    if (timeSec - phaseStartS >= PASS_HOLD) {
+      phase = PH.RETURN; phaseStartS = timeSec;
+      return_scroll = totalScroll;
+      retTrajGroup.visible = true;
+      trajGroup.visible = false;
+    }
+  } else if (phase === PH.RETURN) {
+    if (totalScroll - return_scroll >= Z2) {
+      phase = PH.IDLE; phaseStartS = timeSec;
+      idle_start_x = D2;
+      retTrajGroup.visible = false;
+    }
+  } else if (phase === PH.CANCEL) {
+    if (totalScroll - cancel_scroll >= CANCEL_TOTAL) {
+      phase = PH.NEW_DETECT; phaseStartS = timeSec;
+      new_deploy_scroll = totalScroll;
+      buildNewTrajLines();
+      newTrajGroup.visible = true;
+      cancelTrajGroup.visible = false;
+    }
+  } else if (phase === PH.NEW_DETECT) {
+    if (totalScroll - new_deploy_scroll >= NEW_SEG1) {
+      phase = PH.NEW_MOVE; phaseStartS = timeSec;
+    }
+  } else if (phase === PH.NEW_MOVE) {
+    if (totalScroll - new_deploy_scroll >= NEW_SEG1 + NEW_SEG2) {
+      phase = PH.PASS; phaseStartS = timeSec;
+      isSecondPass = true;
+      newTrajGroup.visible = false;
+    }
+  } else if (phase === PH.IDLE) {
+    if (timeSec - phaseStartS >= IDLE_DUR) {
+      phase = PH.LFCP_NORMAL; phaseStartS = timeSec;
+      lfcp_cycle_start_scroll = totalScroll;
+      truckMesh.visible = true;
+      buildLFCPLines();
+      buildLFCPReturnLines();
+    }
+  } else if (phase === PH.LFCP_NORMAL) {
+    if (timeSec - phaseStartS >= LFCP_NORMAL_DUR) {
+      phase = PH.LFCP_DETECT; phaseStartS = timeSec;
+      lfcp_deploy_scroll = totalScroll;
+      lfcpTrajGroup.visible = true;
+    }
+  } else if (phase === PH.LFCP_DETECT) {
+    if (totalScroll - lfcp_deploy_scroll >= LFCP_Z1) {
+      phase = PH.LFCP_MOVE; phaseStartS = timeSec;
+    }
+  } else if (phase === PH.LFCP_MOVE) {
+    if (totalScroll - lfcp_deploy_scroll >= LFCP_Z2) {
+      phase = PH.LFCP_PASS; phaseStartS = timeSec;
+    }
+  } else if (phase === PH.LFCP_PASS) {
+    if (timeSec - phaseStartS >= LFCP_PASS_HOLD) {
+      phase = PH.LFCP_RETURN; phaseStartS = timeSec;
+      lfcp_return_scroll = totalScroll;
+      lfcpRetGroup.visible  = true;
+      lfcpTrajGroup.visible = false;
+    }
+  } else if (phase === PH.LFCP_RETURN) {
+    if (totalScroll - lfcp_return_scroll >= LFCP_Z2) {
+      phase = PH.LFCP_IDLE; phaseStartS = timeSec;
+      lfcpRetGroup.visible = false;
+    }
+  } else { // LFCP_IDLE
+    if (timeSec - phaseStartS >= LFCP_IDLE_DUR) {
+      phase = PH.NORMAL; phaseStartS = timeSec;
+      truckMesh.visible = false;
+      lfcpTrajGroup.visible = false;
+      lfcpRetGroup.visible  = false;
+      buildRMALines();       trajGroup.visible    = false;
+      buildRMAReturnLines(); retTrajGroup.visible = false;
+      cancelTrajGroup.visible = false;
+      newTrajGroup.visible    = false;
+    }
+  }
+
+  // ── egoX ────────────────────────────────────────────────────────────
+  let egoX = 0;
+  let trajAlpha = 0, retTrajAlpha = 0, cancelTrajAlpha = 0, newTrajAlpha = 0;
+  let lfcpTrajAlpha = 0, lfcpRetAlpha = 0;
+
+  if (phase === PH.DETECT) {
+    egoX = 0;
+    trajAlpha = ease5(Math.min((timeSec - phaseStartS) / 0.8, 1.0));
+  } else if (phase === PH.MOVE) {
+    egoX = trajWX(relZ);
+    trajAlpha = 1.0;
+  } else if (phase === PH.PASS) {
+    egoX = D;
+    trajAlpha = 1.0;
+  } else if (phase === PH.RETURN) {
+    egoX = trajReturnWX(totalScroll - return_scroll);
+    retTrajAlpha = 1.0;
+  } else if (phase === PH.CANCEL) {
+    const rc = totalScroll - cancel_scroll;
+    if      (rc < CANCEL_SEG1)                { egoX = D * poly4(Math.min(s_cancel + rc/(Z2-Z1), 1)); }
+    else if (rc < CANCEL_SEG1 + CANCEL_SEG2)  { egoX = x_cancel_seg1_end + (LANE_HALF - x_cancel_seg1_end) * poly4((rc-CANCEL_SEG1)/CANCEL_SEG2); }
+    else                                       { egoX = LANE_HALF; }
+    cancelTrajAlpha = 1.0;
+  } else if (phase === PH.NEW_DETECT) {
+    egoX = LANE_HALF;
+    newTrajAlpha = ease5(Math.min((timeSec - phaseStartS) / 0.8, 1.0));
+  } else if (phase === PH.NEW_MOVE) {
+    const sN = Math.max(0, Math.min(1, (totalScroll - new_deploy_scroll - NEW_SEG1) / NEW_SEG2));
+    egoX = LANE_HALF + (D - LANE_HALF) * poly4(sN);
+    newTrajAlpha = 1.0;
+  } else if (phase === PH.IDLE) {
+    egoX = D2;  // stay in new lane; no reset here
+  } else if (phase === PH.LFCP_NORMAL) {
+    egoX = D2;
+  } else if (phase === PH.LFCP_DETECT) {
+    egoX = D2;
+    lfcpTrajAlpha = ease5(Math.min((timeSec - phaseStartS) / 0.8, 1.0));
+  } else if (phase === PH.LFCP_MOVE) {
+    const s_lm = Math.max(0, Math.min(1, (totalScroll - lfcp_deploy_scroll - LFCP_Z1) / (LFCP_Z2 - LFCP_Z1)));
+    egoX = D2 + D_LFCP * poly4(s_lm);
+    lfcpTrajAlpha = 1.0;
+  } else if (phase === PH.LFCP_PASS) {
+    egoX = D2 + D_LFCP;
+    lfcpTrajAlpha = 1.0;
+  } else if (phase === PH.LFCP_RETURN) {
+    const s_lr = Math.max(0, Math.min(1, (totalScroll - lfcp_return_scroll - LFCP_Z1) / (LFCP_Z2 - LFCP_Z1)));
+    egoX = D2 + D_LFCP * (1 - poly4(s_lr));
+    lfcpRetAlpha = 1.0;
+  } else if (phase === PH.LFCP_IDLE) {
+    egoX = D2 * (1 - ease5(Math.min((timeSec - phaseStartS) / LFCP_IDLE_DUR, 1)));
+  }
+
+  // ── Trajectory Z scroll + opacity ───────────────────────────────────
+  if (phase >= PH.DETECT && phase < PH.RETURN && phase !== PH.CANCEL && phase < PH.NEW_DETECT) {
+    trajGroup.position.z = -relZ;
+    for (let i=0; i<trajLines.length; i++) trajLines[i].material.opacity = TRAJ_OPACITIES[i] * trajAlpha;
+    setDotsOpacity(trajDots, trajAlpha);
+    updateSeg3(rmaSeg3Line, -D, Z2, relZ, trajDots[1]);
+  }
+  if (phase === PH.RETURN) {
+    const rRelZ = totalScroll - return_scroll;
+    retTrajGroup.position.z = -rRelZ;
+    for (let i=0; i<retTrajLines.length; i++) retTrajLines[i].material.opacity = TRAJ_OPACITIES[i];
+    setDotsOpacity(retDots, 1);
+    updateSeg3(retSeg3Line, -D2, Z2, rRelZ, retDots[1]);
+  }
+  if (phase === PH.CANCEL) {
+    const cRelZ = totalScroll - cancel_scroll;
+    cancelTrajGroup.position.z = -cRelZ;
+    for (let i=0; i<cancelTrajLines.length; i++) cancelTrajLines[i].material.opacity = TRAJ_OPACITIES[i] * cancelTrajAlpha;
+    setDotsOpacity(cancelDots, cancelTrajAlpha);
+    updateSeg3(cancelSeg3Line, -LANE_HALF, CANCEL_SEG1+CANCEL_SEG2, cRelZ, cancelDots[1]);
+  }
+  if (phase === PH.NEW_DETECT || phase === PH.NEW_MOVE) {
+    const nRelZ = totalScroll - new_deploy_scroll;
+    newTrajGroup.position.z = -nRelZ;
+    for (let i=0; i<newTrajLines.length; i++) newTrajLines[i].material.opacity = TRAJ_OPACITIES[i] * newTrajAlpha;
+    setDotsOpacity(newDots, newTrajAlpha);
+    updateSeg3(newSeg3Line, -D, NEW_SEG1+NEW_SEG2, nRelZ, newDots[1]);
+  }
+  if (phase === PH.LFCP_DETECT || phase === PH.LFCP_MOVE || phase === PH.LFCP_PASS) {
+    const lRelZ = totalScroll - lfcp_deploy_scroll;
+    lfcpTrajGroup.position.z = -lRelZ;
+    for (let i=0; i<lfcpTrajLines.length; i++) lfcpTrajLines[i].material.opacity = TRAJ_OPACITIES[i] * lfcpTrajAlpha;
+    setDotsOpacity(lfcpDots, lfcpTrajAlpha);
+    updateSeg3(lfcpSeg3Line, -D_LFCP, LFCP_Z2, lRelZ, lfcpDots[1]);
+  }
+  if (phase === PH.LFCP_RETURN) {
+    const lrRelZ = totalScroll - lfcp_return_scroll;
+    lfcpRetGroup.position.z = -lrRelZ;
+    for (let i=0; i<lfcpRetLines.length; i++) lfcpRetLines[i].material.opacity = TRAJ_OPACITIES[i];
+    setDotsOpacity(lfcpRetDots, 1);
+    updateSeg3(lfcpRetSeg3Line, 0, LFCP_Z2, lrRelZ, lfcpRetDots[1]);
+  }
+
+  // ── Road scroll ─────────────────────────────────────────────────────
+  laneGroup.position.z  = -(totalScroll % LANE_CYCLE);
+
+  // ── Heading ─────────────────────────────────────────────────────────
+  let heading = 0;
+  if (phase === PH.MOVE) {
+    const s = Math.max(0, Math.min(1, (relZ - Z1) / (Z2 - Z1)));
+    heading = Math.atan(D * poly4Prime(s) / (Z2 - Z1));
+  } else if (phase === PH.RETURN) {
+    const s = Math.max(0, Math.min(1, (totalScroll - return_scroll - Z1) / (Z2 - Z1)));
+    heading = Math.atan((D2 - D) * poly4Prime(s) / (Z2 - Z1));
+  } else if (phase === PH.CANCEL) {
+    const rc = totalScroll - cancel_scroll;
+    if (rc < CANCEL_SEG1) {
+      const s = Math.min(s_cancel + rc / (Z2 - Z1), 1);
+      heading = Math.atan(D * poly4Prime(s) / (Z2 - Z1));
+    } else if (rc < CANCEL_SEG1 + CANCEL_SEG2) {
+      const s2 = (rc - CANCEL_SEG1) / CANCEL_SEG2;
+      heading = Math.atan((LANE_HALF - x_cancel_seg1_end) * poly4Prime(s2) / CANCEL_SEG2);
+    }
+  } else if (phase === PH.NEW_MOVE) {
+    const sN = Math.max(0, Math.min(1, (totalScroll - new_deploy_scroll - NEW_SEG1) / NEW_SEG2));
+    heading = Math.atan((D - LANE_HALF) * poly4Prime(sN) / NEW_SEG2);
+  } else if (phase === PH.LFCP_MOVE) {
+    const s = Math.max(0, Math.min(1, (totalScroll - lfcp_deploy_scroll - LFCP_Z1) / (LFCP_Z2 - LFCP_Z1)));
+    heading = Math.atan(D_LFCP * poly4Prime(s) / (LFCP_Z2 - LFCP_Z1));
+  } else if (phase === PH.LFCP_RETURN) {
+    const s = Math.max(0, Math.min(1, (totalScroll - lfcp_return_scroll - LFCP_Z1) / (LFCP_Z2 - LFCP_Z1)));
+    heading = -Math.atan(D_LFCP * poly4Prime(s) / (LFCP_Z2 - LFCP_Z1));
+  }
+
+  worldGroup.position.x = egoX;
+  worldGroup.rotation.y = heading;
+
+  // ── NPC (tracked after first deploy; fog hides when far ahead) ───────
+  if (deploy_scroll > 0) {
+    const elapsed = (totalScroll - deploy_scroll) / EGO_SPEED;
+    const npcZ    = NPC_INIT_Z + NPC_REL_SPEED * elapsed;
+    let npcX;
+    if (npcZ < NPC_LC_START_Z) {
+      npcX = -D * 2; npcCar.rotation.y = 0;
+    } else if (npcZ < NPC_LC_START_Z + NPC_LC_LEN) {
+      const sN = (npcZ - NPC_LC_START_Z) / NPC_LC_LEN;
+      npcX = -D * 2 + D * poly4(sN);
+      npcCar.rotation.y = Math.atan(D * poly4Prime(sN) / NPC_LC_LEN);
+    } else {
+      npcX = -D; npcCar.rotation.y = 0;
+    }
+    npcCar.position.set(npcX, Math.sin(timeSec*2.1+1.2)*0.012, npcZ);
+    npcCar.visible = (npcZ > -56 && npcZ < 90);
+  } else {
+    npcCar.visible = false;
+  }
+
+  // ── Truck (LFCP phases) ──────────────────────────────────────────────
+  if (phase >= PH.LFCP_NORMAL && phase <= PH.LFCP_IDLE) {
+    const truckRelZ = TRUCK_INIT_Z - (totalScroll - lfcp_cycle_start_scroll) * (1 - TRUCK_SPEED / EGO_SPEED);
+    truckMesh.position.set(TRUCK_X, 0, truckRelZ);
+  }
+
+  // ── Ego bob ──────────────────────────────────────────────────────────
+  ego.position.y = Math.sin(timeSec * 1.4) * 0.012;
+
+  // ── 橘色中心線：只在有軌跡動作時隱藏，靜止待機時顯示 ──────────────────
+  const showLine = phase === PH.NORMAL ||
+                   phase === PH.IDLE ||
+                   phase === PH.LFCP_NORMAL ||
+                   phase === PH.LFCP_IDLE ||
+                   (phase === PH.PASS && isSecondPass);
+  centerLine.visible = showLine;
+  centerLine.position.x = -egoX;
+
+  controls.update();
+  renderViews();
+}
+
+requestAnimationFrame(animate);
+
+// ─── Resize ───────────────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = panelW() / window.innerHeight;
+  camera.updateProjectionMatrix();
+  updateBirdCam();
+  LINE_RES.set(panelW(), window.innerHeight);
+  for (const l of [...trajLines, ...retTrajLines, ...cancelTrajLines, ...newTrajLines,
+                    ...lfcpTrajLines, ...lfcpRetLines]) {
+    l.material.resolution.copy(LINE_RES);
+  }
+  laneGroup.traverse(obj => {
+    if (obj.isLine2) obj.material.resolution.copy(LINE_RES);
+  });
+});
+</script>
+</body>
+</html>
