@@ -328,7 +328,9 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 #influence .unit-lead,
 #architecture .unit-lead,
 #simulation .unit-lead,
-#decision-1 .unit-lead{max-width:640px;text-align:left}
+#decision-1 .unit-lead,
+#root-cause .unit-lead,
+#decision-2 .unit-lead{max-width:640px;text-align:left}
 /* 導言和下面那張圖中間疊了兩段間距(unit-head 的 32 + .ldemo 的 28 = 60),
    中間空一大塊,讀起來像斷掉。這裡歸零,只留 .ldemo 自己的 28 —— 和 #method
    的 20 差不多,兩節的節奏才一致。 */
@@ -560,8 +562,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">ROOT CAUSE · 收斂</div>
-        <div class="unit-title">路測回報的是現象<br>不是原因</div>
-        <p class="unit-lead">方向盤左右甩動、汽車偏邊行駛、車道線缺失——這三種抱怨底下，躺著七個各自不同的根因。一路拆到底之後再重新歸類，依據只有一個：<b>資訊是歪了、沒了，還是選錯了</b>。<b>分類不是為了整齊，是因為三型各自對應完全不同的解法</b>——補償、降級估計、交叉驗證。<b>後面那套三柱架構，就是照這三型分流蓋的。</b></p>
+        <div class="unit-title">一個問題補一個做法<br>補到最後會難以控管</div>
+        <p class="unit-lead">多台測試車輛、多個專案，再加上 MIL 與 CIL 兩種測試，回報進來的問題<b>又多又雜</b>，團隊把它們收進同一份清單統一管理。雖然最省事的路就是一個問題補一個做法，但<b>軟體最後肯定會又肥又亂</b>。所以我把問題拆開、重新歸類，這樣我寫的每一套演算法都能<b>一次對應好幾個同類型的問題</b>，讓軟體架構簡單明瞭，又能覆蓋所有問題點。</p>
       </div>
 
       <!-- 側向根因拆解 mind-map -->
@@ -579,37 +581,31 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
               </svg>
               道路實車測試 ADAS
             </div>
-            <svg class="isrc-fig" viewBox="0 0 160 54" role="img" aria-label="市區街景實車測試示意">
-              <rect width="160" height="54" fill="#cfe2f2"/>
-              <!-- 左側連棟店面 -->
+            <svg class="isrc-fig" viewBox="0 0 160 76" role="img" aria-label="市區街景實車測試示意">
+              <rect width="160" height="76" fill="#cfe2f2"/>
               <g fill="#c9b8b6">
-                <rect x="0" y="6" width="13" height="26"/><rect x="13" y="2" width="11" height="30"/>
-                <rect x="24" y="9" width="10" height="23"/><rect x="34" y="4" width="9" height="28"/>
+                <rect x="0" y="8" width="13" height="36"/><rect x="13" y="3" width="11" height="41"/>
+                <rect x="24" y="12" width="10" height="32"/><rect x="34" y="6" width="9" height="38"/>
               </g>
               <g fill="#b3a09f" opacity=".7">
-                <rect x="2" y="11" width="9" height="2"/><rect x="2" y="17" width="9" height="2"/>
-                <rect x="15" y="8" width="7" height="2"/><rect x="15" y="14" width="7" height="2"/>
-                <rect x="26" y="14" width="6" height="2"/><rect x="36" y="10" width="5" height="2"/>
+                <rect x="2" y="14" width="9" height="2"/><rect x="2" y="22" width="9" height="2"/>
+                <rect x="15" y="10" width="7" height="2"/><rect x="15" y="18" width="7" height="2"/>
+                <rect x="26" y="18" width="6" height="2"/><rect x="36" y="13" width="5" height="2"/>
               </g>
-              <!-- 右側高架橋:橋面與橋墩 -->
-              <rect x="118" y="7" width="42" height="7" fill="#c4c8cd"/>
-              <rect x="126" y="14" width="5" height="18" fill="#b6bac0"/>
-              <rect x="146" y="14" width="5" height="18" fill="#b6bac0"/>
-              <!-- 地面與路面(透視) -->
-              <rect y="30" width="160" height="24" fill="#cdd2d6"/>
-              <polygon points="30,54 72,30 98,30 150,54" fill="#a9aeb3"/>
-              <!-- 中央綠籬 -->
-              <polygon points="14,54 66,30 72,30 30,54" fill="#7ea866"/>
-              <!-- 車道線與路面方向箭頭 -->
+              <rect x="118" y="10" width="42" height="9" fill="#c4c8cd"/>
+              <rect x="126" y="19" width="5" height="25" fill="#b6bac0"/>
+              <rect x="146" y="19" width="5" height="25" fill="#b6bac0"/>
+              <rect y="42" width="160" height="34" fill="#cdd2d6"/>
+              <polygon points="28,76 70,42 98,42 152,76" fill="#a9aeb3"/>
+              <polygon points="12,76 64,42 70,42 28,76" fill="#7ea866"/>
               <g fill="#f2f4f6">
-                <polygon points="88,54 92,54 85,40 83,40"/><polygon points="81,36 83,36 80,30 79,30"/>
-                <polygon points="104,38 108,32 112,38 109,38 109,44 107,44 107,38"/>
+                <polygon points="88,76 93,76 84,58 82,58"/><polygon points="80,52 82,52 79,42 78,42"/>
+                <polygon points="104,54 109,46 114,54 111,54 111,64 107,64 107,54"/>
               </g>
             </svg>
             <ul class="isrc-b">
-              <li>LDW 頻繁誤報</li>
-              <li>車道線漏檢</li>
-              <li>彎道偏移大</li>
+              <li>MiniFOT 測試議題</li>
+              <li>量產前 FOT 測試議題</li>
             </ul>
           </div>
   
@@ -621,32 +617,27 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
               </svg>
               CarSim MIL 測試 ADAS
             </div>
-            <svg class="isrc-fig" viewBox="0 0 160 54" role="img" aria-label="CarSim 模擬環境感測器示意">
-              <rect width="160" height="54" fill="#8fae70"/>
-              <rect width="160" height="11" fill="#cfe0ee"/>
-              <!-- 路面(透視) -->
-              <polygon points="16,54 64,11 104,11 154,54" fill="#9ca1a6"/>
-              <polygon points="16,54 22,54 68,11 64,11" fill="#eef0f2"/>
-              <polygon points="148,54 154,54 104,11 100,11" fill="#eef0f2"/>
+            <svg class="isrc-fig" viewBox="0 0 160 76" role="img" aria-label="CarSim 模擬環境感測器示意">
+              <rect width="160" height="76" fill="#8fae70"/>
+              <rect width="160" height="15" fill="#cfe0ee"/>
+              <polygon points="14,76 64,15 104,15 156,76" fill="#9ca1a6"/>
+              <polygon points="14,76 21,76 69,15 64,15" fill="#eef0f2"/>
+              <polygon points="149,76 156,76 104,15 99,15" fill="#eef0f2"/>
               <g fill="#eef0f2">
-                <rect x="83" y="15" width="1.6" height="4"/><rect x="83" y="23" width="2" height="5"/>
-                <rect x="83" y="33" width="2.4" height="6"/><rect x="82" y="45" width="3" height="7"/>
+                <rect x="83" y="20" width="1.6" height="5"/><rect x="83" y="31" width="2" height="6"/>
+                <rect x="82.5" y="45" width="2.4" height="7"/><rect x="82" y="62" width="3" height="9"/>
               </g>
-              <!-- 感測器:綠色視覺扇形 + 紅色雷達錐 -->
-              <polygon points="84,40 58,13 110,13" fill="#4ade80" opacity=".38"/>
-              <polygon points="84,40 76,13 94,13" fill="#ef4444" opacity=".30"/>
-              <!-- 前方車輛 -->
-              <rect x="79" y="26" width="11" height="6" rx="1.5" fill="#d97706"/>
-              <rect x="77" y="18" width="9" height="5" rx="1.5" fill="#c2410c"/>
-              <rect x="92" y="21" width="9" height="5" rx="1.5" fill="#64748b"/>
-              <!-- 本車 -->
-              <rect x="75" y="39" width="19" height="10" rx="2.5" fill="#2b6cb0"/>
-              <rect x="79" y="36" width="11" height="5" rx="2" fill="#3b82f6"/>
+              <polygon points="84,56 56,17 112,17" fill="#4ade80" opacity=".38"/>
+              <polygon points="84,56 75,17 93,17" fill="#ef4444" opacity=".30"/>
+              <rect x="79" y="34" width="11" height="6" rx="1.5" fill="#d97706"/>
+              <rect x="77" y="24" width="9" height="5" rx="1.5" fill="#c2410c"/>
+              <rect x="92" y="28" width="9" height="5" rx="1.5" fill="#64748b"/>
+              <rect x="74" y="55" width="20" height="11" rx="2.5" fill="#2b6cb0"/>
+              <rect x="78" y="51" width="12" height="5" rx="2" fill="#3b82f6"/>
             </svg>
             <ul class="isrc-b">
-              <li>車道保持不穩定</li>
-              <li>路口迴轉向延遲</li>
-              <li>彎道削波超出限制</li>
+              <li>特定特殊工況</li>
+              <li>法規測試工況</li>
             </ul>
           </div>
   
@@ -658,37 +649,34 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
               </svg>
               Camera-In-The-Loop
             </div>
-            <svg class="isrc-fig" viewBox="0 0 160 54" role="img" aria-label="Camera-In-The-Loop:實體相機對著螢幕拍攝回放畫面">
-              <rect width="160" height="54" fill="#eef1f5"/>
-              <!-- 相機視野錐:涵蓋整個螢幕 -->
-              <polygon points="57,27 86,7 86,46" fill="#4ade80" opacity=".28"/>
-              <!-- 螢幕:播放錄回來的路況 -->
-              <rect x="86" y="6" width="70" height="40" rx="3" fill="#454b54"/>
-              <rect x="89.5" y="9.5" width="63" height="33" fill="#cfe0ee"/>
-              <rect x="89.5" y="19" width="63" height="23.5" fill="#b9c0c8"/>
-              <polygon points="98,42.5 114,19 128,19 144,42.5" fill="#9ca1a6"/>
+            <svg class="isrc-fig" viewBox="0 0 160 76" role="img" aria-label="Camera-In-The-Loop:實體相機對著螢幕拍攝回放畫面">
+              <rect width="160" height="76" fill="#eef1f5"/>
+              <polygon points="57,38 88,10 88,66" fill="#4ade80" opacity=".28"/>
+              <rect x="88" y="9" width="68" height="54" rx="3" fill="#454b54"/>
+              <rect x="91.5" y="12.5" width="61" height="47" fill="#cfe0ee"/>
+              <rect x="91.5" y="26" width="61" height="33.5" fill="#b9c0c8"/>
+              <polygon points="100,59.5 116,26 128,26 144,59.5" fill="#9ca1a6"/>
               <g fill="#eef0f2">
-                <rect x="120" y="21" width="1.4" height="4"/><rect x="120" y="28" width="1.8" height="5"/>
-                <rect x="119.6" y="36" width="2.2" height="6"/>
+                <rect x="121" y="29" width="1.6" height="5"/><rect x="121" y="39" width="2" height="6"/>
+                <rect x="120.6" y="50" width="2.4" height="7"/>
               </g>
-              <rect x="116" y="46" width="10" height="3" fill="#454b54"/>
-              <rect x="107" y="49" width="28" height="2.6" rx="1.3" fill="#454b54"/>
-              <!-- 實體相機:機身 + 鏡頭,對著螢幕 -->
+              <rect x="117" y="63" width="10" height="4" fill="#454b54"/>
+              <rect x="108" y="67" width="28" height="3" rx="1.5" fill="#454b54"/>
               <g fill="#5b6169">
-                <rect x="24" y="34" width="2" height="15"/><rect x="15" y="46" width="12" height="2" transform="rotate(28 21 47)"/>
-                <rect x="23" y="46" width="12" height="2" transform="rotate(-28 29 47)"/>
+                <rect x="25" y="42" width="2" height="20"/>
+                <rect x="15" y="58" width="14" height="2" transform="rotate(30 22 59)"/>
+                <rect x="23" y="58" width="14" height="2" transform="rotate(-30 30 59)"/>
               </g>
-              <rect x="12" y="17" width="26" height="16" rx="3" fill="#4a5058"/>
-              <rect x="19" y="12.5" width="10" height="5" rx="1.5" fill="#5b6169"/>
-              <rect x="38" y="20.5" width="13" height="9" rx="2" fill="#3a4046"/>
-              <circle cx="52" cy="25" r="5.6" fill="#2b3036"/>
-              <circle cx="52" cy="25" r="3" fill="#0071e3" opacity=".75"/>
-              <circle cx="50.4" cy="23.4" r="1.1" fill="#eaf3ff"/>
+              <rect x="12" y="24" width="28" height="18" rx="3" fill="#4a5058"/>
+              <rect x="19" y="18.5" width="11" height="6" rx="1.5" fill="#5b6169"/>
+              <rect x="40" y="28" width="14" height="10" rx="2" fill="#3a4046"/>
+              <circle cx="55" cy="33" r="6" fill="#2b3036"/>
+              <circle cx="55" cy="33" r="3.2" fill="#0071e3" opacity=".75"/>
+              <circle cx="53.2" cy="31.2" r="1.2" fill="#eaf3ff"/>
             </svg>
             <ul class="isrc-b">
-              <li>光照變化誤檢</li>
-              <li>車道線斷裂</li>
-              <li>近距離車輛誤判</li>
+              <li>相機校正議題</li>
+              <li>相機感知議題</li>
             </ul>
           </div>
   
@@ -709,9 +697,9 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
             <table class="isrc-tb">
               <thead><tr><th>ID</th><th>來源</th><th>問題描述</th><th>狀態</th><th>優先級</th></tr></thead>
               <tbody>
-                <tr><td>ISSUE-001</td><td>實車</td><td>LDW 頻繁誤報</td><td>Open</td><td class="hi">High</td></tr>
-                <tr><td>ISSUE-002</td><td>MIL</td><td>車道保持不穩定</td><td>Open</td><td class="hi">High</td></tr>
-                <tr><td>ISSUE-003</td><td>CIL</td><td>光照變化誤檢</td><td>Open</td><td>Medium</td></tr>
+                <tr><td>ISSUE-001</td><td>實車</td><td>MiniFOT 測試議題</td><td>Open</td><td class="hi">High</td></tr>
+                <tr><td>ISSUE-002</td><td>MIL</td><td>特定特殊工況</td><td>Open</td><td class="hi">High</td></tr>
+                <tr><td>ISSUE-003</td><td>CIL</td><td>相機校正議題</td><td>Open</td><td>Medium</td></tr>
               </tbody>
             </table>
           </div>
@@ -720,7 +708,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 
         <div class="rcfig-sep">
           <div class="eb">側向根因拆解 · 現象 → 根因</div>
-            <svg viewBox="0 0 720 338" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="側向議題從三個現象拆解到七個根因的樹狀圖">
+            <svg viewBox="0 0 720 208" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="側向議題從三個現象拆解到七個根因的樹狀圖">
               <defs>
                 <linearGradient id="rootg" x1="0" y1="0" x2="1" y2="1">
                   <stop offset="0" stop-color="#0a84ff"/>
@@ -728,61 +716,62 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                   <stop offset="1" stop-color="#28c6e8"/>
                 </linearGradient>
               </defs>
-    
-              <!-- 高度從 492 收到 338(-31%):方塊高 52→38、現象框 56→46,群內間距 14→7、
-                   群間 22→14。字級沒動,壓的全是留白。連接線的端點跟著各框中心重算。 -->
-    
+
+              <!-- 高度 338→208(再 -38%,累計自 492 起 -58%)。壓的仍然只有留白與方塊高:
+                   根因框 38→24、現象框 46→32、群內間距 7→4、群間 14→8。字級全數未動,
+                   所以縮的是密度不是可讀性。連接線端點一律重算成各框中心。 -->
+
               <!-- connectors (root → 現象) -->
-              <path d="M134,169 C190,169 200,49 250,49"   fill="none" stroke="#0071e3" stroke-width="2" opacity=".5"/>
-              <path d="M134,169 C190,169 200,146 250,146" fill="none" stroke="#b45309" stroke-width="2" opacity=".5"/>
-              <path d="M134,169 C190,169 200,266 250,266" fill="none" stroke="#0a8a5c" stroke-width="2" opacity=".5"/>
+              <path d="M134,104 C190,104 200,30 250,30"   fill="none" stroke="#0071e3" stroke-width="2" opacity=".5"/>
+              <path d="M134,104 C190,104 200,90 250,90"   fill="none" stroke="#b45309" stroke-width="2" opacity=".5"/>
+              <path d="M134,104 C190,104 200,164 250,164" fill="none" stroke="#0a8a5c" stroke-width="2" opacity=".5"/>
               <!-- connectors (現象 → 根因) -->
-              <path d="M400,49 C438,49 440,27 470,27"     fill="none" stroke="#0071e3" stroke-width="1.7" opacity=".42"/>
-              <path d="M400,49 C438,49 440,72 470,72"     fill="none" stroke="#0071e3" stroke-width="1.7" opacity=".42"/>
-              <path d="M400,146 C438,146 440,124 470,124" fill="none" stroke="#b45309" stroke-width="1.7" opacity=".42"/>
-              <path d="M400,146 C438,146 440,169 470,169" fill="none" stroke="#b45309" stroke-width="1.7" opacity=".42"/>
-              <path d="M400,266 C438,266 440,221 470,221" fill="none" stroke="#0a8a5c" stroke-width="1.7" opacity=".42"/>
-              <path d="M400,266 C438,266 440,266 470,266" fill="none" stroke="#0a8a5c" stroke-width="1.7" opacity=".42"/>
-              <path d="M400,266 C438,266 440,311 470,311" fill="none" stroke="#0a8a5c" stroke-width="1.7" opacity=".42"/>
-    
+              <path d="M400,30 C438,30 440,16 470,16"     fill="none" stroke="#0071e3" stroke-width="1.7" opacity=".42"/>
+              <path d="M400,30 C438,30 440,44 470,44"     fill="none" stroke="#0071e3" stroke-width="1.7" opacity=".42"/>
+              <path d="M400,90 C438,90 440,76 470,76"     fill="none" stroke="#b45309" stroke-width="1.7" opacity=".42"/>
+              <path d="M400,90 C438,90 440,104 470,104"   fill="none" stroke="#b45309" stroke-width="1.7" opacity=".42"/>
+              <path d="M400,164 C438,164 440,136 470,136" fill="none" stroke="#0a8a5c" stroke-width="1.7" opacity=".42"/>
+              <path d="M400,164 C438,164 440,164 470,164" fill="none" stroke="#0a8a5c" stroke-width="1.7" opacity=".42"/>
+              <path d="M400,164 C438,164 440,192 470,192" fill="none" stroke="#0a8a5c" stroke-width="1.7" opacity=".42"/>
+
               <!-- ROOT -->
-              <rect x="14" y="141" width="120" height="56" rx="15" fill="url(#rootg)"/>
-              <text x="74" y="166" text-anchor="middle" font-size="14.5" font-weight="700" fill="#fff">側向議題</text>
-              <text x="74" y="185" text-anchor="middle" font-size="9.5" fill="#fff" opacity=".82">橫向控制表現</text>
-    
+              <rect x="14" y="81" width="120" height="46" rx="13" fill="url(#rootg)"/>
+              <text x="74" y="100" text-anchor="middle" font-size="14.5" font-weight="700" fill="#fff">側向議題</text>
+              <text x="74" y="116" text-anchor="middle" font-size="9.5" fill="#fff" opacity=".82">橫向控制表現</text>
+
               <!-- 現象:方向盤左右甩動 -->
-              <rect x="250" y="26" width="150" height="46" rx="13" fill="#eef4ff" stroke="#cfe1ff" stroke-width="1.2"/>
-              <text x="325" y="54" text-anchor="middle" font-size="13" font-weight="700" fill="#0071e3">方向盤左右甩動</text>
-    
+              <rect x="250" y="14" width="150" height="32" rx="10" fill="#eef4ff" stroke="#cfe1ff" stroke-width="1.2"/>
+              <text x="325" y="35" text-anchor="middle" font-size="13" font-weight="700" fill="#0071e3">方向盤左右甩動</text>
+
               <!-- 現象:汽車偏邊行駛 -->
-              <rect x="250" y="123" width="150" height="46" rx="13" fill="#fff7ed" stroke="#fde3c8" stroke-width="1.2"/>
-              <text x="325" y="151" text-anchor="middle" font-size="13" font-weight="700" fill="#b45309">汽車偏邊行駛</text>
-    
+              <rect x="250" y="74" width="150" height="32" rx="10" fill="#fff7ed" stroke="#fde3c8" stroke-width="1.2"/>
+              <text x="325" y="95" text-anchor="middle" font-size="13" font-weight="700" fill="#b45309">汽車偏邊行駛</text>
+
               <!-- 現象:車道線缺失 -->
-              <rect x="250" y="243" width="150" height="46" rx="13" fill="#ecfdf5" stroke="#86efac" stroke-width="1.2"/>
-              <text x="325" y="271" text-anchor="middle" font-size="13" font-weight="700" fill="#0a8a5c">車道線缺失</text>
-    
+              <rect x="250" y="148" width="150" height="32" rx="10" fill="#ecfdf5" stroke="#86efac" stroke-width="1.2"/>
+              <text x="325" y="169" text-anchor="middle" font-size="13" font-weight="700" fill="#0a8a5c">車道線缺失</text>
+
               <!-- 根因 -->
-              <rect x="470" y="8" width="236" height="38" rx="11" fill="#fff" stroke="#cfe1ff" stroke-width="1.2"/>
-              <text x="488" y="31" font-size="12.5" font-weight="700" fill="#1d1d1f">車道線尾端左右甩動</text>
+              <rect x="470" y="4" width="236" height="24" rx="8" fill="#fff" stroke="#cfe1ff" stroke-width="1.2"/>
+              <text x="488" y="20" font-size="12.5" font-weight="700" fill="#1d1d1f">車道線尾端左右甩動</text>
               <!-- 根因 -->
-              <rect x="470" y="53" width="236" height="38" rx="11" fill="#fff" stroke="#cfe1ff" stroke-width="1.2"/>
-              <text x="488" y="76" font-size="12.5" font-weight="700" fill="#1d1d1f">軌跡銜接不夠平滑</text>
+              <rect x="470" y="32" width="236" height="24" rx="8" fill="#fff" stroke="#cfe1ff" stroke-width="1.2"/>
+              <text x="488" y="48" font-size="12.5" font-weight="700" fill="#1d1d1f">軌跡銜接不夠平滑</text>
               <!-- 根因 -->
-              <rect x="470" y="105" width="236" height="38" rx="11" fill="#fff" stroke="#fde3c8" stroke-width="1.2"/>
-              <text x="488" y="128" font-size="12.5" font-weight="700" fill="#1d1d1f">車輛參數不夠精準（方向盤）</text>
+              <rect x="470" y="64" width="236" height="24" rx="8" fill="#fff" stroke="#fde3c8" stroke-width="1.2"/>
+              <text x="488" y="80" font-size="12.5" font-weight="700" fill="#1d1d1f">車輛參數不夠精準（方向盤）</text>
               <!-- 根因 -->
-              <rect x="470" y="150" width="236" height="38" rx="11" fill="#fff" stroke="#fde3c8" stroke-width="1.2"/>
-              <text x="488" y="173" font-size="12.5" font-weight="700" fill="#1d1d1f">車道線有 C1 bias</text>
+              <rect x="470" y="92" width="236" height="24" rx="8" fill="#fff" stroke="#fde3c8" stroke-width="1.2"/>
+              <text x="488" y="108" font-size="12.5" font-weight="700" fill="#1d1d1f">車道線有 C1 bias</text>
               <!-- 根因 -->
-              <rect x="470" y="202" width="236" height="38" rx="11" fill="#fff" stroke="#86efac" stroke-width="1.2"/>
-              <text x="488" y="225" font-size="12.5" font-weight="700" fill="#1d1d1f">路口 / 隧道短暫失明</text>
+              <rect x="470" y="124" width="236" height="24" rx="8" fill="#fff" stroke="#86efac" stroke-width="1.2"/>
+              <text x="488" y="140" font-size="12.5" font-weight="700" fill="#1d1d1f">路口 / 隧道短暫失明</text>
               <!-- 根因 -->
-              <rect x="470" y="247" width="236" height="38" rx="11" fill="#fff" stroke="#86efac" stroke-width="1.2"/>
-              <text x="488" y="270" font-size="12.5" font-weight="700" fill="#1d1d1f">前車 / 護欄遮擋</text>
+              <rect x="470" y="152" width="236" height="24" rx="8" fill="#fff" stroke="#86efac" stroke-width="1.2"/>
+              <text x="488" y="168" font-size="12.5" font-weight="700" fill="#1d1d1f">前車 / 護欄遮擋</text>
               <!-- 根因 -->
-              <rect x="470" y="292" width="236" height="38" rx="11" fill="#fff" stroke="#86efac" stroke-width="1.2"/>
-              <text x="488" y="315" font-size="12.5" font-weight="700" fill="#1d1d1f">新舊線交替跳動</text>
+              <rect x="470" y="180" width="236" height="24" rx="8" fill="#fff" stroke="#86efac" stroke-width="1.2"/>
+              <text x="488" y="196" font-size="12.5" font-weight="700" fill="#1d1d1f">新舊線交替跳動</text>
             </svg>
         </div>
       </div>
@@ -798,7 +787,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
         <!-- 這節原本掛「ARCHITECTURE · 核心 / 一套穩定的車道線養活四個功能」,
              講的是三柱架構。柱子一深度那段移除後,整節只剩 C1 Bias 這條線,
              標題再談三根柱子就對不上內容,所以改成 C1 Bias 自己的題目。
-             (根因章那兩句「三柱架構」的預告先維持原樣) -->
+             (根因章那兩句「三柱架構」的預告後來也一併刪了,全頁已無此說法) -->
         <div class="unit-tag">OWNERSHIP · 自己找的題目</div>
         <div class="unit-title">從驗證的工具<br>轉變為量產的策略</div>
         <p class="unit-lead">ADAS 相機輸出的車道線，<b>只要校正不確實就會帶著偏差</b>。2022 年一次搭車途中我想到：本車已經走過的軌跡，本身就是一把現成的尺——拿它回頭比對相機當下看到的車道線，偏得多少就量得出來。這支腳本原本是用來判斷 V&amp;V Team 校正相機是否確實，估測的偏差精準，所以主管建議<b>2024 年直接上了量產車</b>，成為相機車道線的即時補償，系統穩定性大幅提升，<b>此後也未再收到廠商車道偏差導致的客訴</b>。</p>
@@ -1021,8 +1010,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
       <!-- HERO -->
       <div class="unit-head">
         <div class="unit-tag">KEY DECISION 02</div>
-        <div class="unit-title" style="font-size:clamp(26px,4.4vw,42px)">一個沒人再懷疑的公式，錯了很多年</div>
-        <p class="unit-lead">全團隊用了多年的半徑公式，在車道有夾角時其實系統性算錯——<b>看下面橘線怎麼亂跳</b>。這不是我被分配的任務，但我沒放過它。</p>
+        <div class="unit-title">同事說半徑數字怪怪的<br>我用幾何推導確認了一次</div>
+        <p class="unit-lead">在 ADAS 業界，評估道路半徑的標準做法其實有誤，<b>但長年沒有人懷疑過它</b>。同事回報問題後，我先用幾何方法求證，再查資料佐證，最後把算法改掉，並<b>套用到每一個 ADAS 系統</b>，整體穩定度跟著提高。</p>
       </div>
 
       <!-- 流程時間軸 + 動畫,合成一張卡(排版比照 #architecture 的開發歷程卡)。
