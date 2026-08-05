@@ -330,7 +330,6 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
     <a href="#functions"     data-sec="functions">功能 Demo</a>
     <a href="#collaboration" data-sec="collaboration">協作</a>
     <a href="#platforms"     data-sec="platforms">跨平台</a>
-    <a href="#faq"           data-sec="faq">FAQ</a>
     <a href="#reflection"    data-sec="reflection">反思</a>
   </div>
 </nav>
@@ -931,36 +930,6 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 
     <div class="veh-showcase">
       <iframe class="veh-embed" src="01_MergedFunction.html" loading="lazy" title="五種載具平台切換 demo"></iframe>
-    </div>
-  </div>
-</section>
-
-<!-- ============ FAQ ============ -->
-<section id="faq">
-  <div class="wrap">
-    <div class="unit">
-      <div class="unit-head">
-        <div class="unit-tag">面試官可能會問</div>
-        <div class="unit-title">Q&amp;A</div>
-      </div>
-      <div class="faq">
-        <details>
-          <summary><span class="qb">Q</span>&nbsp;為什麼選 4 階而不是 5 階或 3 階多項式？</summary>
-          <div class="a">3 階只能滿足 4 個邊界條件，不足。5 階滿足 6 個，但只需要 C1 連續，C2 是多餘的複雜度。4 階以最低複雜度滿足需求。</div>
-        </details>
-        <details>
-          <summary><span class="qb">Q</span>&nbsp;CPU 運算量是怎麼從超載降到 37% 的？</summary>
-          <div class="a">消除重複計算（N 個功能共用一份結果），並將每幀積分（O(N)）改為距離參數化的單點查詢（O(1)）。</div>
-        </details>
-        <details>
-          <summary><span class="qb">Q</span>&nbsp;這個架構能繼續擴展嗎？</summary>
-          <div class="a">可以，新增功能只需定義觸發條件、呼叫 trj 介面、新增對應 phase state，現有邏輯完全不需修改。</div>
-        </details>
-        <details>
-          <summary><span class="qb">Q</span>&nbsp;trj 跟 Fusion、Control 這些前後階段的邊界在哪？</summary>
-          <div class="a">trj 只負責 Trajectory Planning 這一層——輸入是 Fusion 給的物件/環境資訊與各功能的目標位移量，輸出是 egoX（位置、朝向、曲率）。往下的 tracking、stability control 屬於 Control 階段，不是 trj 的責任範圍，這個邊界切分讓每一層都能獨立驗證、獨立替換。</div>
-        </details>
-      </div>
     </div>
   </div>
 </section>
