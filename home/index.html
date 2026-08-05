@@ -40,6 +40,10 @@ h1 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:tex
 .co-name{font-size:clamp(19px,2.6vw,24px);font-weight:700;letter-spacing:-.01em}
 .co-period{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--blue)}
 .co-title{font-size:13.5px;color:var(--ink-2)}
+/* 母集團標註,放在公司名後面而不是另起一個 flex 項目 —— 它是公司名的一部分,
+   換行時要跟著名字走。字級刻意壓到 12.5 且不加粗:FIH / MobileDrive 在台灣以外
+   認知度低,鴻海與 Stellantis 才是招募方認得的招牌,但它是背景資訊、不是職稱。 */
+.co-grp{font-size:12.5px;font-weight:500;color:var(--ink-3);letter-spacing:0;margin-left:8px;white-space:nowrap}
 .co-scope{font-size:14.5px;color:var(--ink-2);line-height:1.7;margin:10px 0 6px;padding-bottom:18px;border-bottom:1px solid var(--line)}
 .co-scope b{color:var(--ink);font-weight:600}
 
@@ -285,8 +289,8 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     <div class="rez-seek">Seeking Robotics / Autonomous Systems roles · 可配合 3 個月內短期海外出差</div>
     <div class="rez-contact">
       <a class="rc" href="mailto:tkps50803@gmail.com" style="text-decoration:none">✉ tkps50803@gmail.com</a>
-      <span class="rc ph">in LinkedIn 待填</span>
-      <span class="rc ph">GitHub 待填</span>
+      <a class="rc" href="https://www.linkedin.com/in/kanmingkai" target="_blank" rel="noopener" style="text-decoration:none">in linkedin.com/in/kanmingkai</a>
+      <a class="rc" href="https://github.com/KanMingKai/KanMingKai.github.io" target="_blank" rel="noopener" style="text-decoration:none">github.com/KanMingKai/KanMingKai.github.io</a>
       <span class="rc">台灣</span>
     </div>
     <div class="rez-kw" aria-label="關鍵字">
@@ -321,7 +325,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 <div class="wrap">
   <div class="co reveal">
     <div class="co-head">
-      <span class="co-name">富智康 FIH · Robotics</span>
+      <span class="co-name">富智康 FIH · Robotics<span class="co-grp">鴻海集團</span></span>
       <span class="co-period">2025.05 – 現職</span>
       <span class="co-title">資深工程師 · 工廠 AMR</span>
     </div>
@@ -409,7 +413,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 <div class="wrap">
   <div class="co reveal">
     <div class="co-head">
-      <span class="co-name">富智捷 MobileDrive</span>
+      <span class="co-name">富智捷 MobileDrive<span class="co-grp">鴻海集團 × Stellantis 合資</span></span>
       <span class="co-period">2021.06 – 2025.06</span>
       <span class="co-title">資深工程師 · ADAS · TJA 系統技術負責人</span>
     </div>
@@ -482,7 +486,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 <div class="wrap">
   <div class="co reveal">
     <div class="co-head">
-      <span class="co-name">富智康 FIH · ADAS</span>
+      <span class="co-name">富智康 FIH · ADAS<span class="co-grp">鴻海集團</span></span>
       <span class="co-period">2020.05 – 2021.06</span>
       <span class="co-title">工程師 · ADAS · 車道融合系統(LFS)</span>
     </div>
