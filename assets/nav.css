@@ -1,18 +1,19 @@
 /* ============================================================
-   固定導覽 — 三頁共用元件(兩層)
+   固定導覽 — 四頁共用元件(兩層)
    ------------------------------------------------------------
-     第一層 .pnav   切換三頁:履歷 / TRJ / LFS。當前頁帶 .cur
+     第一層 .pnav   切換四頁:履歷 / LFS / TRJ / 架構儀表板。當前頁帶 .cur
      第二層 .chnav  當前頁的章節快速跳轉,捲動時自動高亮
 
-   HTML 骨架(三頁只差在誰帶 .cur、chnav 放哪些章節):
+   HTML 骨架(四頁只差在誰帶 .cur、chnav 放哪些章節):
 
      <nav class="pnav">
        <div class="in">
          <a class="brand" href="…">甘銘凱 Ming-Kai Kan</a>
          <div class="tabs">
            <span class="tab-l cur">履歷</span>
-           <a class="tab-l" href="…">TRJ 軌跡規劃</a>
            <a class="tab-l" href="…">LFS 車道融合</a>
+           <a class="tab-l" href="…">TRJ 軌跡規劃</a>
+           <a class="tab-l" href="…">架構儀表板</a>
          </div>
        </div>
      </nav>

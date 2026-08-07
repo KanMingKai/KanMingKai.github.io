@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
@@ -108,36 +108,6 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 /* ===== reveal ===== */
 .reveal{opacity:1;transform:none}
 
-/* ===== desktop ridgeline ===== */
-.ridge-wrap{max-width:900px;margin:0 auto}
-.ridge-svg{width:100%;height:auto;display:block}
-.ridge-svg .rt{font-family:var(--sans)}
-.ridge-svg .rm{font-family:var(--mono)}
-
-/* ===== desktop/mobile toggle ===== */
-.dt-mobile-only{display:none!important}
-@media(max-width:680px){
-  .dt-desktop-only{display:none!important}
-  .dt-mobile-only{display:block!important}
-}
-
-/* ===== mobile vertical timeline ===== */
-.tl{max-width:380px;margin:0 auto;padding-left:4px}
-.tl-zone{font-size:11.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-3);text-transform:uppercase;margin:4px 0 14px 30px}
-.tl-zone:not(:first-child){margin-top:8px}
-.tl-item{position:relative;padding:0 0 26px 34px;border-left:2px solid var(--line);margin-left:8px}
-.tl-item:last-child{border-left-color:transparent}
-.tl-dot{position:absolute;left:-9px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--blue);box-sizing:border-box}
-.tl-dot.peak{background:var(--blue);border-color:var(--blue)}
-.tl-dot.now{width:18px;height:18px;left:-10px;background:#0a84ff;border:3px solid #fff;box-shadow:0 0 0 2px #0a84ff}
-.tl-dot.zero{background:#fff;border-color:#a1a1a6;width:14px;height:14px;top:3px;left:-8px}
-.tl-t.zero-t{color:#86868b;font-weight:600;font-size:14.5px}
-.tl-y{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--blue);letter-spacing:.02em}
-.tl-t{font-size:16px;font-weight:700;color:var(--ink);margin-top:2px}
-.tl-t.am{color:var(--amber)}
-.tl-d{font-size:13px;color:var(--ink-2);margin-top:2px;line-height:1.5}
-.tl-item.pivot{border-left-style:dashed;border-left-color:var(--line)}
-
 /* ===== evidence ===== */
 .ev{max-width:900px;margin:clamp(48px,7vw,72px) auto 0}
 .ev-head{margin-bottom:26px}
@@ -238,6 +208,12 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 .edu-sch{font-size:15.5px;font-weight:700;color:var(--ink)}
 .edu-deg{font-size:13px;color:var(--ink-2);margin-top:3px;line-height:1.6}
 .edu-deg .hi{color:var(--blue);font-weight:600}
+/* 就學期間的成果:資料來自上面 #growth 那張時間軸,兩處講的是同一批事,改一邊記得改另一邊。
+   用細點列而不是再開一層卡片——學歷區的重點仍是學校與學位,成果是佐證。 */
+.edu-ach{list-style:none;margin-top:8px;display:flex;flex-direction:column;gap:5px}
+.edu-ach li{font-size:12.5px;color:var(--ink-2);line-height:1.6;padding-left:15px;position:relative}
+.edu-ach li::before{content:"";position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;background:#c8d6e8}
+.edu-ach b{color:var(--blue);font-weight:600}
 .ph{color:#b0b0b5}
 .pt-link{color:inherit;text-decoration:none;border-bottom:1px dashed #a8c8ef;transition:border-color .2s,color .2s}
 .pt-link:hover{color:var(--blue-d);border-bottom-color:var(--blue-d)}
@@ -257,15 +233,16 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 </head>
 <body>
 
-<!-- 固定導覽列(三頁共用元件,樣式見 assets/nav.css)
-     本頁是「履歷」,所以履歷這格帶 .cur;另兩格連到另外兩頁。 -->
+<!-- 固定導覽列(四頁共用元件,樣式見 assets/nav.css)
+     本頁是「履歷」,所以履歷這格帶 .cur;其餘三格連到各專案頁。 -->
 <nav class="pnav">
   <div class="in">
     <a href="index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
     <div class="tabs">
       <span class="tab-l cur">履歷</span>
-      <a class="tab-l" href="../trj_page/01_trj_page.html">TRJ 軌跡規劃</a>
       <a class="tab-l" href="../lfs_page/lfs01.html">LFS 車道融合</a>
+      <a class="tab-l" href="../trj_page/01_trj_page.html">TRJ 軌跡規劃</a>
+      <a class="tab-l" href="../dash_page/01_dash_page.html">架構儀表板</a>
     </div>
   </div>
 </nav>
@@ -285,7 +262,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 <div class="wrap">
   <div class="rez reveal">
     <h1 class="rez-name">甘銘凱<span class="en">Ming-Kai Kan</span></h1>
-    <div class="rez-role">自主系統工程師 · 量產 ADAS → 工廠 AMR</div>
+    <div class="rez-role">自主系統工程師 · 量產 ADAS &amp; 工廠 AMR</div>
     <div class="rez-seek">Seeking Robotics / Autonomous Systems roles · 可配合 3 個月內短期海外出差</div>
     <div class="rez-contact">
       <a class="rc" href="mailto:tkps50803@gmail.com" style="text-decoration:none">✉ tkps50803@gmail.com</a>
@@ -711,197 +688,27 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 </div>
 </section>
 
+<!-- 學習能力與學歷併成同一節:原本 #learning 只有一張成長曲線圖,圖拿掉後
+     只剩標題與導言,後面緊接著又是 #education 的另一個標題,等於連續兩個標題。
+     現在導言留下來當論點,下面的學歷條目(含就學期間成果)就是它的證據。
+     兩個 id 都保留在同一個 <section> 上,舊的 #learning 錨點不會失效。 -->
 <section id="learning">
 <div class="wrap">
-
-  <div class="sec-head reveal">
-    <div class="eyebrow">學習能力 · Learning Ability</div>
+  <div class="edu-wrap reveal" id="education">
+    <div class="eyebrow">學習能力 · Education</div>
     <h2 class="h">求學經歷</h2>
     <p class="lead">桌球、汽車、車輛工程、控制——這四個領域幾乎不相干,但每一次進去,我都在最短時間內做到頂尖:全國第四、第一志願、提早一年進研究所。領域一直在變,不變的是同一種能力——進入任何陌生領域,都能快速學會、快速登頂。</p>
-  </div>
-
-  <!-- ============ DESKTOP : ridgeline timeline ============ -->
-  <div class="ridge-wrap dt-desktop-only reveal">
-    <svg class="ridge-svg" viewBox="0 0 960 460" role="img" aria-label="學習能力學習曲線:2010 職業桌球全國第四,轉入車輛領域從零起步後,台南高工第一志願、北科車輛工程、大三自動駕駛專題第一名、大三下華創車電實習並申請專利、大四提早入研究所、碩二在中科院開發 ABS 系統、2019 機電控制組,能力沿指數曲線持續加速成長。">
-      <defs>
-        <linearGradient id="ridgeStroke" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="#0a84ff"/>
-          <stop offset="42%" stop-color="#0071e3"/>
-          <stop offset="100%" stop-color="#28c6e8"/>
-        </linearGradient>
-        <linearGradient id="ridgeFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#0a84ff" stop-opacity="0.16"/>
-          <stop offset="100%" stop-color="#28c6e8" stop-opacity="0.03"/>
-        </linearGradient>
-      </defs>
-
-      <!-- zone bands -->
-      <rect x="90" y="72" width="85" height="288" fill="#eef4ff" opacity="0.55"/>
-      <rect x="175" y="72" width="725" height="288" fill="#e6f7fb" opacity="0.5"/>
-      <text class="rt" x="132" y="54" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1.5" fill="#0071e3">運動</text>
-      <text class="rt" x="537" y="54" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1.5" fill="#0e8ea3">車輛工程 · 學術 · 研究</text>
-
-      <!-- ridge fill + stroke -->
-      <path d="M90,292 L95,285.5 L102,275.1 L108,261.9 L114,245.1 L121,223.9 L128,197.0 L134,162.8 L140,119.5 L142,108 L148,113.9 L155,131.8 L161,157.9 L168,188.2 L174,218.9 L181,246.2 L188,266.1 L194,274.9 L195,275 L206,273.9 L222,272.2 L238,270.5 L254,268.7 L270,266.8 L286,264.8 L302,262.7 L318,260.6 L334,258.3 L350,255.9 L366,253.5 L382,250.9 L398,248.2 L414,245.3 L430,242.4 L446,239.3 L462,236.1 L478,232.7 L494,229.1 L510,225.4 L526,221.6 L542,217.5 L558,213.3 L574,208.9 L590,204.3 L606,199.4 L622,194.4 L638,189.1 L654,183.6 L670,177.8 L686,171.8 L702,165.5 L718,158.9 L734,152.0 L750,144.8 L766,137.3 L782,129.4 L798,121.2 L814,112.5 L830,103.5 L846,94.1 L862,84.3 L878,74 L878,360 L90,360 Z" fill="url(#ridgeFill)"/>
-      <path d="M90,292 L95,285.5 L102,275.1 L108,261.9 L114,245.1 L121,223.9 L128,197.0 L134,162.8 L140,119.5 L142,108 L148,113.9 L155,131.8 L161,157.9 L168,188.2 L174,218.9 L181,246.2 L188,266.1 L194,274.9 L195,275 L206,273.9 L222,272.2 L238,270.5 L254,268.7 L270,266.8 L286,264.8 L302,262.7 L318,260.6 L334,258.3 L350,255.9 L366,253.5 L382,250.9 L398,248.2 L414,245.3 L430,242.4 L446,239.3 L462,236.1 L478,232.7 L494,229.1 L510,225.4 L526,221.6 L542,217.5 L558,213.3 L574,208.9 L590,204.3 L606,199.4 L622,194.4 L638,189.1 L654,183.6 L670,177.8 L686,171.8 L702,165.5 L718,158.9 L734,152.0 L750,144.8 L766,137.3 L782,129.4 L798,121.2 L814,112.5 L830,103.5 L846,94.1 L862,84.3 L878,74" fill="none" stroke="url(#ridgeStroke)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-
-      <!-- axis -->
-      <line x1="90" y1="360" x2="900" y2="360" stroke="#86868b" stroke-width="1"/>
-      <g stroke="#c9c9ce" stroke-width="1">
-        <line x1="142" y1="360" x2="142" y2="367"/>
-        <line x1="260" y1="360" x2="260" y2="367"/>
-        <line x1="363" y1="360" x2="363" y2="367"/>
-        <line x1="672" y1="360" x2="672" y2="367"/>
-        <line x1="878" y1="360" x2="878" y2="367"/>
-      </g>
-
-      <!-- valley annotation : neutral, start-from-zero (learning starts here) -->
-      <text class="rt" x="195" y="156" text-anchor="middle" font-size="12.5" font-weight="600" fill="#86868b">從零起步</text>
-      <line x1="195" y1="166" x2="195" y2="268" stroke="#c9c9ce" stroke-width="1" stroke-dasharray="3 3"/>
-
-      <!-- nodes : structural = hollow dots (labelled below axis) -->
-      <circle cx="142" cy="108" r="6" fill="#0071e3"/>
-      <circle cx="195" cy="275" r="5" fill="#fff" stroke="#a1a1a6" stroke-width="2"/>
-      <circle cx="260" cy="268" r="5" fill="#fff" stroke="#0071e3" stroke-width="2.5"/>
-      <circle cx="363" cy="254" r="5" fill="#fff" stroke="#0071e3" stroke-width="2.5"/>
-      <circle cx="672" cy="177" r="5" fill="#fff" stroke="#0071e3" stroke-width="2.5"/>
-      <circle cx="878" cy="74" r="7.5" fill="#0a84ff"/>
-      <circle cx="878" cy="74" r="12" fill="none" stroke="#0a84ff" stroke-width="1.5" opacity="0.35"/>
-
-      <!-- achievement callouts : blue dots ON the curve, labels floating above -->
-      <g text-anchor="middle">
-        <line x1="466" y1="216" x2="466" y2="230" stroke="#0071e3" stroke-width="1" stroke-dasharray="2 2"/>
-        <circle cx="466" cy="235" r="4.5" fill="#0071e3"/>
-        <text class="rm" x="466" y="196" font-size="10.5" fill="#86868b">大三上</text>
-        <text class="rt" x="466" y="211" font-size="12.5" font-weight="700" fill="#1d1d1f">自駕專題 · <tspan fill="#0071e3">第一名</tspan></text>
-
-        <line x1="569" y1="188" x2="569" y2="204" stroke="#0071e3" stroke-width="1" stroke-dasharray="2 2"/>
-        <circle cx="569" cy="210" r="4.5" fill="#0071e3"/>
-        <text class="rm" x="569" y="168" font-size="10.5" fill="#86868b">大三下</text>
-        <text class="rt" x="569" y="183" font-size="12.5" font-weight="700" fill="#1d1d1f">華創車電 · <tspan fill="#0071e3">申請專利</tspan></text>
-
-        <line x1="775" y1="114" x2="775" y2="127" stroke="#0071e3" stroke-width="1" stroke-dasharray="2 2"/>
-        <circle cx="775" cy="133" r="4.5" fill="#0071e3"/>
-        <text class="rm" x="775" y="94" font-size="10.5" fill="#86868b">碩二</text>
-        <text class="rt" x="775" y="109" font-size="12.5" font-weight="700" fill="#1d1d1f">中科院 · <tspan fill="#0071e3">ABS 開發</tspan></text>
-      </g>
-
-      <!-- ping-pong label (above-left of peak) -->
-      <text class="rt" x="133" y="100" text-anchor="end" font-size="15" font-weight="700" fill="#1d1d1f">職業桌球</text>
-      <text class="rt" x="133" y="119" text-anchor="end" font-size="12.5" fill="#6e6e73">全國個人第四</text>
-
-      <!-- below-axis captions -->
-      <g text-anchor="middle">
-        <text class="rm" x="142" y="386" font-size="12.5" font-weight="700" fill="#0071e3">2010</text>
-
-        <text class="rm" x="260" y="386" font-size="12.5" font-weight="700" fill="#0071e3">2011</text>
-        <text class="rt" x="260" y="406" font-size="13" font-weight="700" fill="#1d1d1f">台南高工</text>
-        <text class="rt" x="260" y="424" font-size="11.5" fill="#6e6e73">高中 · 第一志願</text>
-
-        <text class="rm" x="363" y="386" font-size="12.5" font-weight="700" fill="#0071e3">2014</text>
-        <text class="rt" x="363" y="406" font-size="13" font-weight="700" fill="#1d1d1f">北科大</text>
-        <text class="rt" x="363" y="424" font-size="11.5" fill="#6e6e73">大學 · 車輛工程</text>
-
-        <text class="rm" x="672" y="386" font-size="12.5" font-weight="700" fill="#0071e3">2016</text>
-        <text class="rt" x="672" y="406" font-size="13" font-weight="700" fill="#1d1d1f">提早入研究所</text>
-        <text class="rt" x="672" y="424" font-size="11.5" fill="#6e6e73">研究所 · 大四</text>
-
-        <text class="rm" x="878" y="386" font-size="12.5" font-weight="700" fill="#0a84ff">2019</text>
-        <text class="rt" x="878" y="406" font-size="13" font-weight="700" fill="#1d1d1f">機電控制組</text>
-        <text class="rt" x="878" y="424" font-size="11.5" fill="#6e6e73">研究所 · 至今</text>
-      </g>
-
-      <!-- y-axis hint -->
-      <text class="rt" x="90" y="450" font-size="11.5" fill="#a1a1a6">縱軸 = 能力累積 · 學習曲線(從零複利成長)</text>
-    </svg>
-  </div>
-
-  <!-- ============ MOBILE : vertical timeline ============ -->
-  <div class="dt-mobile-only reveal">
-    <div class="tl">
-      <div class="tl-zone">運動</div>
-
-      <div class="tl-item">
-        <span class="tl-dot peak"></span>
-        <div class="tl-y">2010</div>
-        <div class="tl-t">職業桌球</div>
-        <div class="tl-d">全國個人第四</div>
-      </div>
-
-      <div class="tl-item pivot">
-        <span class="tl-dot zero"></span>
-        <div class="tl-t zero-t">從零起步</div>
-        <div class="tl-d">進入全新領域,一切從頭學起</div>
-      </div>
-
-      <div class="tl-zone">車輛工程 · 學術 · 研究</div>
-
-      <div class="tl-item">
-        <span class="tl-dot"></span>
-        <div class="tl-y">2011</div>
-        <div class="tl-t">台南高工汽車科</div>
-        <div class="tl-d">第一志願考取</div>
-      </div>
-
-      <div class="tl-item">
-        <span class="tl-dot"></span>
-        <div class="tl-y">2014</div>
-        <div class="tl-t">臺北科技大學</div>
-        <div class="tl-d">車輛工程</div>
-      </div>
-
-      <div class="tl-item">
-        <span class="tl-dot"></span>
-        <div class="tl-y">大三上</div>
-        <div class="tl-t">自動駕駛專題</div>
-        <div class="tl-d"><b style="color:#0071e3">第一名</b></div>
-      </div>
-
-      <div class="tl-item">
-        <span class="tl-dot"></span>
-        <div class="tl-y">大三下</div>
-        <div class="tl-t">華創車電實習</div>
-        <div class="tl-d"><b style="color:#0071e3">成功申請專利</b></div>
-      </div>
-
-      <div class="tl-item">
-        <span class="tl-dot"></span>
-        <div class="tl-y">2016</div>
-        <div class="tl-t">提早入研究所</div>
-        <div class="tl-d">大四領先一年進入</div>
-      </div>
-
-      <div class="tl-item">
-        <span class="tl-dot"></span>
-        <div class="tl-y">碩二</div>
-        <div class="tl-t">中科院</div>
-        <div class="tl-d"><b style="color:#0071e3">開發 ABS 系統</b></div>
-      </div>
-
-      <div class="tl-item now">
-        <span class="tl-dot now"></span>
-        <div class="tl-y">2019</div>
-        <div class="tl-t">機電學院控制組</div>
-        <div class="tl-d">至今 · 現在的技術主線</div>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>
-
-<section id="education">
-<div class="wrap">
-  <div class="edu-wrap reveal">
-    <div class="eyebrow">學歷 · Education</div>
-    <h2 class="h">學歷</h2>
     <div class="edu-list">
 
       <div class="edu">
         <div class="edu-yr">2017 – 2019</div>
         <div class="edu-c">
           <div class="edu-sch">國立臺北科技大學</div>
-          <div class="edu-deg">機電科技研究所 · 碩士 · <span class="hi">大四下提早入學（大四提早進入實驗室）</span></div>
+          <div class="edu-deg">機電學院 · 車輛工程所 · 控制組 · 碩士 · <span class="hi">大四下提早入學（大四提早進入實驗室）</span></div>
+          <ul class="edu-ach">
+            <li>碩二與中科院合作開發<b>機車 ABS 系統</b>，從演算法一路做到 ASIC 晶片</li>
+            <li>該成果取得專利 <b>TWI722875B</b>（申請人 國立臺北科技大學）</li>
+          </ul>
         </div>
       </div>
 
@@ -910,6 +717,11 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
         <div class="edu-c">
           <div class="edu-sch">國立臺北科技大學</div>
           <div class="edu-deg">車輛工程系 · 學士 · <span class="hi">動力機械群第一志願</span></div>
+          <ul class="edu-ach">
+            <li>大三上 自動駕駛專題 <b>第一名</b></li>
+            <li>大三下 華創車電實習，<b>成功申請專利</b></li>
+            <li>大四<b>提早一年</b>進入研究所實驗室</li>
+          </ul>
         </div>
       </div>
 
@@ -918,6 +730,10 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
         <div class="edu-c">
           <div class="edu-sch">國立臺南高級工業職業學校</div>
           <div class="edu-deg">汽車科 · 高級職業 · <span class="hi">職業選手轉換跑道</span></div>
+          <ul class="edu-ach">
+            <li>桌球職業選手時期 <b>全國個人第四</b>，之後轉入工科</li>
+            <li>汽車科為<b>第一志願考取</b>，工程領域從零起步</li>
+          </ul>
         </div>
       </div>
 
