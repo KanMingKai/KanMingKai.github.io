@@ -1,19 +1,22 @@
 /* ============================================================
-   固定導覽 — 四頁共用元件(兩層)
+   固定導覽 — 五頁共用元件(兩層)
    ------------------------------------------------------------
-     第一層 .pnav   切換四頁:履歷 / LFS / TRJ / 架構儀表板。當前頁帶 .cur
+     第一層 .pnav   切換五頁:履歷 / 感知融合經驗 / 軌跡規劃經驗 /
+                    AMR系統整合 / 電子煞車。當前頁帶 .cur
      第二層 .chnav  當前頁的章節快速跳轉,捲動時自動高亮
+                    (只有分章節的頁才需要;iBooster 那頁沒有章節,不放)
 
-   HTML 骨架(四頁只差在誰帶 .cur、chnav 放哪些章節):
+   HTML 骨架(五頁只差在誰帶 .cur、chnav 放哪些章節):
 
      <nav class="pnav">
        <div class="in">
          <a class="brand" href="…">甘銘凱 Ming-Kai Kan</a>
          <div class="tabs">
            <span class="tab-l cur">履歷</span>
-           <a class="tab-l" href="…">LFS 車道融合</a>
-           <a class="tab-l" href="…">TRJ 軌跡規劃</a>
-           <a class="tab-l" href="…">架構儀表板</a>
+           <a class="tab-l" href="…">感知融合經驗</a>
+           <a class="tab-l" href="…">軌跡規劃經驗</a>
+           <a class="tab-l" href="…">AMR系統整合</a>
+           <a class="tab-l" href="…">電子煞車</a>
          </div>
        </div>
      </nav>
@@ -28,11 +31,17 @@
    顏色與字體來自 assets/tokens.css。
    ============================================================ */
 
-/* ---------- 第一層:三頁切換 ---------- */
+/* ---------- 第一層:五頁切換 ---------- */
 .pnav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(0,0,0,.08)}
 .pnav .in{max-width:980px;margin:0 auto;height:52px;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:14px}
 .pnav .brand{font-family:var(--sans);font-size:14.5px;font-weight:700;letter-spacing:-.01em;color:var(--ink);text-decoration:none;white-space:nowrap}
-.pnav .tabs{display:flex;align-items:center;gap:2px}
+/* min-width:0 + overflow-x —— 第五個頁籤加進來之後,.tab-l 全是 nowrap,
+   在最窄的手機上五格必定超出容器。沒有這兩行,超出的部分是「被裁掉」
+   而不是「捲得到」,最後一個頁籤會直接消失。下面的斷點會先把字縮小,
+   所以這條捲動多數時候不會真的用到,它只是保證不會裁掉。 */
+.pnav .tabs{display:flex;align-items:center;gap:2px;min-width:0;
+  overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.pnav .tabs::-webkit-scrollbar{display:none}
 .pnav .tab-l{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--ink-2);text-decoration:none;padding:7px 11px;border-radius:8px;white-space:nowrap;transition:background .2s,color .2s}
 .pnav .tab-l:hover{color:var(--ink);background:rgba(0,0,0,.05)}
 .pnav .tab-l.cur{color:var(--blue);font-weight:700;background:#eef5ff;cursor:default}
@@ -52,8 +61,23 @@
   .chnav .in{padding:9px 14px;gap:7px}
   .chnav a{font-size:12px;padding:5px 11px}
 }
-/* 很窄的螢幕:品牌名讓位給三頁切換 */
-@media(max-width:430px){ .pnav .brand{display:none} }
+/* 很窄的螢幕:品牌名讓位給五頁切換。
+   斷點從 480px 上調到 560px —— 原本的 480 是按「四格標籤約需 345px」
+   算的;加上第五格之後五格約需 390px,不上調的話 480~560 之間
+   brand 會把最後一個頁籤擠進捲動區,看起來像少了一頁。 */
+@media(max-width:560px){
+  .pnav .brand{display:none}
+  .pnav .tab-l{padding:6px 7px;font-size:11.5px}
+}
+/* 360px 的手機(仍然常見)上,五格還差 25px 才排得下 —— 收內距與間隙
+   湊出來,不動字級。字級再往下就會小於 11px,那已經不好按了。
+   ★ 320px 以下不再補救:那個尺寸就交給 .tabs 的橫向捲動,
+     捲得到總比字小到看不清好。 */
+@media(max-width:400px){
+  .pnav .in{padding:0 10px}
+  .pnav .tabs{gap:1px}
+  .pnav .tab-l{padding:6px 5px}
+}
 
 /* 錨點不要被兩層固定列蓋住(52px + chnav 約 45px) */
 section[id]{scroll-margin-top:108px}

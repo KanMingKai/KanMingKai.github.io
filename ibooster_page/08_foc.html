@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>i-Booster 踏板行程串級控制 — 外迴路 + FOC 電流內迴路</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/nav.css">
+<style>
+/* ============================================================
+   i-Booster 踏板行程串級控制方塊圖
+   來源:碩士論文 / ARTC 期末研究報告書「Padel Travel Control +
+        Current Control」控制方塊圖
+   ------------------------------------------------------------
+   class 一律 .fc- 前綴;顏色一律 var(--token, #fallback)。
+
+   ★ 色彩＝「這條線屬於哪一圈」，不是裝飾:
+       琥珀 --amber #b45309  外迴路(踏板行程):慢,決定「要多大扭矩」
+       藍   --blue          內迴路(電流/電壓):快,決定「怎麼把電壓打出去」
+       青   #0e7c9a         回授與座標轉換:量測 + Clarke/Park
+       綠   #15803d         功率級與馬達:逆變器、三相、PMSM、F_Motor
+     原圖用「兩塊藍 + 一塊綠 + 一塊青」分區,這裡把分區改成分「圈」,
+     因為這張圖真正要講的是串級結構,不是硬體歸屬。
+
+   ★ 三處跨線用跳線弧(hop)標示,代表「交叉但不相接」:
+       (452,232)  θ 上升線跨過 i_q_ref
+       (520,232)  i_d 回授線跨過 i_q_ref
+       (1121,340) i_b 量測線跨過 U 相
+     前兩處是拓樸上躲不掉的 —— 兩個命令從左邊進、兩個回授從右下角
+     回來,一定會有一次交叉。原圖同樣有跳線,故沿用。
+     其餘所有「交叉」都已用繞線消掉;凡是相接的地方都畫實心接點。
+
+   ★ 一處刻意的取捨:逆變器方塊內用「六個小方塊」的線稿代表六顆
+     開關,不是可讀的電路圖。真正的資訊在方塊邊界上的接線(六路
+     閘極訊號進、三相 U/V/W 出),與 07_platform.html 的作法一致。
+
+   ★ 符號寫法沿用 07_platform.html 的底線式下標(i_q_ref、u_α、
+     X_padel),不用 tspan 疊下標 —— 在 SVG 裡混排上下標,縮放時
+     常常對不齊。
+   ============================================================ */
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:var(--sans,-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif);
+  background:var(--bg,#fff);color:var(--ink,#1d1d1f);line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+.fc{max-width:1180px;margin:0 auto;padding:28px 22px 40px}
+.fc-head,.fc-legend,.fc-scroll,.fc-cap,.fc-foot{max-width:1020px;margin-left:auto;margin-right:auto}
+
+.fc-head{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:14px}
+.fc-h1{font-size:clamp(22px,3vw,30px);font-weight:900;letter-spacing:-.02em}
+.fc-sub{font-size:clamp(12.5px,1.5vw,15px);color:var(--ink-2,#6e6e73);font-weight:600;
+  padding-left:18px;border-left:1.5px solid var(--line,#d2d2d7)}
+
+/* ---------- 圖例＝篩選器 ---------- */
+.fc-legend{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:14px;align-items:center}
+.fc-chip{
+  display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;
+  border:1px solid var(--line,#d2d2d7);background:#fff;border-radius:999px;
+  padding:7px 14px;cursor:pointer;font-family:inherit;color:var(--ink,#1d1d1f);
+  transition:border-color .2s ease,background .2s ease;
+}
+.fc-chip:hover,.fc-chip:focus-visible{border-color:var(--ink-3,#86868b);background:var(--bg-alt,#f5f5f7)}
+.fc-chip.on{border-color:currentColor;background:var(--bg-alt,#f5f5f7)}
+.fc-chip i{width:16px;height:3px;border-radius:2px;flex:none}
+.fc-chip--pos{color:var(--amber,#b45309)}      .fc-chip--pos i{background:var(--amber,#b45309)}
+.fc-chip--cur{color:var(--blue,#0071e3)}       .fc-chip--cur i{background:var(--blue,#0071e3)}
+.fc-chip--fb {color:#0e7c9a}                   .fc-chip--fb  i{background:#0e7c9a}
+.fc-chip--pwr{color:#15803d}                   .fc-chip--pwr i{background:#15803d}
+.fc-hintt{font-size:11.5px;color:var(--ink-3,#86868b);margin-left:4px}
+
+.fc-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line,#d2d2d7);
+  border-radius:16px;background:#fcfcfd}
+.fc-scroll::-webkit-scrollbar{height:6px}
+.fc-scroll::-webkit-scrollbar-thumb{background:var(--line,#d2d2d7);border-radius:3px}
+.fc-svg{width:100%;min-width:980px;height:auto;display:block}
+.fc-svg text{font-family:var(--sans,-apple-system,"Noto Sans TC",sans-serif)}
+.fc-svg .m{font-family:var(--mono,ui-monospace,monospace)}
+.fc-svg [data-d],.fc-svg [data-b]{transition:opacity .22s ease}
+.fc-hint{display:none;text-align:center;font-size:11px;color:var(--ink-3,#86868b);
+  margin-top:8px;font-family:var(--mono,monospace)}
+
+/* 只有「被點名」的那一圈會跑動 —— 動畫在這裡是用來回答
+   「訊號往哪個方向流」,不是裝飾,所以平時全部靜止。 */
+.fc-live{stroke-dasharray:9 13;animation:fc-flow 1s linear infinite}
+@keyframes fc-flow{ to{ stroke-dashoffset:-22 } }
+
+.fc-cap{display:flex;align-items:center;gap:14px;margin-top:14px;min-height:26px}
+.fc-cap-t{font-size:13px;color:var(--ink-3,#86868b);font-weight:600}
+.fc-reset{margin-left:auto;flex:none;font-size:12.5px;color:var(--blue,#0071e3);font-weight:700;
+  background:none;border:0;cursor:pointer;padding:4px 2px;font-family:inherit}
+.fc-reset:hover{color:var(--blue-d,#0066cc);text-decoration:underline}
+
+.fc-foot{margin-top:16px;font-size:12px;color:var(--ink-3,#86868b);line-height:1.75}
+.fc-foot code{font-family:var(--mono,monospace);font-size:11.5px;color:var(--ink-2,#6e6e73)}
+.fc-foot b{color:var(--ink-2,#6e6e73)}
+.fc-src{margin-top:10px;padding-top:10px;border-top:1px solid var(--line,#d2d2d7);font-size:11.5px}
+
+@media(max-width:680px){
+  .fc{padding:20px 14px 30px}
+  .fc-sub{padding-left:0;border-left:0;border-top:1px solid var(--line,#d2d2d7);padding-top:8px;width:100%}
+  .fc-hint{display:block}
+}
+@media(prefers-reduced-motion:reduce){
+  .fc-live{animation:none}
+  .fc-svg [data-d],.fc-svg [data-b]{transition:none}
+}
+</style>
+</head>
+<body>
+
+<nav class="pnav">
+  <div class="in">
+    <a href="../home/index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
+    <div class="tabs">
+      <a class="tab-l" href="../home/index.html">履歷</a>
+      <a class="tab-l" href="../lfs_page/lfs01.html">感知融合經驗</a>
+      <a class="tab-l" href="../trj_page/01_trj_page.html">軌跡規劃經驗</a>
+      <a class="tab-l" href="../dash_page/01_dash_page.html">AMR系統整合</a>
+      <span class="tab-l cur">電子煞車</span>
+    </div>
+  </div>
+</nav>
+
+<div class="fc">
+
+  <div class="fc-head">
+    <div class="fc-h1">i-Booster 踏板行程串級控制</div>
+    <div class="fc-sub">外迴路管「行程」、內迴路管「電流」,中間隔著一層座標轉換</div>
+  </div>
+
+  <div class="fc-legend">
+    <button class="fc-chip fc-chip--pos" data-dom="pos" type="button"><i></i>外迴路 · 踏板行程</button>
+    <button class="fc-chip fc-chip--cur" data-dom="cur" type="button"><i></i>內迴路 · 電流</button>
+    <button class="fc-chip fc-chip--fb"  data-dom="fb"  type="button"><i></i>回授與座標轉換</button>
+    <button class="fc-chip fc-chip--pwr" data-dom="pwr" type="button"><i></i>功率級與馬達</button>
+    <span class="fc-hintt">滑過或點選以單獨檢視一圈</span>
+  </div>
+
+  <div class="fc-scroll">
+  <!-- ============================================================
+       上排 y 56–328   左:Padel Travel Control(外迴路)
+                       右:Current Control(FOC 內迴路)
+       右柱 y 44–454   三相逆變器 + PMSM
+       中排 y 352–448  Clarke / Park(回授座標轉換)
+       下帶 y 500–732  受控體:i-Booster 機構
+       ============================================================ -->
+  <svg class="fc-svg" id="fc-svg" viewBox="0 0 1240 760" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="i-Booster 踏板行程串級控制方塊圖。外迴路以踏板行程命令減去實測行程,經踏板行程控制器並疊加一條前饋項,產生 q 軸電流命令。內迴路以 d 軸電流命令為零、q 軸電流命令為外迴路輸出,各自經電流控制器後再加上解耦項,得到 d q 軸電壓命令,經反 Park 轉換與空間向量脈寬調變後,以六路閘極訊號驅動三相逆變器,逆變器輸出三相 U V W 電力給 PMSM。PMSM 產生的助力施加於 i-Booster 的螺桿載具,推動總泵建立液壓。回授路徑為:兩相相電流經 Clarke 與 Park 轉換回到 d q 軸電流,轉子角度同時提供給 Park 與反 Park,踏板行程感知器量測磁鐵位置得到實際行程回授至外迴路。">
+    <title>i-Booster 踏板行程串級控制方塊圖</title>
+    <desc>踏板行程外迴路、FOC 電流內迴路、三相逆變器與 PMSM、Clarke/Park 回授,以及 i-Booster 機構受控體。</desc>
+
+    <defs>
+      <marker id="fc-a-pos" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="var(--amber,#b45309)"/>
+      </marker>
+      <marker id="fc-a-cur" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="var(--blue,#0071e3)"/>
+      </marker>
+      <marker id="fc-a-fb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="#0e7c9a"/>
+      </marker>
+      <marker id="fc-a-pwr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="#15803d"/>
+      </marker>
+    </defs>
+
+    <!-- ============ 分區底色 ============ -->
+    <g data-b="pos">
+      <rect x="14" y="56" width="430" height="272" rx="14" fill="var(--amber,#b45309)" fill-opacity=".055"
+            stroke="var(--amber,#b45309)" stroke-opacity=".22" stroke-width="1"/>
+      <text x="32" y="82" font-size="13" font-weight="800" fill="var(--amber,#b45309)">Padel Travel Control</text>
+      <text x="32" y="98" font-size="9" fill="var(--amber,#b45309)" fill-opacity=".8">外迴路 · 慢</text>
+    </g>
+    <g data-b="cur">
+      <rect x="464" y="56" width="602" height="272" rx="14" fill="var(--blue,#0071e3)" fill-opacity=".055"
+            stroke="var(--blue,#0071e3)" stroke-opacity=".22" stroke-width="1"/>
+      <text x="482" y="82" font-size="13" font-weight="800" fill="var(--blue,#0071e3)">Current Control</text>
+      <text x="482" y="98" font-size="9" fill="var(--blue,#0071e3)" fill-opacity=".8">內迴路 · 快</text>
+    </g>
+    <g data-b="pwr">
+      <rect x="1086" y="44" width="134" height="256" rx="14" fill="#15803d" fill-opacity=".075"
+            stroke="#15803d" stroke-opacity=".28" stroke-width="1"/>
+      <text x="1153" y="76" font-size="13" font-weight="800" text-anchor="middle" fill="#15803d">3-phase</text>
+      <text x="1153" y="94" font-size="13" font-weight="800" text-anchor="middle" fill="#15803d">Inverter</text>
+      <!-- 六個小方塊＝六顆開關。這是圖示,不是可讀的電路圖。 -->
+      <g fill="none" stroke="#15803d" stroke-opacity=".75" stroke-width="1.3">
+        <rect x="1103" y="150" width="100" height="76" rx="4"/>
+        <rect x="1115" y="162" width="20" height="20" rx="2"/>
+        <rect x="1143" y="162" width="20" height="20" rx="2"/>
+        <rect x="1171" y="162" width="20" height="20" rx="2"/>
+        <rect x="1115" y="192" width="20" height="20" rx="2"/>
+        <rect x="1143" y="192" width="20" height="20" rx="2"/>
+        <rect x="1171" y="192" width="20" height="20" rx="2"/>
+      </g>
+      <text x="1153" y="244" font-size="8.5" text-anchor="middle" fill="var(--ink-3,#86868b)">六顆開關 · 兩電平</text>
+    </g>
+    <g data-b="pos">
+      <!-- 頂邊拉到 486(不是 500):標題才有位置,不會被儲油壺(y=522)壓到。
+           θ 匯流排走 y=470,仍在框外 —— 讀起來才是「θ 由機構引出」。 -->
+      <rect x="300" y="486" width="760" height="246" rx="14" fill="#0f766e" fill-opacity=".07"
+            stroke="#0f766e" stroke-opacity=".22" stroke-width="1"/>
+      <text x="318" y="510" font-size="13.5" font-weight="800" fill="#0f766e">i-Booster</text>
+      <text x="1044" y="722" font-size="9.5" text-anchor="end" fill="#0f766e" fill-opacity=".75">受控體 · 機構與液壓</text>
+    </g>
+
+    <!-- ============ 連線:外迴路(琥珀) ============ -->
+    <g data-d="pos" fill="none" stroke="var(--amber,#b45309)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+      <!-- x_padel_ref → S1 -->
+      <path class="fc-ln" d="M26,232 H137" marker-end="url(#fc-a-pos)"/>
+      <!-- 分岔 → 前饋 -->
+      <path class="fc-ln" d="M96,232 V128 H175" marker-end="url(#fc-a-pos)"/>
+      <!-- S1 → 踏板行程控制器 -->
+      <path class="fc-ln" d="M163,232 H175" marker-end="url(#fc-a-pos)"/>
+      <!-- 控制器 → S2 -->
+      <path class="fc-ln" d="M303,232 H385" marker-end="url(#fc-a-pos)"/>
+      <!-- 前饋 → S2(由上方進) -->
+      <path class="fc-ln" d="M303,128 H398 V219" marker-end="url(#fc-a-pos)"/>
+      <!-- S2 → 內迴路 q 軸命令 -->
+      <path class="fc-ln" d="M411,232 H577" marker-end="url(#fc-a-pos)"/>
+      <!-- X_padel 回授 → S1(由下方進) -->
+      <path class="fc-ln" d="M844,660 V706 H150 V245" marker-end="url(#fc-a-pos)"/>
+      <!-- F_driver 外部擾動 -->
+      <path class="fc-ln" d="M1096,576 H1006" marker-end="url(#fc-a-pos)"/>
+    </g>
+    <circle data-d="pos" cx="96" cy="232" r="3.6" fill="var(--amber,#b45309)"/>
+    <g data-d="pos" class="m" font-size="10.5" font-weight="700" fill="var(--amber,#b45309)">
+      <text x="26" y="222">x_padel_ref</text>
+      <!-- 落在 θ 上升線(x=452)與 i_d 回授線(x=520)之間,避免被線壓過 -->
+      <text x="466" y="224">i_q_ref</text>
+      <text x="500" y="698" text-anchor="middle">X_padel</text>
+      <text x="1050" y="566" text-anchor="middle">F_driver</text>
+    </g>
+    <g data-d="pos" font-size="11" font-weight="700" fill="var(--amber,#b45309)">
+      <text x="136" y="224" text-anchor="end">＋</text>
+      <text x="136" y="258" text-anchor="end">−</text>
+      <text x="384" y="222" text-anchor="end">＋</text>
+      <text x="412" y="218">＋</text>
+    </g>
+
+    <!-- ============ 連線:內迴路(藍) ============ -->
+    <g data-d="cur" fill="none" stroke="var(--blue,#0071e3)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+      <!-- i_d_ref = 0 由上方進 S3 -->
+      <path class="fc-ln" d="M590,80 V115" marker-end="url(#fc-a-cur)"/>
+      <!-- S3 → d 軸電流控制器 → 解耦和 -->
+      <path class="fc-ln" d="M603,128 H616" marker-end="url(#fc-a-cur)"/>
+      <path class="fc-ln" d="M734,128 H767" marker-end="url(#fc-a-cur)"/>
+      <path class="fc-ln" d="M780,92 V115" marker-end="url(#fc-a-cur)"/>
+      <path class="fc-ln" d="M793,128 H826" marker-end="url(#fc-a-cur)"/>
+      <!-- S4 → q 軸電流控制器 → 解耦和 -->
+      <path class="fc-ln" d="M603,232 H616" marker-end="url(#fc-a-cur)"/>
+      <path class="fc-ln" d="M734,232 H767" marker-end="url(#fc-a-cur)"/>
+      <path class="fc-ln" d="M780,196 V219" marker-end="url(#fc-a-cur)"/>
+      <path class="fc-ln" d="M793,232 H826" marker-end="url(#fc-a-cur)"/>
+      <!-- 反 Park → SVPWM -->
+      <path class="fc-ln" d="M920,146 H954" marker-end="url(#fc-a-cur)"/>
+      <path class="fc-ln" d="M920,218 H954" marker-end="url(#fc-a-cur)"/>
+    </g>
+    <g data-d="cur" class="m" font-size="10.5" font-weight="700" fill="var(--blue,#0071e3)">
+      <text x="590" y="72" text-anchor="middle">i_d_ref = 0</text>
+      <text x="780" y="86" text-anchor="middle">ω·L_q·i_q</text>
+      <text x="780" y="190" text-anchor="middle">ω·ψ_f</text>
+      <text x="809" y="120" text-anchor="middle">u_d</text>
+      <text x="809" y="224" text-anchor="middle">u_q</text>
+      <text x="937" y="138" text-anchor="middle">u_α</text>
+      <text x="937" y="210" text-anchor="middle">u_β</text>
+    </g>
+    <g data-d="cur" font-size="11" font-weight="700" fill="var(--blue,#0071e3)">
+      <text x="602" y="112">＋</text>
+      <text x="576" y="122" text-anchor="end">−</text>
+      <text x="576" y="224" text-anchor="end">＋</text>
+      <text x="576" y="258" text-anchor="end">−</text>
+      <text x="764" y="112" text-anchor="end">−</text>
+      <text x="764" y="216" text-anchor="end">＋</text>
+    </g>
+
+    <!-- ============ 連線:功率級與馬達(綠) ============ -->
+    <g data-d="pwr" fill="none" stroke="#15803d" stroke-width="1.9" stroke-linecap="round">
+      <!-- V_DC -->
+      <path class="fc-ln" d="M1153,32 V44" marker-end="url(#fc-a-pwr)"/>
+      <!-- 六路閘極訊號 SVPWM → 逆變器 -->
+      <path class="fc-ln" d="M1048,118 H1086" marker-end="url(#fc-a-pwr)"/>
+      <path class="fc-ln" d="M1048,140 H1086" marker-end="url(#fc-a-pwr)"/>
+      <path class="fc-ln" d="M1048,162 H1086" marker-end="url(#fc-a-pwr)"/>
+      <path class="fc-ln" d="M1048,184 H1086" marker-end="url(#fc-a-pwr)"/>
+      <path class="fc-ln" d="M1048,206 H1086" marker-end="url(#fc-a-pwr)"/>
+      <path class="fc-ln" d="M1048,228 H1086" marker-end="url(#fc-a-pwr)"/>
+    </g>
+    <g data-d="pwr" fill="none" stroke="#15803d" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+      <!-- 三相 U/V/W → PMSM -->
+      <path class="fc-ln" d="M1121,300 V356"/>
+      <path class="fc-ln" d="M1153,300 V346"/>
+      <path class="fc-ln" d="M1185,300 V356"/>
+      <!-- PMSM → i-Booster 螺桿載具 -->
+      <path class="fc-ln" d="M1153,454 V524 H730 V540" marker-end="url(#fc-a-pwr)"/>
+    </g>
+    <g data-d="pwr" class="m" font-size="10.5" font-weight="700" fill="#15803d">
+      <text x="1153" y="26" text-anchor="middle">V_DC</text>
+      <text x="1195" y="340">U/V/W</text>
+      <text x="900" y="516" text-anchor="middle">F_Motor</text>
+    </g>
+    <!-- 放在兩個方塊下方的空檔:SVPWM 底 268、閘極線最低 228,y=288 兩者都不壓 -->
+    <text data-d="pwr" x="1082" y="288" font-size="9" text-anchor="end" fill="#15803d" fill-opacity=".85">六路閘極訊號</text>
+
+    <!-- ============ 連線:回授與座標轉換(青) ============ -->
+    <g data-d="fb" fill="none" stroke="#0e7c9a" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round">
+      <!-- 相電流量測 i_a / i_b → Clarke -->
+      <path class="fc-ln" d="M1121,316 H1074 V380 H1034" marker-end="url(#fc-a-fb)"/>
+      <path class="fc-ln" d="M1153,340 H1128 A7,7 0 0 0 1114,340 H1090 V412 H1034" marker-end="url(#fc-a-fb)"/>
+      <!-- Clarke → Park -->
+      <path class="fc-ln" d="M930,380 H804" marker-end="url(#fc-a-fb)"/>
+      <path class="fc-ln" d="M930,412 H804" marker-end="url(#fc-a-fb)"/>
+      <!-- Park → i_q 回授(上路,直接上去 S4,無交叉) -->
+      <path class="fc-ln" d="M700,380 H590 V245" marker-end="url(#fc-a-fb)"/>
+      <!-- Park → i_d 回授(下路,在 (520,232) 以跳線弧跨過 i_q_ref) -->
+      <path class="fc-ln" d="M700,412 H520 V244 A7,7 0 0 1 520,220 V128 H577" marker-end="url(#fc-a-fb)"/>
+      <!-- θ:由機構取出,一路餵給 Park,一路繞上去餵給反 Park -->
+      <path class="fc-ln" d="M676,540 V470 H752 V448" marker-end="url(#fc-a-fb)"/>
+      <path class="fc-ln" d="M676,470 H452 V244 A7,7 0 0 1 452,220 V36 H873 V92" marker-end="url(#fc-a-fb)"/>
+      <!-- 磁鐵 → 行程感知器(虛線＝非接觸量測) -->
+      <path d="M822,590 V620" stroke-width="1.4" stroke-dasharray="4 3"/>
+    </g>
+    <circle data-d="fb" cx="1121" cy="316" r="4" fill="#0e7c9a"/>
+    <circle data-d="fb" cx="1153" cy="340" r="4" fill="#0e7c9a"/>
+    <circle data-d="fb" cx="676" cy="470" r="3.6" fill="#0e7c9a"/>
+    <g data-d="fb" class="m" font-size="10" font-weight="700" fill="#0e7c9a">
+      <text x="1128" y="308">i_a</text>
+      <text x="1160" y="334">i_b</text>
+      <text x="867" y="372" text-anchor="middle">i_α</text>
+      <text x="867" y="404" text-anchor="middle">i_β</text>
+      <text x="690" y="374" text-anchor="end">i_q</text>
+      <text x="690" y="406" text-anchor="end">i_d</text>
+      <text x="686" y="464">θ</text>
+      <text x="462" y="124">θ</text>
+      <text x="880" y="52">θ</text>
+    </g>
+
+    <!-- ============ 方塊:外迴路 ============ -->
+    <g data-b="pos">
+      <!-- 前饋:x_padel → i_q 的靜態對應(助力曲線) -->
+      <rect x="175" y="84" width="128" height="88" rx="8" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.5"/>
+      <text x="239" y="102" font-size="11.5" font-weight="700" text-anchor="middle" fill="var(--ink,#1d1d1f)">Feedforward</text>
+      <g fill="none" stroke="var(--ink-2,#6e6e73)" stroke-width="1.2">
+        <path d="M196,158 H292 M196,158 V114"/>
+        <path d="M196,158 L286,120" stroke="var(--amber,#b45309)" stroke-width="1.8"/>
+      </g>
+      <text class="m" x="192" y="112" font-size="8" text-anchor="end" fill="var(--ink-3,#86868b)">i_q</text>
+      <text class="m" x="294" y="170" font-size="8" text-anchor="end" fill="var(--ink-3,#86868b)">x_padel</text>
+
+      <!-- 踏板行程控制器 -->
+      <rect x="175" y="202" width="128" height="60" rx="8" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.5"/>
+      <text x="239" y="226" font-size="11.5" font-weight="700" text-anchor="middle" fill="var(--ink,#1d1d1f)">Padel Travel</text>
+      <text x="239" y="243" font-size="11.5" font-weight="700" text-anchor="middle" fill="var(--ink,#1d1d1f)">Controller</text>
+
+      <!-- 加總點 S1 / S2 -->
+      <circle cx="150" cy="232" r="13" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.5"/>
+      <circle cx="398" cy="232" r="13" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.5"/>
+    </g>
+
+    <!-- ============ 方塊:內迴路 ============ -->
+    <g data-b="cur">
+      <circle cx="590" cy="128" r="13" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.5"/>
+      <circle cx="590" cy="232" r="13" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.5"/>
+      <circle cx="780" cy="128" r="13" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.5"/>
+      <circle cx="780" cy="232" r="13" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.5"/>
+
+      <rect x="616" y="100" width="118" height="56" rx="8" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.5"/>
+      <text x="675" y="122" font-size="11.5" font-weight="700" text-anchor="middle" fill="var(--ink,#1d1d1f)">Current</text>
+      <text x="675" y="139" font-size="11.5" font-weight="700" text-anchor="middle" fill="var(--ink,#1d1d1f)">Controller</text>
+      <text class="m" x="675" y="152" font-size="8" text-anchor="middle" fill="var(--ink-3,#86868b)">d 軸</text>
+
+      <rect x="616" y="204" width="118" height="56" rx="8" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.5"/>
+      <text x="675" y="226" font-size="11.5" font-weight="700" text-anchor="middle" fill="var(--ink,#1d1d1f)">Current</text>
+      <text x="675" y="243" font-size="11.5" font-weight="700" text-anchor="middle" fill="var(--ink,#1d1d1f)">Controller</text>
+      <text class="m" x="675" y="256" font-size="8" text-anchor="middle" fill="var(--ink-3,#86868b)">q 軸</text>
+
+      <rect x="826" y="92" width="94" height="176" rx="8" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.5"/>
+      <text x="873" y="166" font-size="11.5" font-weight="700" text-anchor="middle" fill="var(--ink,#1d1d1f)">Inverse</text>
+      <text x="873" y="183" font-size="11.5" font-weight="700" text-anchor="middle" fill="var(--ink,#1d1d1f)">Of Park</text>
+      <text class="m" x="873" y="200" font-size="8.5" text-anchor="middle" fill="var(--ink-3,#86868b)">dq → αβ</text>
+
+      <rect x="954" y="92" width="94" height="176" rx="8" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.5"/>
+      <text x="1001" y="158" font-size="11.5" font-weight="700" text-anchor="middle" fill="var(--ink,#1d1d1f)">Space</text>
+      <text x="1001" y="175" font-size="11.5" font-weight="700" text-anchor="middle" fill="var(--ink,#1d1d1f)">Vector</text>
+      <text x="1001" y="192" font-size="11.5" font-weight="700" text-anchor="middle" fill="var(--ink,#1d1d1f)">PWM</text>
+      <text class="m" x="1001" y="210" font-size="8.5" text-anchor="middle" fill="var(--ink-3,#86868b)">αβ → 開關序列</text>
+    </g>
+
+    <!-- ============ 方塊:回授座標轉換 ============ -->
+    <g data-b="fb">
+      <rect x="930" y="352" width="104" height="96" rx="8" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.5"/>
+      <text x="982" y="398" font-size="12" font-weight="800" text-anchor="middle" fill="var(--ink,#1d1d1f)">Clarke</text>
+      <text class="m" x="982" y="418" font-size="8.5" text-anchor="middle" fill="var(--ink-3,#86868b)">abc → αβ</text>
+
+      <rect x="700" y="352" width="104" height="96" rx="8" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.5"/>
+      <text x="752" y="398" font-size="12" font-weight="800" text-anchor="middle" fill="var(--ink,#1d1d1f)">Park</text>
+      <text class="m" x="752" y="418" font-size="8.5" text-anchor="middle" fill="var(--ink-3,#86868b)">αβ → dq</text>
+    </g>
+
+    <!-- ============ 方塊:PMSM ============ -->
+    <g data-b="pwr">
+      <circle cx="1153" cy="400" r="54" fill="#fff" stroke="#15803d" stroke-width="1.8"/>
+      <text x="1153" y="399" font-size="13" font-weight="800" text-anchor="middle" fill="var(--ink,#1d1d1f)">PMSM</text>
+      <text x="1153" y="416" font-size="8.5" text-anchor="middle" fill="var(--ink-3,#86868b)">永磁同步馬達</text>
+    </g>
+
+    <!-- ============ 受控體:i-Booster 機構 ============ -->
+    <g data-b="pos" fill="none" stroke="var(--ink-2,#6e6e73)" stroke-width="1.5" stroke-linejoin="round">
+      <!-- 儲油壺 + 總泵 -->
+      <rect x="326" y="522" width="96" height="30" rx="3"/>
+      <rect x="330" y="552" width="92" height="56" rx="4"/>
+      <circle cx="356" cy="576" r="13"/>
+      <circle cx="392" cy="576" r="13"/>
+      <!-- 推桿 -->
+      <path d="M422,576 H516" stroke-width="5" stroke-linecap="round"/>
+      <!-- 回位彈簧 -->
+      <path d="M516,576 L524,562 L540,590 L556,562 L572,590 L588,562 L604,590 L620,562 L636,590 L652,562 L660,576" stroke-width="1.6"/>
+      <!-- 螺桿載具(馬達助力作用在這裡) -->
+      <rect x="660" y="540" width="124" height="72" rx="5" stroke="#15803d" stroke-width="1.6" fill="#15803d" fill-opacity=".08"/>
+      <path d="M694,552 V600" stroke-width="1.4"/>
+      <!-- 駕駛者彈簧 -->
+      <path d="M700,576 L706,566 L718,586 L730,566 L742,586 L754,566 L766,586 L772,576" stroke-width="1.4"/>
+      <!-- 輸入桿 -->
+      <path d="M772,576 H800" stroke-width="4" stroke-linecap="round"/>
+      <path d="M844,576 H1000" stroke-width="4" stroke-linecap="round"/>
+    </g>
+    <!-- 磁鐵 -->
+    <g data-b="pos">
+      <rect x="800" y="562" width="44" height="28" rx="3" fill="#fde68a" stroke="var(--amber,#b45309)" stroke-width="1.4"/>
+      <text x="822" y="556" font-size="9" font-weight="700" text-anchor="middle" fill="var(--amber,#b45309)">Magnet</text>
+    </g>
+    <!-- 踏板行程感知器(虛線框＝感測器) -->
+    <g data-b="pos">
+      <rect x="798" y="620" width="92" height="40" rx="6" fill="#fff" stroke="#0e7c9a" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text x="844" y="638" font-size="9" font-weight="700" text-anchor="middle" fill="#0e7c9a">Padel Travel</text>
+      <text x="844" y="652" font-size="9" font-weight="700" text-anchor="middle" fill="#0e7c9a">Sensor</text>
+    </g>
+    <!-- 機構標註 -->
+    <g data-b="pos">
+      <path d="M586,534 V566 M700,640 V586" fill="none" stroke="var(--ink-3,#86868b)" stroke-width="0.9" stroke-dasharray="3 3"/>
+      <text x="586" y="528" font-size="9.5" font-weight="700" text-anchor="middle" fill="var(--ink-2,#6e6e73)">Pull Back Spring</text>
+      <text x="700" y="652" font-size="9.5" font-weight="700" text-anchor="middle" fill="var(--ink-2,#6e6e73)">Driver Spring</text>
+      <!-- F_hydraulic:液壓對活塞的反作用力 -->
+      <g fill="none" stroke="var(--amber,#b45309)" stroke-width="2" stroke-linecap="round">
+        <path d="M338,600 H362" marker-end="url(#fc-a-pos)"/>
+        <path d="M374,600 H398" marker-end="url(#fc-a-pos)"/>
+      </g>
+      <text class="m" x="376" y="630" font-size="9.5" font-weight="700" text-anchor="middle" fill="var(--amber,#b45309)">F_hydraulic</text>
+      <!-- F_spring -->
+      <g fill="none" stroke="var(--ink-3,#86868b)" stroke-width="1.8" stroke-linecap="round">
+        <path d="M556,616 H594" marker-end="url(#fc-a-pos)"/>
+      </g>
+      <text class="m" x="575" y="638" font-size="9.5" font-weight="700" text-anchor="middle" fill="var(--ink-3,#86868b)">F_spring</text>
+    </g>
+  </svg>
+  </div>
+  <div class="fc-hint">← 左右滑動可看完整圖 →</div>
+
+  <div class="fc-cap">
+    <span class="fc-cap-t" id="fc-cap">兩圈套在一起:外圈說「要多少電流」,內圈負責「真的把電流打出來」</span>
+    <button class="fc-reset" id="fc-reset" type="button">顯示全部 ↺</button>
+  </div>
+
+  <div class="fc-foot">
+    <b>這張圖在講一件事:串級。</b>
+    整個系統只有一個目的 —— 讓踏板實際行程 <code>X_padel</code> 跟上駕駛者要的行程 <code>x_padel_ref</code>。
+    但控制器沒辦法直接命令「行程」,它能命令的只有馬達電流。所以中間拆成兩圈:
+    <b style="color:var(--amber,#b45309)">外圈</b>把行程誤差換算成一個 q 軸電流命令 <code>i_q_ref</code>;
+    <b style="color:var(--blue,#0071e3)">內圈</b>只管把 <code>i_q</code> 追到 <code>i_q_ref</code>。
+    外圈慢(受機構慣量與油壓響應限制)、內圈快(只受電氣時間常數限制),兩者頻寬差一個數量級以上,
+    外圈才能把內圈當成「命令即到位」來設計 —— 這是串級能成立的唯一前提。<br>
+
+    <b>四條路徑分別是。</b>
+    <b style="color:var(--amber,#b45309)">外迴路</b> x_padel_ref → 誤差 → 踏板行程控制器,再與前饋項相加得 i_q_ref;
+    <b style="color:var(--blue,#0071e3)">內迴路</b> i_d_ref/i_q_ref → 兩個電流控制器 → 加解耦項得 u_d/u_q → 反 Park → SVPWM;
+    <b style="color:#15803d">功率級與馬達</b> 六路閘極訊號 → 三相逆變器 → U/V/W → PMSM → F_Motor 推螺桿載具;
+    <b style="color:#0e7c9a">回授與座標轉換</b> 兩相相電流 i_a/i_b → Clarke → Park → i_d/i_q,轉子角 θ 同時餵給 Park 與反 Park。
+    虛線框代表感測器,虛線代表非接觸量測(磁鐵 → 行程感知器)。<br>
+
+    <b>為什麼 i_d_ref 固定為 0。</b>
+    d 軸電流只產生磁通、不產生扭矩;把它壓到 0,同樣的電流幅值全部拿去出力,銅損最小、扭矩常數最線性。
+    這是表面式永磁馬達在基速以下的標準做法(不做弱磁時)。<br>
+
+    <b>解耦項是前饋,不是回授。</b>
+    馬達的電壓方程本身就含交連項:<code>u_d = R·i_d + L_d·di_d/dt − ω·L_q·i_q</code>、
+    <code>u_q = R·i_q + L_q·di_q/dt + ω·L_d·i_d + ω·ψ_f</code>。
+    圖上那兩支從上方進來的箭頭,就是把已知的 <code>−ω·L_q·i_q</code> 與 <code>+ω·ψ_f</code> 直接補進去,
+    讓 PI 只需要處理剩下的一階項。少了它,轉速一高,兩軸互相拉扯,PI 得靠積分去追,響應會明顯變鈍。<br>
+
+    <b>前饋那條斜線是助力曲線。</b>
+    <code>x_padel → i_q</code> 的靜態對應直接從命令算出「大致該出多少力」,PI 只負責補殘差。
+    這是助力系統的重點:駕駛者要的是「踩多深給多少助力」的一致手感,靠 PI 追誤差追出來的手感會滯後。<br>
+
+    <b>與原圖的差異。</b>
+    方塊的相對位置與訊號的來源、去向皆與原圖一致,<b>走線經過重排以減少交叉</b>。
+    仍有三處交叉(θ 與 i_d 回授各跨過 i_q_ref 一次、i_b 量測線跨過 U 相一次),已用<b>跳線弧</b>標示為「交叉不相接」;
+    凡是相接的地方都畫實心接點。
+    原圖以 <code>θ̇</code> 標記轉子電氣角速度,此處寫成 <code>ω</code>,是同一個量。
+    原圖的逆變器與 i-Booster 方塊內嵌實物照片,此處改為線稿 —— 頁面規則不引用外部圖片,且線稿在深淺兩種主題下都不會糊掉。
+    θ 在原圖中由 i-Booster 方塊引出,此處沿用(實體上是馬達端的轉子位置感測,經滾珠螺桿與載具位置一一對應)。<br>
+
+    <b>此處未涵蓋。</b>
+    原圖的 <code>u_q</code> 解耦僅補 <code>ω·ψ_f</code>,未含 <code>ω·L_d·i_d</code> 項 —— 在 i_d≈0 的操作點下這一項本來就近似為零,故沿用原圖不補。
+    另外,電流控制器與行程控制器的增益、取樣率與時序(內外圈的分頻)、SVPWM 的扇區判斷與作用時間計算(見<a href="02_svpwm.html" style="color:var(--blue,#0071e3)">SPWM vs SVPWM</a>)、
+    死區補償、以及 i-Booster 內部的兩級齒輪與滾珠螺桿機構(見<a href="01_ibooster.html" style="color:var(--blue,#0071e3)">作動原理動畫</a>),均不在本圖範圍。
+    本圖是<b>控制結構圖</b>,不是電路圖也不是機構圖。
+    <div class="fc-src">
+      資料來源:碩士論文與《車輛研究測試中心期末研究報告書》之 i-Booster 踏板行程控制與電流控制方塊圖。
+      本控制器實作於 F28069 控制卡,平台接線見<a href="07_platform.html" style="color:var(--blue,#0071e3)">電控煞車平台架構</a>。
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var svg=document.getElementById('fc-svg'); if(!svg) return;
+  var caps={
+    pos:'外圈只問一件事:實際行程跟上命令了沒 —— 誤差進控制器,前饋補上助力曲線,輸出是「要多少 q 軸電流」',
+    cur:'內圈把電流命令變成電壓命令:兩個 PI 各管一軸,解耦項先把交連補掉,再經反 Park 與 SVPWM 打成開關序列',
+    fb :'量得到的只有兩相電流與轉子角。Clarke 把三相攤成兩軸,Park 再用 θ 轉到隨轉子旋轉的 dq 上',
+    pwr:'直流母線經六顆開關切成三相,推 PMSM 出扭矩,再經滾珠螺桿變成推載具的 F_Motor',
+    all:'兩圈套在一起:外圈說「要多少電流」,內圈負責「真的把電流打出來」'
+  };
+  var doms=svg.querySelectorAll('[data-d]');
+  var blks=svg.querySelectorAll('[data-b]');
+  var lines=svg.querySelectorAll('.fc-ln');
+  var chips=document.querySelectorAll('.fc-chip');
+  var capEl=document.getElementById('fc-cap');
+  var locked=null;
+  var reduce=window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function show(d){
+    var i;
+    for(i=0;i<doms.length;i++){
+      doms[i].setAttribute('opacity', (!d || doms[i].getAttribute('data-d')===d) ? 1 : 0.10);
+    }
+    // 方塊只淡到 0.30:即使在篩選狀態,也要看得出線接到哪個盒子
+    for(i=0;i<blks.length;i++){
+      blks[i].setAttribute('opacity', (!d || blks[i].getAttribute('data-b')===d) ? 1 : 0.30);
+    }
+    for(i=0;i<lines.length;i++){
+      var own=lines[i].parentNode.getAttribute('data-d');
+      var live = !!d && own===d && !reduce;
+      lines[i].setAttribute('class', live ? 'fc-ln fc-live' : 'fc-ln');
+    }
+    capEl.textContent = caps[d||'all'];
+  }
+
+  for(var c=0;c<chips.length;c++){
+    (function(chip){
+      var d=chip.getAttribute('data-dom');
+      chip.addEventListener('mouseenter',function(){ if(!locked) show(d); });
+      chip.addEventListener('mouseleave',function(){ if(!locked) show(null); });
+      chip.addEventListener('focus',     function(){ if(!locked) show(d); });
+      chip.addEventListener('blur',      function(){ if(!locked) show(null); });
+      chip.addEventListener('click',function(){
+        locked = (locked===d) ? null : d;
+        for(var k=0;k<chips.length;k++){ chips[k].className=chips[k].className.replace(' on',''); }
+        if(locked) chip.className+=' on';
+        show(locked);
+      });
+    })(chips[c]);
+  }
+  document.getElementById('fc-reset').addEventListener('click',function(){
+    locked=null;
+    for(var k=0;k<chips.length;k++){ chips[k].className=chips[k].className.replace(' on',''); }
+    show(null);
+  });
+
+  /* 進場:依訊號流的先後順序各亮一次再放開 ——
+     外圈下命令 → 內圈算電壓 → 功率級出電 → 回授量回來。
+     看過一輪就知道這張圖該從哪裡開始讀。 */
+  show(null);
+  if(!reduce && 'IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(!e.isIntersecting) return;
+        io.disconnect();
+        var order=['pos','cur','pwr','fb'], i=0;
+        var t=setInterval(function(){
+          if(locked){ clearInterval(t); return; }
+          if(i<order.length){ show(order[i++]); }
+          else{ clearInterval(t); show(null); }
+        },1500);
+      });
+    },{threshold:0.3});
+    io.observe(svg);
+  }
+})();
+</script>
+
+</body>
+</html>

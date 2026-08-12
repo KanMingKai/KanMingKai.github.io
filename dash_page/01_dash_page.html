@@ -41,47 +41,53 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 .unit-title{font-size:clamp(20px,2.8vw,26px);font-weight:700;letter-spacing:-.01em;line-height:1.35}
 .unit-lead{font-size:13.5px;color:var(--ink-2);line-height:1.8;margin-top:12px;max-width:640px;margin-left:auto;margin-right:auto}
 .unit-lead b{color:var(--ink);font-weight:700}
+/* 多段連續的導言用這個 —— 置中只適合一兩行,超過就該靠左,
+   每行起點對齊眼睛才好回行。區塊本身仍置中(margin auto 不動)。 */
+.unit-lead.left{text-align:left}
 
-/* ===== 題目:兩個痛點卡 ===== */
-.pain{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:820px;margin:0 auto}
-.pain-c{
-  background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:20px 22px;
-  box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;
+/* 註:.pain 那一整組(題目的兩張痛點卡)已隨 #problem 整節移除。 */
+
+/* ===== 流程圖 =====
+   圖與兩條流的文字說明是「同一張圖」:共用一個外框,圖在上、
+   說明在下,中間只用一條分隔線。所以外框畫在 .cdf-fig 上,
+   SVG 自己不再畫邊框(只留點陣底色),避免框中有框。 */
+.cdf-fig{
+  max-width:1000px;margin:0 auto;background:var(--bg);
+  border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);
+  padding:16px 16px 0;overflow:hidden;
 }
-.pain-n{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--amber)}
-.pain-c b{font-size:15px;font-weight:700;color:var(--ink)}
-.pain-c span{font-size:12.5px;color:var(--ink-2);line-height:1.7}
-
-/* ===== 流程圖 ===== */
-.cdf-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:18px;margin:0 0 18px;font-size:12px;color:var(--ink-2)}
+.cdf-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:18px;margin:2px 0 14px;font-size:12px;color:var(--ink-2)}
 .cdf-lg{display:flex;align-items:center;gap:7px;font-weight:600}
 .cdf-lg i{width:22px;height:0;border-top-width:2.4px;border-top-style:solid;display:inline-block}
 .cdf-lg--o i{border-top-color:#d97706}
 .cdf-lg--t i{border-top-color:#0e7c9a}
 .cdf-lg--d i{border-top-color:#c7ccd1;border-top-style:dashed}
 
-.cdf-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 auto;max-width:1180px}
+/* 畫布收到 1000 之後 min-width 跟著降。原本 960 比 .wrap 的可用寬(936)還大,
+   桌機也會被迫出現一條橫向捲軸;現在桌機完整顯示,窄畫面才捲。 */
+.cdf-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 auto;max-width:1000px}
 .cdf-scroll::-webkit-scrollbar{height:5px}
 .cdf-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
-.cdf-flow{width:100%;min-width:960px;height:auto;display:block}
+.cdf-flow{width:100%;min-width:840px;height:auto;display:block}
 .cdf-flow text{font-family:var(--sans)}
 .cdf-flow .mono{font-family:var(--mono)}
 .scroll-hint{display:none;text-align:center;font-size:11px;color:var(--ink-3);margin-top:8px;font-family:var(--mono)}
 
-/* ===== 兩條流的說明卡 ===== */
-.cdf-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1000px;margin:0 auto}
-.cdf-card{
-  background:var(--bg);border:1px solid var(--line);border-radius:16px;overflow:hidden;
-  display:flex;flex-direction:column;box-shadow:var(--shadow);
+/* ===== 圖下方的兩條流說明:圖的下半部,不是兩張獨立卡片 =====
+   左右各一欄、各自帶一層很淡的同色底,讀者一眼知道左半屬橘流、
+   右半屬藍青流;欄與欄之間只有一條線,不留間隙,才不會又變回兩張卡。 */
+.cdf-fig-foot{
+  display:grid;grid-template-columns:1fr 1fr;
+  border-top:1px solid var(--line);margin:16px -16px 0;
 }
-.cdf-card-h{
-  background:var(--bg-alt);border-bottom:1px solid var(--line);padding:13px 18px;
-  font-size:14.5px;font-weight:700;letter-spacing:.03em;display:flex;align-items:center;gap:9px;
-}
-.cdf-card-h .cdf-dot{width:8px;height:8px;border-radius:50%;flex:none}
-.cdf-card--o .cdf-card-h .cdf-dot{background:#d97706}
-.cdf-card--t .cdf-card-h .cdf-dot{background:#0e7c9a}
-.cdf-card-b{padding:16px 18px 18px;display:flex;flex-direction:column;gap:10px;flex:1}
+.cdf-foot-col{padding:15px 20px 20px;display:flex;flex-direction:column;gap:10px}
+.cdf-foot-col+.cdf-foot-col{border-left:1px solid var(--line)}
+.cdf-foot-col--o{background:#fffcf6}
+.cdf-foot-col--t{background:#f8fcfd}
+.cdf-foot-h{font-size:14px;font-weight:700;letter-spacing:.03em;display:flex;align-items:center;gap:9px;color:var(--ink)}
+.cdf-foot-h .cdf-dot{width:8px;height:8px;border-radius:50%;flex:none}
+.cdf-foot-col--o .cdf-dot{background:#d97706}
+.cdf-foot-col--t .cdf-dot{background:#0e7c9a}
 .cdf-p{font-size:12.5px;line-height:1.75;color:var(--ink-2)}
 .cdf-p b{color:var(--ink);font-weight:700}
 .cdf-em-o{color:#b45309;font-weight:700}
@@ -94,33 +100,47 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   font-family:var(--mono);font-size:9.5px;font-weight:700;
   display:flex;align-items:center;justify-content:center;color:#fff;
 }
-.cdf-card--o .cdf-steps li::before{background:#d97706}
-.cdf-card--t .cdf-steps li::before{background:#0e7c9a}
+.cdf-foot-col--o .cdf-steps li::before{background:#d97706}
+.cdf-foot-col--t .cdf-steps li::before{background:#0e7c9a}
 .cdf-steps code{font-family:var(--mono);font-size:11px;color:var(--ink)}
 .cdf-note{margin-top:22px;text-align:center;font-size:11.5px;color:var(--ink-3);line-height:1.7}
 
 /* ============================================================
-   ADAS 已驗證 → AMR 待解 —— 為這一頁重畫的兩欄對照
+   ADAS 已驗證 → AMR 該往哪 —— 為這一頁重畫的兩欄對照
    ------------------------------------------------------------
    ★ 不是 TRJ 頁那張表的複製品:那張有三欄五維度,要回答的是
-     「三種方法各自的取捨」;這裡只要回答一句「這套已被驗證過」,
-     所以砍到兩欄,並且把整組的視覺重量壓低 —— 這一段的主角是
-     右邊那個問號,表格只是它的前提。
-   ★ 版面是「左表 → 箭頭 → 問號」橫向一排,窄畫面才改直排,
+     「三種方法各自的取捨」;這裡只要回答一句「約束不同,所以
+     選擇不同」,所以砍到兩欄。表格提供證據,右邊的象限圖收成結論
+     —— 尺寸差是刻意的,表格資訊量本來就比較大,但最後一眼要落在
+     象限圖上,所以它獨立於卡片之外、周圍全是留白。
+   ★ 版面是「左表 → 箭頭 → 象限圖」橫向一排,窄畫面才改直排,
      因為橫排本身就是這段話的語法:這個,推導到那個。
+
+   ★★ MPPI 是機器人團隊「現在正在用」的方法,不是一個被淘汰的候選。
+      所以這一整塊刻意不用勝負語氣:整欄轉灰、整欄紅字都不行 ——
+      前者讀成「不用看」,後者讀成「你們現在做錯了」,兩句在對方
+      的場域裡都不成立(MPPI 在非結構化環境 + GPU 上是對的選擇,
+      而 >100% 是在 TC397 這顆 MCU 上量的)。
+      琥珀只上在真正卡住我們的那一項:運算量。
    ============================================================ */
 .mc2{display:flex;align-items:center;justify-content:center;gap:clamp(14px,2.5vw,28px);flex-wrap:nowrap}
 
 /* ---------- 左:對照卡 ---------- */
+/* ★ width 而不是 flex:1 —— 原本是 flex:1 1 auto,卡片會把象限圖以外的
+     空間全部吃掉(980px 版面上長到 570px+),兩欄的說明字被拉開成一行,
+     整張表讀起來像一份文件而不是一眼看完的對照。定死 500px:兩個方法欄
+     各約 200px,說明句自然折成兩行,表就回到「一眼」的尺寸。
+     再窄就不行了 —— 軌跡圖會掉到 180px 以下,段 1/2/3 的標註開始糊。 */
 .mc2-card{
-  flex:1 1 auto;min-width:0;
+  flex:0 1 auto;min-width:0;width:min(100%,500px);
   background:var(--bg);border:1px solid var(--line);border-radius:18px;overflow:hidden;
   box-shadow:var(--shadow);
 }
 /* 三欄:列名固定,兩個方法欄一定要等寬 —— 不等寬的話兩張軌跡圖
-   會以不同比例縮放,同一個場景就失去可比性,這張圖的意義也沒了 */
-.mc2-grid{display:grid;grid-template-columns:98px 1fr 1fr}
-.mc2-h{padding:12px 14px 11px;background:var(--bg-alt);border-bottom:1px solid var(--line)}
+   會以不同比例縮放,同一個場景就失去可比性,這張圖的意義也沒了。
+   列名 86px 是「最長的列名不折行」的下限(新功能週期 = 5 字) */
+.mc2-grid{display:grid;grid-template-columns:86px 1fr 1fr}
+.mc2-h{padding:11px 12px 10px;background:var(--bg-alt);border-bottom:1px solid var(--line)}
 .mc2-h b{display:block;font-size:13.5px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
 .mc2-h small{display:block;font-size:9.5px;font-weight:500;color:var(--ink-3);margin-top:3px;line-height:1.4}
 .mc2-h--k{background:var(--bg-alt)}
@@ -130,7 +150,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   border-radius:999px;padding:2px 7px;margin-left:6px;vertical-align:1.5px;letter-spacing:.04em}
 
 .mc2-k{
-  padding:10px 12px;border-top:1px solid var(--line);
+  padding:10px;border-top:1px solid var(--line);
   font-size:11.5px;font-weight:700;color:var(--ink);display:flex;flex-direction:column;justify-content:center;
 }
 .mc2-k small{display:block;font-family:var(--mono);font-size:8.5px;font-weight:600;color:var(--ink-3);margin-top:3px}
@@ -140,14 +160,20 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 .mc2-fig svg{width:100%;height:auto;display:block}
 .mc2-fig--pick{background:var(--green-bg)}
 
-.mc2-v{padding:10px 12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.mc2-v{padding:9px 11px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
 .mc2-v b{font-family:var(--mono);font-size:12.5px;font-weight:700;line-height:1.35;white-space:nowrap}
 .mc2-v span{font-size:10px;color:var(--ink-2);line-height:1.45}
-/* 灰不參與好壞編碼 —— 它說的是「這一欄不是答案,不用細看」 */
-.mc2-v--dim b{color:var(--ink-3)}
-.mc2-v--dim span{color:var(--ink-3)}
+/* 琥珀:這一項在「我們的」約束下不成立。目前只上在運算量那一列 ——
+   那就是把 MPPI 擋在我們這題外面的東西。其他列一律不上色:
+   它們是取捨的描述,不是判決。
+   (.mc2-v--dim 那組灰字規則已刪除 —— 用它的「未知」那一格連同整列
+    移除後就沒有使用者了,留著會變成沒人知道能不能動的死樣式) */
+.mc2-v--miss b{color:var(--amber)}
 .mc2-v--pick{background:var(--green-bg)}
 .mc2-v--pick b{color:var(--green)}
+/* 「適合的場域」那一列不是量測值,是敘述 —— 用 sans 而非 mono,
+   並且允許折行,免得「非結構化環境」被 nowrap 撐破欄寬 */
+.mc2-v--ctx b{font-family:var(--sans);font-size:12px;white-space:normal;line-height:1.45}
 
 .mc2-foot{
   padding:9px 14px;border-top:1px solid var(--line);background:var(--bg-alt);
@@ -157,19 +183,31 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 /* ---------- 中:轉場箭頭 ---------- */
 .mc2-arrow{width:clamp(38px,5vw,62px);height:auto;flex:none}
 
-/* ---------- 右:AMR 的問號 ---------- */
-.mc2-q{flex:none;width:clamp(96px,13vw,150px);text-align:center}
-.mc2-q-mark{font-size:clamp(56px,9vw,86px);font-weight:900;color:#c7ccd1;line-height:.9;letter-spacing:-.03em}
-.mc2-q-t{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--ink-2);margin-top:12px}
-.mc2-q-s{font-size:11px;color:var(--ink-3);line-height:1.6;margin-top:6px}
+/* ---------- 右:兩個方案落在哪 ----------
+   ★ 這裡原本是一個大問號(「AMR / 同一套思路,換一個領域」)。換掉的理由:
+     左邊表格判 MPPI 出局、右邊再擺一個問號,合起來讀成「你們現在的做法
+     是錯的,而我也還沒有答案」—— 這不是要講的話,而且對一個正在用 MPPI
+     的團隊來說是踩線的。
+     象限圖講的是另一件事:先把需求畫成一個區域(綠框 = 穩定 + 低運算力),
+     再讓兩個方法各自落點。框先畫、點後落,這個順序本身就是這一頁反覆在
+     講的那句「定義問題,再根據需求選方法」,不是「比一場分高下」。 */
+.mc2-quad{flex:none;width:clamp(186px,25vw,244px)}
+.mc2-quad svg{width:100%;height:auto;display:block}
+.mc2-quad-t{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.09em;
+  color:var(--ink-3);text-align:center;margin-bottom:9px}
+.mc2-quad-s{font-size:10.5px;color:var(--ink-2);line-height:1.65;text-align:center;margin-top:8px}
 
 @media(max-width:820px){
   /* 橫排到這裡已經把左邊的卡壓到看不清軌跡圖,改直排:
      箭頭轉 90 度,閱讀順序仍然是「這個 → 那個」 */
   .mc2{flex-direction:column;gap:18px}
-  .mc2-card{width:100%}
+  /* 直排後沒有東西跟它搶寬度,但上限仍然留著 —— 800px 寬的卡比桌機版
+     還寬,同一段內容在窄螢幕反而變大,讀起來會像跳到另一頁 */
+  .mc2-card{width:100%;max-width:500px}
   .mc2-arrow{transform:rotate(90deg);width:44px}
-  .mc2-q{width:auto}
+  /* 直排後不再跟表格搶寬度,但也不能拉到滿版 —— 象限圖是方形的,
+     撐到 900px 寬會讓兩個點離得遠到看不出是同一張圖 */
+  .mc2-quad{width:100%;max-width:300px}
 }
 @media(max-width:560px){
   .mc2-grid{grid-template-columns:74px 1fr 1fr}
@@ -189,9 +227,8 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 .cta-btns .s:hover{background:#ececf0}
 
 @media(max-width:900px){
-  .pain{grid-template-columns:1fr}
-  .cdf-cards{grid-template-columns:1fr}
-  .cdf-card{box-shadow:0 2px 10px rgba(0,0,0,.05)}
+  .cdf-fig-foot{grid-template-columns:1fr}
+  .cdf-foot-col+.cdf-foot-col{border-left:0;border-top:1px solid var(--line)}
 }
 @media(max-width:680px){
   .scroll-hint{display:block}
@@ -205,9 +242,10 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
     <a href="../home/index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
     <div class="tabs">
       <a class="tab-l" href="../home/index.html">履歷</a>
-      <a class="tab-l" href="../lfs_page/lfs01.html">LFS 車道融合</a>
-      <a class="tab-l" href="../trj_page/01_trj_page.html">TRJ 軌跡規劃</a>
-      <span class="tab-l cur">架構儀表板</span>
+      <a class="tab-l" href="../lfs_page/lfs01.html">感知融合經驗</a>
+      <a class="tab-l" href="../trj_page/01_trj_page.html">軌跡規劃經驗</a>
+      <span class="tab-l cur">AMR系統整合</span>
+      <a class="tab-l" href="../ibooster_page/01_ibooster.html">電子煞車</a>
     </div>
   </div>
 </nav>
@@ -215,214 +253,254 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 <!-- 章節快速跳轉。data-sec 必須等於對應 <section> 的 id,捲動高亮才會生效。 -->
 <nav class="chnav" aria-label="章節導覽">
   <div class="in">
-    <a href="#problem" data-sec="problem">題目</a>
-    <a href="#flow"    data-sec="flow">資料流</a>
-    <a href="#streams" data-sec="streams">兩條流</a>
+    <a href="#flow"    data-sec="flow">自動維護</a>
     <a href="#bridge"  data-sec="bridge">ADAS → AMR</a>
     <a href="#reflection" data-sec="reflection">反思</a>
   </div>
 </nav>
 
-<!-- ============ 題目 ============ -->
-<section id="problem">
-  <div class="wrap">
-    <div class="unit">
-      <div class="unit-head">
-        <div class="unit-tag">THE PROBLEM</div>
-        <div class="unit-title">架構文件只要靠人維護，就一定會過期</div>
-        <!-- TODO(你補):這段導言目前只寫得出從流程本身推得出來的事實。
-             如果要放進履歷,建議補上「導入前後」的具體數字,例如:
-             架構圖多久沒更新過、一次異動說明要寫多久、團隊有幾個人在用。 -->
-        <p class="unit-lead">團隊的架構圖與異動記錄，過去都靠人工維護：程式改完要另外寫一份變更說明，架構圖要有人記得去改。<b>只要有一次沒跟上，之後就沒人敢信它。</b>我的做法是讓兩份文件都不再靠記性——異動記錄交給 LLM 從 diff 產生，架構圖交給 CI 每天從原始碼重新解析，兩條流最後匯進同一個 Web Dashboard。</p>
-      </div>
-
-      <div class="pain">
-        <div class="pain-c">
-          <div class="pain-n">痛點 01</div>
-          <b>變更說明沒人想寫</b>
-          <span>改完一輪程式，還要回頭把「動了哪些節點、影響哪些 Topic」用人話寫一次。格式每個人不一樣，寫久了就開始省略。</span>
-        </div>
-        <div class="pain-c">
-          <div class="pain-n">痛點 02</div>
-          <b>架構圖跟不上程式</b>
-          <span>節點與 Topic 的連接關係一直在變，手畫的架構圖只要落後一版，讀的人就得回去翻程式，那張圖就等於不存在。</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- ============ 資料流 ============ -->
-<section id="flow" class="band-alt">
+<!-- ★ 本頁原本的第一節「THE PROBLEM / 兩張痛點卡」已整節移除。
+     那一節在講「人工維護會過期」,而下面這三段導言本來就從
+     「車用怎麼做 → AMR 改成自動」講同一件事,兩者重疊 ——
+     現在標題直接扛起那句話,痛點卡不必再鋪陳一次。
+     連帶移除的還有 chnav 的「題目」項與 .pain 那一整組樣式。
+   ★ band-alt 也一併拿掉。原本的順序是 白(題目)→ 灰 → 灰(bridge),
+     刪掉白的那一節之後會變成灰接灰、黏成一整塊;改成白,
+     全頁就回到 白 → 灰 → 白 的交替(這是本頁 #reflection
+     不加 band-alt 的同一條理由)。 -->
+<section id="flow">
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">DATA FLOW · 核心</div>
-        <div class="unit-title">兩條資料流，匯進同一個 Dashboard</div>
-        <p class="unit-lead">左邊是兩個來源：<b>Claude Code</b> 產生本次異動記錄，<b>GitLab CI</b> 每天從原始碼產生架構報告。右邊是同一個網頁，把兩者疊在一起顯示。</p>
+        <!-- 標題講的是「制度」而不是「兩條資料流」:兩條流是手段,
+             下面那張圖自己會說;標題要扛的是這一節真正的主張 ——
+             把車用那套規格紀律搬過來,並且把維護的人拿掉。 -->
+        <div class="unit-title">導入車用的嚴謹制度：文件從人工維護，轉為自動維護</div>
+        <!-- 三段的順序是「規格哪來的 → 在 AMR 怎麼跑 → 為什麼要拆成兩條流」。
+             第三段是這張圖的設計理由(確定性的歸程式、語意的歸 LLM),
+             不是圖的說明文字 —— 圖自己會講,重複講一次是浪費。 -->
+        <p class="unit-lead left">這套規格是從車用搬過來的。ADAS 裡每條訊號進版本前都得先有一份 <b>signal definition</b>：名稱、型別、值域、更新週期。<b>模擬驗證和 unit test</b> 也直接照這份規格生測資。</p>
+        <p class="unit-lead left">到了 AMR，這份規格不再靠人填，改成<b>系統統一自動管理</b>：每天 <b>09:00 由 GitLab CI</b> 從原始碼重解一次，再畫成圖（概念接近 rqt_graph）。沒有人工這關，就不會有<b>文件品質不一</b>的問題。</p>
+        <p class="unit-lead left">另外我把架構拆成兩條分流，是為了<b>省 Claude Code token</b>，也為了<b>管控輸出穩定性</b>：程式架構關係用程式解析，同一份程式碼跑幾次都是同一張圖，一個 token 都不用花；<b>LLM 只讀 diff</b>，做它真正擅長的事，把改動翻成人話。整包原始碼丟給 LLM 畫架構也不是不行，但 token 燒不完，而且<b>每次畫出來都不一樣</b>。</p>
       </div>
     </div>
 
+    <!-- 圖與說明是同一張圖:上半是流程,下半是兩條流各自的步驟,
+         共用一個外框。下半左右兩欄的顏色 = 圖上兩色的連線,
+         欄內的步驟 1~4 = 圖上同色的圓形號碼。 -->
+    <figure class="cdf-fig">
     <div class="cdf-legend">
-      <span class="cdf-lg cdf-lg--o"><i></i>異動記錄流（人工觸發 / Claude Code）</span>
-      <span class="cdf-lg cdf-lg--t"><i></i>架構解析流（CI 每日 09:00 自動）</span>
+      <span class="cdf-lg cdf-lg--o"><i></i>異動記錄流</span>
+      <span class="cdf-lg cdf-lg--t"><i></i>架構解析流</span>
       <span class="cdf-lg cdf-lg--d"><i></i>頁面內部導覽</span>
     </div>
 
     <div class="cdf-scroll">
-    <svg class="cdf-flow" viewBox="0 0 1240 610" xmlns="http://www.w3.org/2000/svg" role="img"
-         aria-label="Claude Code 產生 changes.json 餵給 change.html；CI Server 每日 09:00 從 Fih_amr_sw 原始碼產生 topic_report.xlsx，由 arch_view.html 解析成節點與邊，再建立 Node-Topic Graph 與 Callback Graph，change.html 的異動內容為這兩張圖上色">
+    <!-- ============================================================
+         節點的外觀來自「它本來是什麼」,不靠外掛圖示:
+           執行者(Claude Code / CI Server / 原始碼) → 左側色條 + 名稱
+           檔案(changes.json / topic_report.xlsx)   → 頂部帶檔名的色帶,像打開的檔案
+           網頁(index / change / arch_view)          → 瀏覽器標題列 + 三顆點
+           圖(Node-Topic / Callback)                 → 卡片裡直接畫出那張圖的縮影
+         邊上的圓形號碼對應圖下方兩欄的步驟 1~4,圖與文字是同一件事。
+
+         ★ 畫布 1240 → 1000(窄 19%)。排版沒有動:同樣四欄、同樣的上下順序、
+           同樣的連線走法,收的是欄距、卡寬與字級 —— 整組往下降一階,
+           不是把某一塊搬走。
+         ============================================================ -->
+    <svg class="cdf-flow" viewBox="0 0 978 620" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Claude Code 產生 changes.json 餵給 change.html；CI Server 每日 09:00 從 Fih_amr_sw 原始碼產生 topic_report.xlsx，由 arch_view.html 解析成節點與邊，再建立 Node-Topic Graph 與 Callback Graph，change.html 的異動內容標注修改至這兩張圖">
       <defs>
-        <marker id="cdfArrO" markerWidth="8" markerHeight="8" refX="6.2" refY="3" orient="auto">
-          <path d="M0,0 L6.4,3 L0,6 Z" fill="#d97706"/>
+        <marker id="cdfArrO" markerWidth="8" markerHeight="6" refX="6.6" refY="3" orient="auto">
+          <path d="M0,1.2 L7,3 L0,4.8 Z" fill="#d97706"/>
         </marker>
-        <marker id="cdfArrT" markerWidth="8" markerHeight="8" refX="6.2" refY="3" orient="auto">
-          <path d="M0,0 L6.4,3 L0,6 Z" fill="#0e7c9a"/>
+        <marker id="cdfArrT" markerWidth="8" markerHeight="6" refX="6.6" refY="3" orient="auto">
+          <path d="M0,1.2 L7,3 L0,4.8 Z" fill="#0e7c9a"/>
         </marker>
-        <marker id="cdfArrGray" markerWidth="8" markerHeight="8" refX="6.2" refY="3" orient="auto">
-          <path d="M0,0 L6.4,3 L0,6 Z" fill="#c7ccd1"/>
+        <marker id="cdfArrGray" markerWidth="8" markerHeight="6" refX="6.6" refY="3" orient="auto">
+          <path d="M0,1.2 L7,3 L0,4.8 Z" fill="#c7ccd1"/>
         </marker>
-        <!-- 背景點陣:淡到幾乎看不見,只是讓白底不空 -->
+        <!-- 卡片統一用同一支陰影,深度一致才不會有的卡片看起來浮、有的貼著 -->
+        <filter id="cdfSh" x="-20%" y="-20%" width="140%" height="160%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0b2540" flood-opacity=".10"/>
+        </filter>
         <pattern id="cdfDots" width="18" height="18" patternUnits="userSpaceOnUse">
-          <circle cx="1.4" cy="1.4" r="1.1" fill="#eceef1"/>
+          <circle cx="1.4" cy="1.4" r="1" fill="#edf0f3"/>
         </pattern>
       </defs>
 
-      <rect x="0" y="0" width="1240" height="610" rx="18" fill="url(#cdfDots)"/>
-      <rect x="0.75" y="0.75" width="1238.5" height="608.5" rx="18" fill="none" stroke="#e5e5ea" stroke-width="1.5"/>
+      <!-- 只留點陣底色。外框由 .cdf-fig 畫,SVG 自己不再描邊,免得框中有框。 -->
+      <rect x="0" y="0" width="978" height="620" rx="14" fill="url(#cdfDots)"/>
 
-      <!-- ── WEB DASHBOARD 邊界 ── -->
-      <rect x="575" y="100" width="645" height="366" rx="18"
-            fill="#effafd" stroke="#0e7c9a" stroke-width="1.6" stroke-dasharray="7 6" opacity=".9"/>
-      <rect x="595" y="118" width="240" height="330" rx="14" fill="#dff2f8" opacity=".55"/>
-      <rect x="565" y="90" width="176" height="20" fill="#ffffff"/>
-      <text x="575" y="105" class="mono" font-size="12.5" font-weight="700" fill="#0e7c9a" letter-spacing=".08em">WEB DASHBOARD</text>
+      <!-- ══════════ WEB DASHBOARD 邊界 ══════════ -->
+      <rect x="408" y="92" width="540" height="390" rx="20"
+            fill="#f4fbfd" stroke="#7cc4d8" stroke-width="1.5" stroke-dasharray="7 6"/>
+      <rect x="415" y="85" width="140" height="15" fill="#fbfcfd"/>
+      <text x="423" y="97" class="mono" font-size="11" font-weight="700" fill="#0e7c9a" letter-spacing=".1em">WEB DASHBOARD</text>
 
-      <!-- ══════════ 連線(先畫線,後畫盒,線才不會蓋住卡片) ══════════ -->
-      <path d="M700,52 L700,126" fill="none" stroke="#d97706" stroke-width="2.2" marker-end="url(#cdfArrO)"/>
-
-      <path d="M610,152 H140 V226" fill="none" stroke="#d97706" stroke-width="2.2"
+      <!-- ══════════ 連線先畫,卡片後畫 ══════════ -->
+      <!-- 橘:異動記錄流 -->
+      <path d="M519,70 V114" fill="none" stroke="#d97706" stroke-width="2" marker-end="url(#cdfArrO)"/>
+      <path d="M434,150 H98 V218" fill="none" stroke="#d97706" stroke-width="2"
             stroke-linejoin="round" marker-end="url(#cdfArrO)"/>
-      <text x="392" y="145" text-anchor="middle" font-size="12.5" font-weight="600" fill="#b45309">Copy Prompt</text>
-
-      <path d="M240,266 H298" fill="none" stroke="#d97706" stroke-width="2.2" marker-end="url(#cdfArrO)"/>
-      <text x="270" y="256" text-anchor="middle" font-size="12" font-weight="600" fill="#b45309">generate</text>
-
-      <path d="M480,266 H608" fill="none" stroke="#d97706" stroke-width="2.2" marker-end="url(#cdfArrO)"/>
-
-      <path d="M140,472 V434" fill="none" stroke="#0e7c9a" stroke-width="2.2" marker-end="url(#cdfArrT)"/>
-      <text x="152" y="459" font-size="12" font-weight="600" fill="#0e7c9a">Read</text>
-
-      <path d="M240,388 H298" fill="none" stroke="#0e7c9a" stroke-width="2.2" marker-end="url(#cdfArrT)"/>
-      <text x="270" y="378" text-anchor="middle" font-size="12" font-weight="600" fill="#0e7c9a">Daily 09:00</text>
-
-      <path d="M480,388 H608" fill="none" stroke="#0e7c9a" stroke-width="2.2" marker-end="url(#cdfArrT)"/>
-
-      <path d="M820,388 H860" fill="none" stroke="#0e7c9a" stroke-width="2.2" marker-end="url(#cdfArrT)"/>
-      <path d="M1012,388 H1030" fill="none" stroke="#0e7c9a" stroke-width="2.2" marker-end="url(#cdfArrT)"/>
-
-      <!-- 頁面內部導覽(虛線灰) -->
-      <path d="M700,204 V226" fill="none" stroke="#c7ccd1" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#cdfArrGray)"/>
-      <path d="M700,306 V346" fill="none" stroke="#c7ccd1" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#cdfArrGray)"/>
-
-      <!-- change.html →(上色)Node-Topic / Callback -->
-      <path d="M822,288 C868,300 872,318 900,342" fill="none" stroke="#d97706" stroke-width="1.9"
+      <path d="M172,263 H218" fill="none" stroke="#d97706" stroke-width="2" marker-end="url(#cdfArrO)"/>
+      <path d="M379,266 H428" fill="none" stroke="#d97706" stroke-width="2" marker-end="url(#cdfArrO)"/>
+      <!-- 橘虛線:異動內容標注到兩張圖上 -->
+      <path d="M608,283 C646,292 668,312 707,336" fill="none" stroke="#d97706" stroke-width="1.6"
             stroke-dasharray="6 5" marker-end="url(#cdfArrO)"/>
-      <path d="M822,278 C960,286 1000,300 1092,342" fill="none" stroke="#d97706" stroke-width="1.9"
+      <path d="M608,268 C704,276 784,292 855,336" fill="none" stroke="#d97706" stroke-width="1.6"
             stroke-dasharray="6 5" marker-end="url(#cdfArrO)"/>
-      <text x="852" y="322" font-size="12" font-weight="600" fill="#b45309">上色</text>
-      <text x="1016" y="312" font-size="12" font-weight="600" fill="#b45309">上色</text>
 
-      <!-- ══════════ 節點 ══════════ -->
-      <circle cx="614" cy="34" r="5.5" fill="#0e7c9a"/>
-      <text x="628" y="40" font-size="17" font-weight="700" fill="#1d1d1f" letter-spacing=".06em">USER</text>
+      <!-- 藍青:架構解析流 -->
+      <path d="M98,470 V440" fill="none" stroke="#0e7c9a" stroke-width="2" marker-end="url(#cdfArrT)"/>
+      <path d="M172,389 H218" fill="none" stroke="#0e7c9a" stroke-width="2" marker-end="url(#cdfArrT)"/>
+      <path d="M379,390 H428" fill="none" stroke="#0e7c9a" stroke-width="2" marker-end="url(#cdfArrT)"/>
+      <path d="M604,391 H638" fill="none" stroke="#0e7c9a" stroke-width="2" marker-end="url(#cdfArrT)"/>
+      <path d="M778,393 H786" fill="none" stroke="#0e7c9a" stroke-width="2" marker-end="url(#cdfArrT)"/>
 
-      <rect x="40" y="228" width="200" height="76" rx="14" fill="#fff" stroke="#e8a33d" stroke-width="1.6"/>
-      <circle cx="224" cy="244" r="3.6" fill="#d97706"/>
-      <text x="58" y="262" font-size="15.5" font-weight="700" fill="#1d1d1f">Claude Code</text>
-      <text x="58" y="285" font-size="11.5" fill="#86868b">撰寫異動記錄的助手</text>
+      <!-- 灰虛線:同一個網站內的頁面切換,不是資料流 -->
+      <path d="M519,210 V222" fill="none" stroke="#c7ccd1" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#cdfArrGray)"/>
+      <path d="M519,318 V342" fill="none" stroke="#c7ccd1" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#cdfArrGray)"/>
 
-      <rect x="300" y="228" width="180" height="76" rx="14" fill="#fff" stroke="#e8a33d" stroke-width="1.6"/>
-      <circle cx="464" cy="244" r="3.6" fill="#d97706"/>
-      <text x="318" y="262" class="mono" font-size="14.5" font-weight="700" fill="#1d1d1f">changes.json</text>
-      <text x="318" y="285" font-size="11.5" fill="#86868b">本次異動記錄</text>
+      <!-- ══════════ USER ══════════ -->
+      <rect x="476" y="42" width="86" height="27" rx="13.5" fill="#fff" stroke="#e5e5ea" stroke-width="1.3" filter="url(#cdfSh)"/>
+      <circle cx="493" cy="55.5" r="4" fill="#d97706"/>
+      <text x="505" y="60" class="mono" font-size="11.5" font-weight="700" fill="#1d1d1f" letter-spacing=".08em">USER</text>
 
-      <rect x="40" y="344" width="200" height="88" rx="14" fill="#fff" stroke="#7cc4d8" stroke-width="1.6"/>
-      <circle cx="224" cy="360" r="3.6" fill="#0e7c9a"/>
-      <text x="58" y="378" font-size="15.5" font-weight="700" fill="#1d1d1f">CI Server</text>
-      <text x="58" y="400" font-size="11.5" fill="#86868b">GitLab CI，每天</text>
-      <text x="58" y="417" font-size="11.5" fill="#86868b">09:00 自動觸發</text>
+      <!-- ══════════ 執行者:左側色條 ══════════ -->
+      <g filter="url(#cdfSh)">
+        <rect x="24" y="224" width="148" height="78" rx="12" fill="#fff" stroke="#e8a33d" stroke-width="1.3"/>
+        <rect x="24" y="344" width="148" height="90" rx="12" fill="#fff" stroke="#7cc4d8" stroke-width="1.3"/>
+        <rect x="24" y="474" width="148" height="78" rx="12" fill="#fff" stroke="#7cc4d8" stroke-width="1.3"/>
+      </g>
+      <rect x="25.5" y="238" width="4" height="50" rx="2" fill="#d97706"/>
+      <text x="44" y="255" font-size="14.5" font-weight="700" fill="#1d1d1f">Claude Code</text>
+      <text x="44" y="275" font-size="11" fill="#86868b">撰寫異動記錄的助手</text>
 
-      <rect x="300" y="350" width="180" height="76" rx="14" fill="#fff" stroke="#7cc4d8" stroke-width="1.6"/>
-      <circle cx="464" cy="366" r="3.6" fill="#0e7c9a"/>
-      <text x="318" y="384" font-size="15.5" font-weight="700" fill="#1d1d1f">Topic Report</text>
-      <text x="318" y="407" class="mono" font-size="11.5" fill="#86868b">topic_report.xlsx</text>
+      <rect x="25.5" y="362" width="4" height="54" rx="2" fill="#0e7c9a"/>
+      <text x="44" y="375" font-size="14.5" font-weight="700" fill="#1d1d1f">CI Server</text>
+      <text x="44" y="395" font-size="11" fill="#86868b">GitLab CI</text>
+      <text x="44" y="412" font-size="11" fill="#86868b">每天 09:00 自動觸發</text>
 
-      <rect x="40" y="474" width="200" height="76" rx="14" fill="#fff" stroke="#7cc4d8" stroke-width="1.6"/>
-      <circle cx="224" cy="490" r="3.6" fill="#0e7c9a"/>
-      <text x="58" y="508" font-size="15.5" font-weight="700" fill="#1d1d1f">Fih_amr_sw code</text>
-      <text x="58" y="531" font-size="11.5" fill="#86868b">amr_base_sw 原始碼（CI 讀取來源）</text>
+      <rect x="25.5" y="488" width="4" height="50" rx="2" fill="#0e7c9a"/>
+      <text x="44" y="505" font-size="14.5" font-weight="700" fill="#1d1d1f">Fih_amr_sw code</text>
+      <text x="44" y="525" font-size="11" fill="#86868b">amr_base_sw 原始碼</text>
 
-      <rect x="610" y="128" width="210" height="76" rx="14" fill="#fff" stroke="#7cc4d8" stroke-width="1.6"/>
-      <circle cx="804" cy="144" r="3.6" fill="#d97706"/>
-      <text x="628" y="162" class="mono" font-size="14.5" font-weight="700" fill="#1d1d1f">index.html</text>
-      <text x="628" y="185" font-size="11.5" fill="#86868b">入口頁，載入 changes.json</text>
+      <!-- ══════════ 檔案:頂部檔名色帶 ══════════ -->
+      <g filter="url(#cdfSh)">
+        <rect x="224" y="224" width="155" height="80" rx="12" fill="#fff" stroke="#e8a33d" stroke-width="1.3"/>
+        <rect x="224" y="350" width="155" height="80" rx="12" fill="#fff" stroke="#7cc4d8" stroke-width="1.3"/>
+      </g>
+      <path d="M224,236 A12,12 0 0 1 236,224 H367 A12,12 0 0 1 379,236 V250 H224 Z" fill="#fff7ed"/>
+      <path d="M224,250 H379" stroke="#f3dcc0" stroke-width="1"/>
+      <text x="238" y="242" class="mono" font-size="11.5" font-weight="700" fill="#b45309">changes.json</text>
+      <text x="238" y="274" font-size="12.5" font-weight="700" fill="#1d1d1f">本次異動記錄</text>
+      <text x="238" y="291" font-size="10.5" fill="#86868b">異動的節點與 Callback</text>
 
-      <rect x="610" y="230" width="210" height="76" rx="14" fill="#fff" stroke="#7cc4d8" stroke-width="1.6"/>
-      <circle cx="804" cy="246" r="3.6" fill="#d97706"/>
-      <text x="628" y="264" class="mono" font-size="14.5" font-weight="700" fill="#1d1d1f">change.html</text>
-      <text x="628" y="287" font-size="11.5" fill="#86868b">顯示異動內容</text>
+      <path d="M224,362 A12,12 0 0 1 236,350 H367 A12,12 0 0 1 379,362 V376 H224 Z" fill="#eff9fc"/>
+      <path d="M224,376 H379" stroke="#cfe6ee" stroke-width="1"/>
+      <text x="238" y="368" class="mono" font-size="11.5" font-weight="700" fill="#0e7c9a">topic_report.xlsx</text>
+      <text x="238" y="400" font-size="12.5" font-weight="700" fill="#1d1d1f">架構解析報告</text>
+      <text x="238" y="417" font-size="10.5" fill="#86868b">節點 ↔ Topic 的完整清單</text>
 
-      <rect x="610" y="350" width="210" height="76" rx="14" fill="#fff" stroke="#7cc4d8" stroke-width="1.6"/>
-      <circle cx="804" cy="366" r="3.6" fill="#0e7c9a"/>
-      <text x="628" y="384" class="mono" font-size="14.5" font-weight="700" fill="#1d1d1f">arch_view.html</text>
-      <text x="628" y="407" font-size="11.5" fill="#86868b">解析 xlsx，建立節點／邊</text>
+      <!-- ══════════ 網頁:瀏覽器標題列 ══════════ -->
+      <g filter="url(#cdfSh)">
+        <rect x="434" y="120" width="170" height="86" rx="12" fill="#fff" stroke="#7cc4d8" stroke-width="1.3"/>
+        <rect x="434" y="228" width="170" height="86" rx="12" fill="#fff" stroke="#7cc4d8" stroke-width="1.3"/>
+        <rect x="434" y="348" width="170" height="86" rx="12" fill="#fff" stroke="#7cc4d8" stroke-width="1.3"/>
+      </g>
+      <path d="M434,132 A12,12 0 0 1 446,120 H592 A12,12 0 0 1 604,132 V147 H434 Z" fill="#f1f7f9"/>
+      <path d="M434,147 H604" stroke="#dfeaee" stroke-width="1"/>
+      <circle cx="448" cy="133" r="2.4" fill="#cfdde3"/><circle cx="457" cy="133" r="2.4" fill="#cfdde3"/><circle cx="466" cy="133" r="2.4" fill="#cfdde3"/>
+      <text x="478" y="137.5" class="mono" font-size="11.5" font-weight="700" fill="#4d6f7c">index.html</text>
+      <text x="452" y="172" font-size="12.5" font-weight="700" fill="#1d1d1f">入口頁</text>
+      <text x="452" y="190" font-size="10.5" fill="#86868b">載入 changes.json</text>
 
-      <rect x="860" y="344" width="152" height="88" rx="14" fill="#fff" stroke="#7cc4d8" stroke-width="1.6"/>
-      <circle cx="996" cy="360" r="3.6" fill="#0e7c9a"/>
-      <text x="878" y="378" font-size="15" font-weight="700" fill="#1d1d1f">Node-Topic</text>
-      <text x="878" y="398" font-size="15" font-weight="700" fill="#1d1d1f">Graph</text>
-      <text x="878" y="418" font-size="11" fill="#86868b">節點 ↔ Topic 連接圖</text>
+      <path d="M434,240 A12,12 0 0 1 446,228 H592 A12,12 0 0 1 604,240 V255 H434 Z" fill="#f1f7f9"/>
+      <path d="M434,255 H604" stroke="#dfeaee" stroke-width="1"/>
+      <circle cx="448" cy="241" r="2.4" fill="#cfdde3"/><circle cx="457" cy="241" r="2.4" fill="#cfdde3"/><circle cx="466" cy="241" r="2.4" fill="#cfdde3"/>
+      <text x="478" y="245.5" class="mono" font-size="11.5" font-weight="700" fill="#4d6f7c">change.html</text>
+      <text x="452" y="280" font-size="12.5" font-weight="700" fill="#1d1d1f">顯示本次異動內容</text>
+      <text x="452" y="298" font-size="10.5" fill="#86868b">動到的地方標注到右邊</text>
 
-      <rect x="1030" y="344" width="152" height="88" rx="14" fill="#fff" stroke="#7cc4d8" stroke-width="1.6"/>
-      <circle cx="1166" cy="360" r="3.6" fill="#0e7c9a"/>
-      <text x="1048" y="378" font-size="15" font-weight="700" fill="#1d1d1f">Callback</text>
-      <text x="1048" y="398" font-size="15" font-weight="700" fill="#1d1d1f">Graph</text>
-      <text x="1048" y="418" font-size="11" fill="#86868b">Callback 呼叫關係圖</text>
+      <path d="M434,360 A12,12 0 0 1 446,348 H592 A12,12 0 0 1 604,360 V375 H434 Z" fill="#f1f7f9"/>
+      <path d="M434,375 H604" stroke="#dfeaee" stroke-width="1"/>
+      <circle cx="448" cy="361" r="2.4" fill="#cfdde3"/><circle cx="457" cy="361" r="2.4" fill="#cfdde3"/><circle cx="466" cy="361" r="2.4" fill="#cfdde3"/>
+      <text x="478" y="365.5" class="mono" font-size="11.5" font-weight="700" fill="#4d6f7c">arch_view.html</text>
+      <text x="452" y="400" font-size="12.5" font-weight="700" fill="#1d1d1f">解析 xlsx，建節點／邊</text>
+      <text x="452" y="418" font-size="10.5" fill="#86868b">前端算，不需要後端</text>
+
+      <!-- ══════════ 圖:卡片裡畫出那張圖的縮影 ══════════ -->
+      <g filter="url(#cdfSh)">
+        <rect x="644" y="340" width="134" height="106" rx="12" fill="#fff" stroke="#7cc4d8" stroke-width="1.3"/>
+        <rect x="792" y="340" width="134" height="106" rx="12" fill="#fff" stroke="#7cc4d8" stroke-width="1.3"/>
+      </g>
+      <!-- Node-Topic:兩個節點連到中間同一個 Topic(二分結構) -->
+      <path d="M644,352 A12,12 0 0 1 656,340 H766 A12,12 0 0 1 778,352 V386 H644 Z" fill="#eff9fc"/>
+      <path d="M644,386 H778" stroke="#cfe6ee" stroke-width="1"/>
+      <g stroke="#7cc4d8" stroke-width="1.3">
+        <path d="M684,358 L706,370"/><path d="M738,358 L716,370"/>
+      </g>
+      <circle cx="681" cy="356" r="4.5" fill="#0e7c9a"/>
+      <circle cx="741" cy="356" r="4.5" fill="#0e7c9a"/>
+      <path d="M711,367 L717,373 L711,379 L705,373 Z" fill="#fff" stroke="#0e7c9a" stroke-width="1.5"/>
+      <text x="658" y="408" font-size="12" font-weight="700" fill="#1d1d1f">Node-Topic Graph</text>
+      <text x="658" y="427" font-size="10" fill="#86868b">誰發布、誰訂閱</text>
+
+      <!-- Callback:一條呼叫鏈 -->
+      <path d="M792,352 A12,12 0 0 1 804,340 H914 A12,12 0 0 1 926,352 V386 H792 Z" fill="#eff9fc"/>
+      <path d="M792,386 H926" stroke="#cfe6ee" stroke-width="1"/>
+      <g fill="#fff" stroke="#0e7c9a" stroke-width="1.4">
+        <rect x="814" y="356" width="22" height="13" rx="3.5"/>
+        <rect x="848" y="356" width="22" height="13" rx="3.5"/>
+        <rect x="882" y="356" width="22" height="13" rx="3.5"/>
+      </g>
+      <g stroke="#7cc4d8" stroke-width="1.3" marker-end="url(#cdfArrT)">
+        <path d="M836,362.5 H842"/><path d="M870,362.5 H876"/>
+      </g>
+      <text x="806" y="408" font-size="12" font-weight="700" fill="#1d1d1f">Callback Graph</text>
+      <text x="806" y="427" font-size="10" fill="#86868b">依序觸發誰</text>
+
+      <!-- ══════════ 邊上的標籤與步驟號 ══════════ -->
+      <!-- 號碼對應圖下方兩欄的步驟 1~4 -->
+      <rect x="222" y="140" width="74" height="19" rx="9.5" fill="#fbfcfd"/>
+      <text x="259" y="153.5" text-anchor="middle" font-size="11" font-weight="600" fill="#b45309">Copy Prompt</text>
+
+      <g font-family="var(--mono)" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">
+        <circle cx="380" cy="150" r="8" fill="#d97706"/><text x="380" y="153.5">1</text>
+        <circle cx="195" cy="263" r="8" fill="#d97706"/><text x="195" y="266.5">2</text>
+        <circle cx="404" cy="266" r="8" fill="#d97706"/><text x="404" y="269.5">3</text>
+
+        <circle cx="98" cy="455" r="8" fill="#0e7c9a"/><text x="98" y="458.5">1</text>
+        <circle cx="195" cy="389" r="8" fill="#0e7c9a"/><text x="195" y="392.5">2</text>
+        <circle cx="404" cy="390" r="8" fill="#0e7c9a"/><text x="404" y="393.5">3</text>
+        <circle cx="621" cy="391" r="8" fill="#0e7c9a"/><text x="621" y="394.5">4</text>
+      </g>
+
+      <!-- 第 4 步的標籤與號碼合成一顆膠囊,兩條虛線共用,不重複標兩次 -->
+      <rect x="628" y="298" width="88" height="22" rx="11" fill="#fbfcfd" stroke="#f3dcc0" stroke-width="1"/>
+      <circle cx="642" cy="309" r="7.5" fill="#d97706"/>
+      <text x="642" y="312.5" class="mono" font-size="9.5" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+      <text x="655" y="313" font-size="11" font-weight="600" fill="#b45309">標注修改</text>
     </svg>
     </div>
     <div class="scroll-hint">← 左右滑動查看完整圖 →</div>
-  </div>
-</section>
 
-<!-- ============ 兩條流 ============ -->
-<section id="streams">
-  <div class="wrap">
-    <div class="unit">
-      <div class="unit-head">
-        <div class="unit-tag">TWO STREAMS</div>
-        <div class="unit-title">一條靠人觸發，一條完全自動</div>
-        <p class="unit-lead">兩條流唯一的交會點是「上色」：<b>架構圖由 CI 決定長相，異動記錄只負責標出這次動到哪裡。</b>兩者互不依賴，任何一條掛掉，另一條照樣有東西可看。</p>
-      </div>
-    </div>
-
-    <div class="cdf-cards">
-      <article class="cdf-card cdf-card--o">
-        <div class="cdf-card-h"><span class="cdf-dot"></span>異動記錄流 · 人工觸發</div>
-        <div class="cdf-card-b">
+      <figcaption class="cdf-fig-foot">
+        <div class="cdf-foot-col cdf-foot-col--o">
+          <div class="cdf-foot-h"><span class="cdf-dot"></span>異動記錄流 · 人工觸發</div>
           <p class="cdf-p">開發者改完一輪程式後，<b>不用手寫變更說明</b>：從入口頁複製既定 prompt，交給 <span class="cdf-em-o">Claude Code</span> 產生格式一致的 <code>changes.json</code>，儀表板直接吃這份檔案。</p>
           <ol class="cdf-steps">
             <li>使用者開 <code>index.html</code>，複製 Copy Prompt</li>
             <li>Claude Code 讀 diff，輸出 <code>changes.json</code></li>
             <li><code>change.html</code> 呈現本次異動內容</li>
-            <li>異動涉及的節點／Callback 在右側兩張圖上<span class="cdf-em-o">上色</span></li>
+            <li>異動涉及的節點／Callback 在右側兩張圖上<span class="cdf-em-o">標注修改</span></li>
           </ol>
         </div>
-      </article>
-
-      <article class="cdf-card cdf-card--t">
-        <div class="cdf-card-h"><span class="cdf-dot"></span>架構解析流 · CI 每日自動</div>
-        <div class="cdf-card-b">
+        <div class="cdf-foot-col cdf-foot-col--t">
+          <div class="cdf-foot-h"><span class="cdf-dot"></span>架構解析流 · CI 每日自動</div>
           <p class="cdf-p">架構圖不是人工維護的：<span class="cdf-em-t">GitLab CI</span> 每天 09:00 掃過 <code>amr_base_sw</code> 原始碼，產出 <code>topic_report.xlsx</code>，前端再解析成節點與邊。</p>
           <ol class="cdf-steps">
             <li>CI 讀 Fih_amr_sw 原始碼（每日 09:00）</li>
@@ -431,30 +509,38 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
             <li>產生 <span class="cdf-em-t">Node-Topic Graph</span> 與 <span class="cdf-em-t">Callback Graph</span></li>
           </ol>
         </div>
-      </article>
-    </div>
+      </figcaption>
+    </figure>
 
-    <p class="cdf-note">兩條流唯一的交會點是「上色」：架構圖由 CI 決定長相，異動記錄只負責標出這次動到哪裡。</p>
+    <p class="cdf-note">兩條流唯一的交會點是「標注修改」：架構圖由 CI 決定長相，異動記錄只負責標注這次修改了哪裡。</p>
   </div>
 </section>
 
 <!-- ============ ADAS → AMR ============ -->
-<!-- 比較表是從 trj_page/01_trj_page.html #methods 複製過來的。
-     放在這裡的理由:團隊要的不是這張表本身,是它代表的那件事——
-     「同一套方法可以收斂掉一整個領域的重複開發」。
-     所以表格下面接一個轉場,把問題丟到 AMR。 -->
+<!-- 這一節要說的不是那張比較表本身,是它代表的那件事——
+     「先定義約束,可選集合自己就會收斂」。所以對照表右邊接一張
+     象限圖:需求先畫成一個區域,兩個方法再各自落點。
+     表格是為這一頁重畫的(.mc2-),與 TRJ 頁那張沒有共用 class。
+
+     ★ 標題只講「要把 ADAS 的成功搬進 AMR」,不講勝負 —— 這是刻意的。
+       原本寫過「三段式在四個維度上同時勝出」,那句話在 ADAS 內部成立,
+       搬到這一頁就不成立了:MPPI 是機器人團隊現在正在跑的東西,講勝負
+       等於當面否定同事的現行作法,而且結論本身站不住 —— >100% 是
+       TC397 這顆 MCU 上的數字,在 x86 / Jetson 上 MPPI 是算得動的。
+       「為什麼是三段式」這件事交給下面三個地方各自去講,不進標題:
+       導言(約束)、表格的「適合的場域」列、右邊象限圖的綠框。 -->
 <section id="bridge" class="band-alt">
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">ADAS → AMR</div>
-        <div class="unit-title">團隊要我把 ADAS 這套做法，搬到 AMR</div>
-        <p class="unit-lead">在 ADAS，我做的事是<b>定義問題，再根據我們自己的需求創造方法</b>——不是從既有方法裡挑一個最不差的。下面這張表是那次的結果：三段式在四個維度上同時勝出，因此被採用。<b>團隊現在希望同一套思路搬到 AMR：先讓架構把重複的東西收斂掉，再讓 AMR 也能展示我們真正的強項。</b></p>
+        <div class="unit-title">機器人現在用 MPPI，但我們團隊想把 ADAS 軌跡規劃的成功搬進 AMR 領域</div>
+        <p class="unit-lead">MPPI 在<b>非結構化環境、動態障礙物、算力放得下一顆 GPU</b> 的時候是合理的選擇，機器人團隊用它有它的道理。我們這次的約束不同：<b>運算力受限</b>（嵌入式 MCU，固定週期內必須算完）、<b>輸出必須穩定</b>（同樣的輸入要給同樣的線，才回歸得了、才對得起客戶逐段追問）。這兩個條件把可選集合壓得很小——而三段式，是我在 ADAS 已經把這條路走完、並在 9 個功能、5 種車型上驗證過的那一個。</p>
       </div>
-      <!-- 為這一頁重新畫的精簡對照:只留 MPPI 與三段式兩欄。
-           TRJ 頁那張表要回答「三種方法各自的取捨」,所以有三欄、五個維度、長註腳;
-           這裡要回答的只有一句「這套已經被驗證過了,所以值得搬到 AMR」,
-           多一欄就多一次比較,反而稀釋掉右邊那個問號。 -->
+      <!-- 為這一頁重新畫的精簡對照:只留三段式與 MPPI 兩欄(我們的答案放左邊,
+           先看結論再看對照)。TRJ 頁那張表要回答「三種方法各自的取捨」,
+           所以有三欄、五個維度、長註腳;這裡要回答的只有一句「我們的約束
+           指向這一個」,多一欄就多一次比較,反而稀釋掉右邊那張象限圖。 -->
       <div class="mc2">
 
         <!-- ── 左:ADAS 已驗證的結果 ── -->
@@ -462,17 +548,47 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
           <div class="mc2-grid">
 
             <div class="mc2-h mc2-h--k"></div>
-            <div class="mc2-h">
-              <b>MPPI</b>
-              <small>Model Predictive Path Integral</small>
-            </div>
             <div class="mc2-h mc2-h--pick">
               <b>三段式<span class="mc2-badge">採用</span></b>
               <small>Line → Curve → Line</small>
             </div>
+            <!-- 「機器人團隊現行」寫在表頭而不是只寫在註腳:讀者第一眼就要知道
+                 右欄不是一個被淘汰的候選,是同事現在正在跑的東西 -->
+            <div class="mc2-h">
+              <b>MPPI</b>
+              <small>Model Predictive Path Integral<br>機器人團隊現行</small>
+            </div>
 
             <!-- 圖列:同一個 3.5 m 換道場景,同一組座標與配色,才有可比性 -->
-            <div class="mc2-k mc2-k--fig">換道軌跡<small>3.5 m · 示意圖</small></div>
+            <!-- 副標只留「示意圖」:3.5 m 這個數字在兩張 SVG 裡都有尺寸線標著,
+                 列名重複一次會在 86px 的欄寬裡折成兩行 -->
+            <div class="mc2-k mc2-k--fig">換道軌跡<small>示意圖</small></div>
+            <div class="mc2-fig mc2-fig--pick">
+              <svg viewBox="0 0 190 210" role="img" aria-label="三段式:直線、曲線、直線三段接起來,兩個節點清楚可標">
+                <rect x="0.5" y="0.5" width="189" height="209" rx="7" fill="#fff" stroke="#e5e5ea"/>
+                <line x1="95" y1="14" x2="95" y2="196" stroke="#d2d2d7" stroke-width="1.2" stroke-dasharray="7 7"/>
+                <rect x="45" y="26" width="26" height="40" rx="8" fill="none" stroke="#c7ccd1" stroke-width="1.3" stroke-dasharray="4 3"/>
+                <text x="40" y="52" text-anchor="end" font-size="9" fill="#86868b">目標</text>
+                <path d="M58,18 H132" stroke="#c7ccd1" stroke-width="1"/>
+                <path d="M58,14 V22 M132,14 V22" stroke="#c7ccd1" stroke-width="1"/>
+                <rect x="79" y="10" width="30" height="11" fill="#fff"/>
+                <text x="95" y="19" text-anchor="middle" font-size="8.5" fill="#86868b">3.5 m</text>
+                <!-- 段 1:直線 -->
+                <path d="M119,176 V146" fill="none" stroke="#0a8a5c" stroke-width="2.4" stroke-linecap="round"/>
+                <text x="126" y="164" font-size="9" font-weight="700" fill="#0a8a5c">段 1</text>
+                <!-- 段 2:曲線(C0 + C1 連續,所以兩端接得上) -->
+                <path d="M119,146 C119,116 58,110 58,80" fill="none" stroke="#0071e3" stroke-width="2.4" stroke-linecap="round"/>
+                <text x="126" y="116" font-size="9" font-weight="700" fill="#0071e3">段 2</text>
+                <!-- 段 3:直線 -->
+                <path d="M58,80 V50" fill="none" stroke="#d97706" stroke-width="2.4" stroke-linecap="round"/>
+                <text x="50" y="70" text-anchor="end" font-size="9" font-weight="700" fill="#d97706">段 3</text>
+                <!-- 兩個節點:可解釋性的來源,每一段的起訖都指得出來 -->
+                <circle cx="119" cy="146" r="3.4" fill="#fff" stroke="#0071e3" stroke-width="1.9"/>
+                <circle cx="58"  cy="80"  r="3.4" fill="#fff" stroke="#0071e3" stroke-width="1.9"/>
+                <rect x="106" y="176" width="26" height="40" rx="8" fill="#f5f5f7" stroke="#c7ccd1" stroke-width="1.3"/>
+                <rect x="113" y="184" width="12" height="9" rx="3" fill="#d2d2d7"/>
+              </svg>
+            </div>
             <div class="mc2-fig">
               <svg viewBox="0 0 190 210" role="img" aria-label="MPPI:上千條取樣軌跡發散,選出的路徑呈鋸齒狀">
                 <!-- 車道 -->
@@ -507,50 +623,35 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
                 <rect x="113" y="184" width="12" height="9" rx="3" fill="#d2d2d7"/>
               </svg>
             </div>
-            <div class="mc2-fig mc2-fig--pick">
-              <svg viewBox="0 0 190 210" role="img" aria-label="三段式:直線、曲線、直線三段接起來,兩個節點清楚可標">
-                <rect x="0.5" y="0.5" width="189" height="209" rx="7" fill="#fff" stroke="#e5e5ea"/>
-                <line x1="95" y1="14" x2="95" y2="196" stroke="#d2d2d7" stroke-width="1.2" stroke-dasharray="7 7"/>
-                <rect x="45" y="26" width="26" height="40" rx="8" fill="none" stroke="#c7ccd1" stroke-width="1.3" stroke-dasharray="4 3"/>
-                <text x="40" y="52" text-anchor="end" font-size="9" fill="#86868b">目標</text>
-                <path d="M58,18 H132" stroke="#c7ccd1" stroke-width="1"/>
-                <path d="M58,14 V22 M132,14 V22" stroke="#c7ccd1" stroke-width="1"/>
-                <rect x="79" y="10" width="30" height="11" fill="#fff"/>
-                <text x="95" y="19" text-anchor="middle" font-size="8.5" fill="#86868b">3.5 m</text>
-                <!-- 段 1:直線 -->
-                <path d="M119,176 V146" fill="none" stroke="#0a8a5c" stroke-width="2.4" stroke-linecap="round"/>
-                <text x="126" y="164" font-size="9" font-weight="700" fill="#0a8a5c">段 1</text>
-                <!-- 段 2:曲線(C0 + C1 連續,所以兩端接得上) -->
-                <path d="M119,146 C119,116 58,110 58,80" fill="none" stroke="#0071e3" stroke-width="2.4" stroke-linecap="round"/>
-                <text x="126" y="116" font-size="9" font-weight="700" fill="#0071e3">段 2</text>
-                <!-- 段 3:直線 -->
-                <path d="M58,80 V50" fill="none" stroke="#d97706" stroke-width="2.4" stroke-linecap="round"/>
-                <text x="50" y="70" text-anchor="end" font-size="9" font-weight="700" fill="#d97706">段 3</text>
-                <!-- 兩個節點:可解釋性的來源,每一段的起訖都指得出來 -->
-                <circle cx="119" cy="146" r="3.4" fill="#fff" stroke="#0071e3" stroke-width="1.9"/>
-                <circle cx="58"  cy="80"  r="3.4" fill="#fff" stroke="#0071e3" stroke-width="1.9"/>
-                <rect x="106" y="176" width="26" height="40" rx="8" fill="#f5f5f7" stroke="#c7ccd1" stroke-width="1.3"/>
-                <rect x="113" y="184" width="12" height="9" rx="3" fill="#d2d2d7"/>
-              </svg>
-            </div>
 
-            <div class="mc2-k">運算量</div>
-            <div class="mc2-v mc2-v--dim"><b>&gt;100%</b><span>上千次 rollout，單週期算不完</span></div>
+            <!-- 這一列放在數字前面,不放最後:它是讀下面四列的前提。
+                 擺到最後的話,讀者已經先讀完四列「MPPI 差」才看到但書,
+                 補救不回來。有了這一列,右欄的琥珀才從「它爛」變成
+                 「它的長處不在我們這題」。 -->
+            <div class="mc2-k">適合的場域</div>
+            <div class="mc2-v mc2-v--ctx mc2-v--pick"><b>結構化路徑</b><span>固定週期・嵌入式 MCU</span></div>
+            <div class="mc2-v mc2-v--ctx"><b>非結構化環境</b><span>動態障礙・有 GPU</span></div>
+
+            <!-- TC397 掛在列名上,不重複寫進右邊那格 —— 基準是「整列共用」的
+                 前提,寫在列名比寫在格子裡短,而且對兩欄同時生效。
+                 這三個字不能整個省掉:少了它,「&gt;100%」在一個跑 x86 / Jetson
+                 的團隊眼中會被直接反駁 —— 這個數字只在這顆 MCU 上成立。 -->
+            <div class="mc2-k">運算量<small>TC397</small></div>
             <div class="mc2-v mc2-v--pick"><b>37%</b><span>距離參數化，單點查詢 O(1)</span></div>
+            <div class="mc2-v mc2-v--miss"><b>&gt;100%</b><span>上千次 rollout，單週期算不完</span></div>
 
-            <div class="mc2-k">軌跡平順性</div>
-            <div class="mc2-v mc2-v--dim"><b>低</b><span>每幀取樣不同，方向盤會甩動</span></div>
-            <div class="mc2-v mc2-v--pick"><b>高</b><span>C0 + C1 連續，全段無斷點</span></div>
-
+            <!-- ★ 「輸出穩定性」與「新功能週期」兩列已移除。
+                 前者不是不重要 —— 它是右邊象限圖的 y 軸 —— 而是第一列那兩張
+                 軌跡圖已經把它畫出來了(一條平順、一條鋸齒),再用文字說一次
+                 是重複。後者屬於團隊產出,不屬於「這兩個方法各自的性質」,
+                 留在這張只回答約束的表裡會岔題。
+                 要加回來的話請先想清楚上面這件事。 -->
             <div class="mc2-k">可解釋性</div>
-            <div class="mc2-v mc2-v--dim"><b>極低</b><span>統計結果，無法逐段說明</span></div>
             <div class="mc2-v mc2-v--pick"><b>高</b><span>三個輸入數字決定整條線</span></div>
-
-            <div class="mc2-k">開發新功能週期</div>
-            <div class="mc2-v mc2-v--dim"><b>未知</b><span>未採用，無可比數據</span></div>
-            <div class="mc2-v mc2-v--pick"><b>2~3 天</b><span>介面三個數字，同事自己接</span></div>
+            <div class="mc2-v"><b>極低</b><span>統計結果，無法逐段說明</span></div>
 
           </div>
+          <!-- 右欄的出處已經寫在表頭的「機器人團隊現行」,這裡只需要交代左欄 -->
           <div class="mc2-foot">ADAS · 已在 9 個功能 · 5 種車型上驗證</div>
         </div>
 
@@ -559,12 +660,50 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
           <path d="M0,12 H38 V0 L64,20 L38,40 V28 H0 Z" fill="#d8dce2"/>
         </svg>
 
-        <!-- ── 右:AMR 還沒有答案 ── -->
-        <!-- TODO(你補):等你決定要對外講到哪一步,把問號換成實際在做的那件事。 -->
-        <div class="mc2-q">
-          <div class="mc2-q-mark">?</div>
-          <div class="mc2-q-t">AMR</div>
-          <div class="mc2-q-s">同一套思路，<br>換一個領域</div>
+        <!-- ── 右:需求先畫成一個區域,兩個方法再各自落點 ── -->
+        <!-- 讀圖順序刻意設計過:綠框(需求)最先畫進 DOM 也最先被看見,
+             座標軸次之,兩個點最後 —— 看到的是「我們先定了要什麼,
+             然後發現只有一個東西落在裡面」,不是「比了一場,誰贏」。 -->
+        <div class="mc2-quad">
+          <div class="mc2-quad-t">兩個方案落在哪</div>
+          <svg viewBox="0 0 240 246" xmlns="http://www.w3.org/2000/svg" role="img"
+               aria-label="兩軸座標圖：橫軸為單週期運算成本，縱軸為輸出穩定性。左上角綠色虛線框標示我們要的區域，三段式落在框內；MPPI 落在右下角，代表機器人團隊現行作法。一條虛線箭頭從 MPPI 指向綠框。">
+            <!-- 需求框:先畫,因為它是前提不是結果 -->
+            <rect x="46" y="22" width="92" height="84" rx="6"
+                  fill="#ecfdf5" stroke="#0a8a5c" stroke-width="1.2" stroke-dasharray="5 4"/>
+            <text x="52" y="36" font-size="8.5" font-weight="700" fill="#0a8a5c"
+                  font-family="var(--mono)" opacity=".85">我們要的區域</text>
+
+            <!-- 座標軸 -->
+            <path d="M46,18 V206 H232" fill="none" stroke="#d2d2d7" stroke-width="1.2"/>
+            <path d="M46,12 l-3.5,7 h7 Z" fill="#d2d2d7"/>
+            <path d="M238,206 l-7,-3.5 v7 Z" fill="#d2d2d7"/>
+            <text x="40" y="26"  text-anchor="end" font-size="8.5" fill="#86868b">高</text>
+            <text x="40" y="204" text-anchor="end" font-size="8.5" fill="#86868b">低</text>
+            <text x="50" y="220" font-size="8.5" fill="#86868b">低</text>
+            <text x="232" y="220" text-anchor="end" font-size="8.5" fill="#86868b">高</text>
+            <text x="139" y="238" text-anchor="middle" font-size="9.5" fill="#6e6e73">單週期運算成本</text>
+            <text transform="translate(15,114) rotate(-90)" text-anchor="middle"
+                  font-size="9.5" fill="#6e6e73">輸出穩定性</text>
+
+            <!-- 現況 → 目標。刻意指向綠框的角而不是三段式那個點:
+                 要講的是「往這個區域移動」,不是「照抄這條線」 -->
+            <path d="M182,158 C172,146 160,128 149,110" fill="none"
+                  stroke="#a1a1a6" stroke-width="1.2" stroke-dasharray="4 4" opacity=".7"/>
+            <path d="M144,104 L152.9,110.1 L146.3,114.5 Z" fill="#a1a1a6" opacity=".7"/>
+
+            <!-- 兩個落點 -->
+            <circle cx="92" cy="62" r="5.5" fill="#0a8a5c" stroke="#fff" stroke-width="2"/>
+            <text x="92" y="82" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0a8a5c">三段式</text>
+            <text x="92" y="94" text-anchor="middle" font-size="8.5" fill="#0a8a5c"
+                  font-family="var(--mono)" opacity=".85">ADAS 已驗證</text>
+
+            <circle cx="190" cy="166" r="5.5" fill="#a1a1a6" stroke="#fff" stroke-width="2"/>
+            <text x="190" y="186" text-anchor="middle" font-size="10.5" font-weight="700" fill="#6e6e73">MPPI</text>
+            <text x="190" y="198" text-anchor="middle" font-size="8.5" fill="#86868b"
+                  font-family="var(--mono)">機器人現行</text>
+          </svg>
+          <div class="mc2-quad-s">機器人現在在右下角。<br>我們要的是左上角——<br>那正是 ADAS 已經走完的那條路。</div>
         </div>
 
       </div>

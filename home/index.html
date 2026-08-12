@@ -214,6 +214,24 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 .edu-ach li{font-size:12.5px;color:var(--ink-2);line-height:1.6;padding-left:15px;position:relative}
 .edu-ach li::before{content:"";position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;background:#c8d6e8}
 .edu-ach b{color:var(--blue);font-weight:600}
+
+/* 就學期間的產學合作專案。刻意放在學歷之後、而不是併進上面的工作經歷:
+   這些案子的「委託方」是業主不是雇主,跟 FIH / MobileDrive 那幾段任職經歷混排會失真。
+   卡片沿用本頁既有的 .ev-list / .ev-tag / .ev-t / .ev-d,這裡只補標題、期間與 RWD。
+   期間以各專案檔案內嵌時間為準(Office dcterms、.slx metadata、CAN log、合約書),
+   來源見 _專案紀錄/00_索引與時間軸.md —— 改期間前先回去對那張表。 */
+.edu-proj{margin-top:clamp(28px,4vw,40px);padding-top:clamp(24px,3.5vw,32px);border-top:1px solid var(--line)}
+.ep-t{font-size:15.5px;font-weight:700;color:var(--ink)}
+.ep-lead{font-size:13px;color:var(--ink-2);line-height:1.7;margin-top:7px;max-width:660px}
+.ep-lead b{color:var(--ink);font-weight:600}
+.edu-proj .ev-list{margin-top:16px}
+.edu-proj .ev-tag{min-width:72px;text-align:center}
+.edu-proj .ev-d{line-height:1.7}
+.edu-proj .ev-d b{color:var(--ink);font-weight:600}
+.edu-proj .ev-d code{font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);border:1px solid #e8e8ec;border-radius:4px;padding:1px 5px;color:var(--ink)}
+.ep-per{font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--blue);margin-left:9px;white-space:nowrap}
+.ep-note{font-size:12px;color:var(--ink-3);line-height:1.7;margin-top:14px}
+@media(max-width:640px){.edu-proj .ev-list li{flex-direction:column;gap:9px}}
 .ph{color:#b0b0b5}
 .pt-link{color:inherit;text-decoration:none;border-bottom:1px dashed #a8c8ef;transition:border-color .2s,color .2s}
 .pt-link:hover{color:var(--blue-d);border-bottom-color:var(--blue-d)}
@@ -240,9 +258,10 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     <a href="index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
     <div class="tabs">
       <span class="tab-l cur">履歷</span>
-      <a class="tab-l" href="../lfs_page/lfs01.html">LFS 車道融合</a>
-      <a class="tab-l" href="../trj_page/01_trj_page.html">TRJ 軌跡規劃</a>
-      <a class="tab-l" href="../dash_page/01_dash_page.html">架構儀表板</a>
+      <a class="tab-l" href="../lfs_page/lfs01.html">感知融合經驗</a>
+      <a class="tab-l" href="../trj_page/01_trj_page.html">軌跡規劃經驗</a>
+      <a class="tab-l" href="../dash_page/01_dash_page.html">AMR系統整合</a>
+      <a class="tab-l" href="../ibooster_page/01_ibooster.html">電子煞車</a>
     </div>
   </div>
 </nav>
@@ -706,8 +725,11 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
           <div class="edu-sch">國立臺北科技大學</div>
           <div class="edu-deg">機電學院 · 車輛工程所 · 控制組 · 碩士 · <span class="hi">大四下提早入學（大四提早進入實驗室）</span></div>
           <ul class="edu-ach">
-            <li>碩二與中科院合作開發<b>機車 ABS 系統</b>，從演算法一路做到 ASIC 晶片</li>
-            <li>該成果取得專利 <b>TWI722875B</b>（申請人 國立臺北科技大學）</li>
+            <li>碩士論文《應用適應性參數估測器與路面識別於機車防鎖死煞車系統之模糊控制》：<b>僅用市售機車既有的感知器</b>完成「參數估測 → 路面識別 → 模糊控制」全鏈，BikeSim 與自建 HIL 雙層驗證，車速估測平均誤差 <b>1.2%–2.3%</b>，煞停距離逼近理論最佳解且全面優於傳統 Bang-Bang</li>
+            <li>碩二與中科院合作開發<b>機車 ABS 系統</b>，從演算法一路做到 ASIC 晶片；該成果取得專利 <b>TWI722875B</b>（申請人 國立臺北科技大學）</li>
+            <li>兩年間於實驗室承接 <b>7 件</b>業界與法人委託案（見下），含工研院兩件正式學研合作合約 <b>NT$70 萬 + NT$60 萬</b></li>
+            <li><b>ARTC 菁英培育獎助生</b>（2018.07–2019.09）：經申請與面試獲選，每學期繳交研究報告書並通過結業審查</li>
+            <li>研討會論文〈應用卡爾曼濾波器於機車防鎖死煞車系統估測器之設計〉投稿車輛工程研討會；另擔任<b>車輛控制實驗助教</b></li>
           </ul>
         </div>
       </div>
@@ -719,7 +741,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
           <div class="edu-deg">車輛工程系 · 學士 · <span class="hi">動力機械群第一志願</span></div>
           <ul class="edu-ach">
             <li>大三上 自動駕駛專題 <b>第一名</b></li>
-            <li>大三下 華創車電實習，<b>成功申請專利</b></li>
+            <li>華創車電實習，於實習結束前完成<b>車速估測系統</b>開發，成果由公司提出專利申請並獲證 <b>TWI655435B</b>（台、中雙邊獲證）</li>
             <li>大四<b>提早一年</b>進入研究所實驗室</li>
           </ul>
         </div>
@@ -737,6 +759,68 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
         </div>
       </div>
 
+    </div>
+
+    <!-- 就學期間的產學合作專案(樣式與擺放理由見 .edu-proj 的 CSS 註解)。
+         每條的期間、金額與數字都對得上 _專案紀錄/ 下的合約書、報告書或實測 log;
+         沒有硬數據的案子(華創 S5 AEB 實車測試)刻意不單獨列,併進第二條的敘述裡。 -->
+    <div class="edu-proj">
+      <div class="ep-t">就學期間 · 產學與法人委託專案</div>
+      <p class="ep-lead">碩士兩年在北科大先進車輛控制實驗室(陳柏全教授)承接 <b>7 件</b>業界與法人委託案，主題集中在<b>線控煞車與 ABS 估測控制</b>——同一顆致動器從機構、電路、控制到驗證做過一遍。工研院兩案為有合約金額與查核點的正式學研合作案，我為主要執行人(計畫主持人為指導教授)。</p>
+
+      <ul class="ev-list">
+        <li>
+          <span class="ev-tag">工研院</span>
+          <div>
+            <div class="ev-t">電液壓煞車模組整合控制系統 · NT$70 萬學研合作案<span class="ep-per">2019.02 – 2019.08</span></div>
+            <div class="ev-d">完成 BWI 電液壓模組(EHB)的液壓迴路改裝與驅動電路設計，實作依煞車命令在<b>「駕駛者操控 / 自動駕駛 / 自動緊急煞車」三情境</b>間切換 i-booster 與 EHB 工作模式的整合策略；通過 <b>6/30 平台驗證</b>與 <b>8/31 實車測試</b>兩項合約查核點，期中／結案報告經工研院驗收。</div>
+          </div>
+        </li>
+        <li>
+          <span class="ev-tag">工研院</span>
+          <div>
+            <div class="ev-t">自動緊急煞車系統液壓模組開發與驗證 · NT$60 萬學研合作案<span class="ep-per">2019.02 – 2019.08</span></div>
+            <div class="ev-d">把<b>量產機車 ABS 模組反接進汽車煞車迴路</b>，驗證低成本 AEB 致動器方案:原廠零文件，自建閥性判定方法與 pin mapping、設計 TLP-250 隔離與 MOSFET 驅動電路。實測<b>駕駛者單獨踩踏僅 10 bar</b>、加入馬達建壓<b>6 秒達 50 bar、峰值 &gt;100 bar</b>(汽車煞車一般需求 40–50 bar)；並找出「總泵—模組位能差」為建壓成敗關鍵，據此決定整車硬體配置。另與華創車電合作於量產車(S5)實測其 EHB 執行外部減速度命令之響應，作為自建系統的比對基準。</div>
+          </div>
+        </li>
+        <li>
+          <span class="ev-tag">工研院</span>
+          <div>
+            <div class="ev-t">i-booster 線控煞車致動器逆向工程與控制器開發<span class="ep-per">2017.12 – 2019.05</span></div>
+            <div class="ev-d">原廠控制器不開放，因此自己重寫控制律:於 TI F28069 以 Simulink／Embedded Coder 實作 FOC 與 SVPWM，<b>線電壓利用率較 SPWM 提升 15.4%</b> 並降低 DSP 運算量；以最小平方回歸完成機電系統識別(分段彈簧係數、庫倫摩擦力、馬達扭矩常數)並以 Load Cell 實測驗證；上層完成踏板行程閉迴路追隨、助力模式與<b>駕駛者介入判斷</b>策略，部署於工研院 CPEV 實驗車。</div>
+          </div>
+        </li>
+        <li>
+          <span class="ev-tag">宏碁</span>
+          <div>
+            <div class="ev-t">電動車自駕實驗平台改裝<span class="ep-per">2017.07 – 2019.03</span></div>
+            <div class="ev-d">將市售電動車改裝為<b>轉向／油門／煞車三軸皆可由 CAN 命令控制</b>的自駕實驗載具。獨力負責煞車軸(以 i-booster 取代真空倍力器、自製驅動電路、設計自駕／助力雙模式切換策略)，另完成 EPS 轉向移植、油門訊號模擬電路與整車電源管理；每月產出甘特圖進度回報與延遲根因說明，完成兩次驗收交付。</div>
+          </div>
+        </li>
+        <li>
+          <span class="ev-tag">中科院</span>
+          <div>
+            <div class="ev-t">機車車身動態穩定控制分析 · 107 年度委學案 分項二<span class="ep-per">2018.03 – 2018.11</span></div>
+            <div class="ev-d">機車的正向力受騎士體重與姿態影響而不可靠，傳統「先估摩擦係數再查表」的路走不通。改以卡爾曼濾波器自輪胎轉動方程式估測縱向力、以滑差為權重融合輪速與加速度積分估測絕對車速，再用時間窗格偵測 <b>μ–λ 曲線由穩定區轉入峰值區</b>的時機直接判定最佳滑差目標值，<b>免除正向力量測</b>；BikeSim 聯合模擬驗證，成果提交中科院專利申請提案並通過委學案期末審查。(實車驗證與後續發展見上方中科院經歷)</div>
+          </div>
+        </li>
+        <li>
+          <span class="ev-tag">聯華聚能</span>
+          <div>
+            <div class="ev-t">電動車 BMS 高壓管理(HVM)與故障處理(DHM)模組<span class="ep-per">2018.01 – 2018.05</span></div>
+            <div class="ev-d">依車廠 <b>V 模型流程</b>開發，交付物是能被審查的軟體:自上層功能需求展開 <b>SRS 需求規格 → SDD 設計說明 → 資料字典 → IO Name Mapping</b>，建立需求編號與 Requirement Matrix 追溯機制，並以<b>符合 MAAB 規範</b>的 Simulink 模型實作預充／主接觸器上下電時序與故障分級處理邏輯；同一架構同時滿足 LSEV 低速車與雙 100 兩種車型。</div>
+          </div>
+        </li>
+        <li>
+          <span class="ev-tag">華創車電</span>
+          <div>
+            <div class="ev-t">EMS 引擎管理系統模型 MAAB 規範化<span class="ep-per">2018.04 – 2018.08</span></div>
+            <div class="ev-d">依 <b>MAAB 建模規範</b>重構引擎管理系統的排氣門後壓力計算與怠速扭矩儲備控制模組，將舊版 <code>.mdl</code> 模型遷移為合規 Simulink 模型；建置對應資料字典與全域字典、統一單位與命名縮寫規則，並依 <b>Model Check List 逐項驗收</b>。</div>
+          </div>
+        </li>
+      </ul>
+
+      <p class="ep-note">上述兩段流程導向的專案(聯華聚能、華創車電)是後來在 MobileDrive 導入 ISO 26262／ASPICE 的底子——在學期間就跑過完整的 V 模型左半邊。</p>
     </div>
 
   </div>

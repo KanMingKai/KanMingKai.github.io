@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>電子煞車助力器 iBooster — 作動原理動畫</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/nav.css">
+<style>
+/* ============================================================
+   電子煞車助力器(iBooster 型)— 作動原理動畫
+   ------------------------------------------------------------
+   沿用 01_ChangeDashboardFlow.html 的三條規矩:
+     (1) 所有 class 一律 .ib- 前綴,將來併進任何一頁都不會撞名;
+     (2) 顏色一律 var(--token, #fallback),併進主頁自動吃 token,
+         單獨開啟也不會壞;
+     (3) 用顏色分「四種東西在流動」,不另立一套色盤:
+           橘  #d97706  駕駛輸入(機械,人給的力)
+           青  #0e7c9a  電子訊號(感測 → ECU → 三相電流)
+           藍  --blue   機械動力(馬達 → 齒輪 → 螺桿 → 推力)
+           紅  #e11d48  液壓(主缸 → 卡鉗)
+
+   ★ 這是「功能示意圖」不是工程圖:
+     齒輪比、行程比例、殼體形狀都為了看得懂而調整過。
+     真實 iBooster 的內部級數配置與齒比是 Bosch 專有資訊。
+     動畫要正確表達的只有一件事 —— 控制迴路量的是「差動行程」。
+   ============================================================ */
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:var(--sans,-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif);
+  background:var(--bg,#fff);color:var(--ink,#1d1d1f);line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+
+.ib{max-width:1180px;margin:0 auto;padding:28px 22px 40px}
+
+/* 文字欄對齊共用導覽列。
+   .ib 是 1180px(那是「圖」需要的寬度),但 .pnav .in 是 980px 含 22px
+   內距 —— 兩者不一致的話,頁面標題會落在導覽列品牌名左邊約 100px,
+   看起來像另一個網站。所以除了圖與它的捲動提示之外,其餘區塊一律
+   收進 936px(= 980 - 22*2,扣掉 .ib 已有的內距後,左緣正好對上品牌名)。
+   這也是 trj / dash 兩頁的既有作法:文字走 .wrap(980),
+   只有大圖(.tdo 1120 / .cdf-fig 1000)可以往外撐。
+   ★ 只有 .ib-scroll 與 .ib-hint 不收進 936 —— 圖有自己的一組寬度
+     (見下方 .ib-scroll 的縮小 30% 註解),由那裡負責置中。 */
+.ib-head,.ib-legend{
+  max-width:936px;margin-left:auto;margin-right:auto
+}
+
+/* ---------- 標題 ---------- */
+.ib-head{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:18px}
+.ib-h1{font-size:clamp(22px,3vw,30px);font-weight:900;letter-spacing:-.02em;white-space:nowrap}
+.ib-sub{
+  font-size:clamp(12.5px,1.5vw,15px);color:var(--ink-2,#6e6e73);font-weight:600;
+  padding-left:18px;border-left:1.5px solid var(--line,#d2d2d7);
+}
+
+/* ---------- 圖例 ---------- */
+.ib-legend{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:14px;font-size:12px;color:var(--ink-2,#6e6e73)}
+.ib-lg{display:flex;align-items:center;gap:7px;font-weight:600}
+.ib-lg i{width:22px;height:0;border-top-width:2.6px;border-top-style:solid;display:inline-block}
+.ib-lg--o i{border-top-color:#d97706}
+.ib-lg--t i{border-top-color:#0e7c9a}
+.ib-lg--b i{border-top-color:var(--blue,#0071e3)}
+.ib-lg--r i{border-top-color:#e11d48}
+
+/* ---------- 圖 ---------- */
+/* 動畫整體縮小 30%(顯示為原本的 70%)。
+   兩個數字必須一起改,只改一個就不是「等比縮小」:
+     max-width 795px = 桌機原本的顯示寬度 1136px × 0.7
+     min-width  700px = 原本的橫向捲動門檻 1000px × 0.7
+   只改 max-width 而不動 min-width 的話,795 < 1000,桌機會立刻長出
+   橫向捲軸;只改 min-width 則圖仍然被 width:100% 撐滿,根本沒縮小。
+   ★ max-width 用固定值而不是 70% —— 用百分比的話手機上會變成
+     在 242px 的窗口裡捲一張 700px 的圖,那是把圖縮到不能看。
+     固定值在窄螢幕不會生效,圖維持滿版。 */
+.ib-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line,#d2d2d7);border-radius:16px;background:#fcfcfd;
+  max-width:795px;margin-left:auto;margin-right:auto}
+.ib-scroll::-webkit-scrollbar{height:6px}
+.ib-scroll::-webkit-scrollbar-thumb{background:var(--line,#d2d2d7);border-radius:3px}
+.ib-svg{width:100%;min-width:700px;height:auto;display:block}
+.ib-svg text{font-family:var(--sans,-apple-system,"Noto Sans TC",sans-serif)}
+.ib-svg .m{font-family:var(--mono,ui-monospace,monospace)}
+.ib-hint{display:none;text-align:center;font-size:11px;color:var(--ink-3,#86868b);margin-top:8px;font-family:var(--mono,monospace)}
+
+/* 部件在「當前步驟」被點名時亮起來 —— 只加光暈與描邊,不改形狀,
+   免得零件看起來會脹縮 */
+.ib-part{transition:opacity .25s ease}
+.ib-glow{opacity:0;transition:opacity .3s ease}
+.ib-glow.on{opacity:1}
+
+/* 註:圖以下的五個區塊已全部移除(控制列、步驟卡、說明卡、免責說明、
+   資料來源),它們的樣式 —— .ib-ctl / .ib-btn / .ib-range / .ib-clock、
+   .ib-steps / .ib-step*、.ib-why* / .ib-cards / .ib-card、
+   .ib-note、.ib-src —— 一併刪除。整頁現在只剩標題、圖例、圖。
+   ★ 900px 那個斷點原本只服務 .ib-steps 與 .ib-cards 兩個格線,
+     兩者都沒了,整個 @media 區塊跟著移除。 */
+
+@media(max-width:680px){
+  .ib{padding:20px 14px 30px}
+  .ib-sub{padding-left:0;border-left:0;border-top:1px solid var(--line,#d2d2d7);padding-top:8px;width:100%}
+  .ib-hint{display:block}
+}
+</style>
+</head>
+<body>
+
+<!-- 共用的第一層導覽,與另外四頁同一份骨架(assets/nav.css)。
+     ★ 這頁不放第二層 .chnav —— 它整頁只有一個主題、沒有分章節,
+       放一列只有一顆的章節導覽只會多佔 45px 並讓人以為還有別的段落。
+       同理也不需要 assets/nav.js,那支只負責 chnav 的捲動高亮。 -->
+<nav class="pnav">
+  <div class="in">
+    <a href="../home/index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
+    <div class="tabs">
+      <a class="tab-l" href="../home/index.html">履歷</a>
+      <a class="tab-l" href="../lfs_page/lfs01.html">感知融合經驗</a>
+      <a class="tab-l" href="../trj_page/01_trj_page.html">軌跡規劃經驗</a>
+      <a class="tab-l" href="../dash_page/01_dash_page.html">AMR系統整合</a>
+      <span class="tab-l cur">電子煞車</span>
+    </div>
+  </div>
+</nav>
+
+<div class="ib">
+
+  <!-- ============ 標題 ============ -->
+  <div class="ib-head">
+    <div class="ib-h1">電子煞車助力器 · iBooster</div>
+    <div class="ib-sub">感測器量的不是踏板位置，是「輸入桿相對助力元件」的差動行程 Δs</div>
+  </div>
+
+  <div class="ib-legend">
+    <span class="ib-lg ib-lg--o"><i></i>駕駛輸入（機械）</span>
+    <span class="ib-lg ib-lg--t"><i></i>電子訊號</span>
+    <span class="ib-lg ib-lg--b"><i></i>機械動力（馬達 → 螺桿）</span>
+    <span class="ib-lg ib-lg--r"><i></i>液壓</span>
+  </div>
+
+  <div class="ib-scroll">
+  <!-- ============================================================
+       主軸 y = 240，由左到右：卡鉗 ← 主缸 ← 助力元件 ← 輸入推桿。
+       下方 y = 394 是動力軸：ECU → PMSM → 三級減速 → 回到主軸。
+       訊號線走最外圈（y = 524），不與任何機構交叉。
+       ============================================================ -->
+  <svg class="ib-svg" id="ib-svg" viewBox="0 0 1020 570" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="電子煞車助力器作動流程：踩踏板使輸入推桿前進，差動行程感測器量到輸入桿與助力元件的相對位移，控制單元據此輸出三相電流驅動永磁同步馬達，經兩級齒輪與滾珠螺桿轉為直線推力，推動主缸活塞建立液壓">
+    <defs>
+      <marker id="ibArrO" markerWidth="8" markerHeight="6" refX="6.6" refY="3" orient="auto">
+        <path d="M0,1.2 L7,3 L0,4.8 Z" fill="#d97706"/></marker>
+      <marker id="ibArrT" markerWidth="8" markerHeight="6" refX="6.6" refY="3" orient="auto">
+        <path d="M0,1.2 L7,3 L0,4.8 Z" fill="#0e7c9a"/></marker>
+      <marker id="ibArrR" markerWidth="8" markerHeight="6" refX="6.6" refY="3" orient="auto">
+        <path d="M0,1.2 L7,3 L0,4.8 Z" fill="#e11d48"/></marker>
+      <marker id="ibTick" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+        <circle cx="3" cy="3" r="2" fill="#0e7c9a"/></marker>
+
+      <filter id="ibSh" x="-25%" y="-25%" width="150%" height="150%">
+        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0b2540" flood-opacity=".12"/></filter>
+      <!-- 光暈只是「這一步在講這個零件」的提示,不該蓋掉零件本身,
+           所以模糊半徑壓小、只疊一層 -->
+      <filter id="ibHalo" x="-35%" y="-35%" width="170%" height="170%">
+        <feGaussianBlur stdDeviation="3.5"/></filter>
+
+      <linearGradient id="ibMetal" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fdfdfe"/><stop offset=".45" stop-color="#eceef1"/>
+        <stop offset="1" stop-color="#d9dde2"/></linearGradient>
+      <linearGradient id="ibMetal2" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#f7f8fa"/><stop offset=".5" stop-color="#e2e6ea"/>
+        <stop offset="1" stop-color="#cbd1d8"/></linearGradient>
+      <linearGradient id="ibFluid" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#fecdd3"/><stop offset="1" stop-color="#fda4af"/></linearGradient>
+
+      <pattern id="ibDots" width="20" height="20" patternUnits="userSpaceOnUse">
+        <circle cx="1.5" cy="1.5" r="1" fill="#eef0f3"/></pattern>
+    </defs>
+
+    <rect x="0" y="0" width="1020" height="570" fill="url(#ibDots)"/>
+
+    <!-- ══════════════ 液壓迴路(最底層) ══════════════ -->
+    <g id="ib-hyd">
+      <path id="ib-line1" d="M196,214 H128 Q108,214 108,194 V150" fill="none" stroke="#e11d48" stroke-width="3.4"
+            stroke-linecap="round" opacity=".25"/>
+      <path id="ib-line2" d="M196,266 H128 Q108,266 108,286 V330" fill="none" stroke="#e11d48" stroke-width="3.4"
+            stroke-linecap="round" opacity=".25"/>
+      <!-- 壓力波:靠 dashoffset 往卡鉗方向流 -->
+      <path id="ib-flow1" d="M196,214 H128 Q108,214 108,194 V150" fill="none" stroke="#e11d48" stroke-width="3.4"
+            stroke-linecap="round" stroke-dasharray="9 15" opacity="0"/>
+      <path id="ib-flow2" d="M196,266 H128 Q108,266 108,286 V330" fill="none" stroke="#e11d48" stroke-width="3.4"
+            stroke-linecap="round" stroke-dasharray="9 15" opacity="0"/>
+    </g>
+
+    <!-- ══════════════ 卡鉗 × 2 ══════════════ -->
+    <g id="ib-cal1" transform="translate(108,116)">
+      <circle r="30" fill="none" stroke="#c3c9d1" stroke-width="7"/>
+      <circle r="30" fill="none" stroke="#e5e7eb" stroke-width="7" stroke-dasharray="3 9"/>
+      <rect class="ib-pad" data-s="1"  x="-40" y="-11" width="12" height="22" rx="3" fill="#9aa2ad"/>
+      <rect class="ib-pad" data-s="-1" x="28"  y="-11" width="12" height="22" rx="3" fill="#9aa2ad"/>
+      <circle class="ib-hot" r="30" fill="none" stroke="#e11d48" stroke-width="7" opacity="0"/>
+    </g>
+    <g id="ib-cal2" transform="translate(108,364)">
+      <circle r="30" fill="none" stroke="#c3c9d1" stroke-width="7"/>
+      <circle r="30" fill="none" stroke="#e5e7eb" stroke-width="7" stroke-dasharray="3 9"/>
+      <rect class="ib-pad" data-s="1"  x="-40" y="-11" width="12" height="22" rx="3" fill="#9aa2ad"/>
+      <rect class="ib-pad" data-s="-1" x="28"  y="-11" width="12" height="22" rx="3" fill="#9aa2ad"/>
+      <circle class="ib-hot" r="30" fill="none" stroke="#e11d48" stroke-width="7" opacity="0"/>
+    </g>
+    <text x="108" y="70" text-anchor="middle" font-size="10.5" font-weight="700" fill="#86868b">前輪迴路</text>
+    <text x="108" y="418" text-anchor="middle" font-size="10.5" font-weight="700" fill="#86868b">後輪迴路</text>
+
+    <!-- 壓力條 -->
+    <g transform="translate(36,458)">
+      <text x="0" y="0" font-size="10.5" font-weight="700" fill="#6e6e73">主缸壓力</text>
+      <rect x="0" y="8" width="140" height="12" rx="6" fill="#eceef1" stroke="#dfe3e8"/>
+      <rect id="ib-bar" x="2" y="10" width="0" height="8" rx="4" fill="#e11d48"/>
+      <text id="ib-barv" class="m" x="140" y="-1" text-anchor="end" font-size="10.5" font-weight="700" fill="#e11d48">0%</text>
+    </g>
+
+    <!-- ══════════════ 油壺 ══════════════ -->
+    <g id="ib-res">
+      <path d="M236,186 V120 Q236,104 252,104 H382 Q398,104 398,120 V186 Z"
+            fill="url(#ibMetal2)" stroke="#b9bfc7" stroke-width="1.6" stroke-linejoin="round"/>
+      <rect x="266" y="86" width="26" height="22" rx="5" fill="#dfe3e8" stroke="#b9bfc7" stroke-width="1.4"/>
+      <rect x="342" y="86" width="26" height="22" rx="5" fill="#dfe3e8" stroke="#b9bfc7" stroke-width="1.4"/>
+      <!-- 兩腔獨立:一路失效另一路還在 -->
+      <line x1="317" y1="118" x2="317" y2="186" stroke="#b9bfc7" stroke-width="1.4"/>
+      <path d="M244,150 H310 V182 H244 Z" fill="url(#ibFluid)" opacity=".85"/>
+      <path d="M324,150 H390 V182 H324 Z" fill="url(#ibFluid)" opacity=".85"/>
+      <text x="317" y="76" text-anchor="middle" font-size="12" font-weight="700" fill="#1d1d1f">煞車油壺</text>
+      <text x="317" y="90" text-anchor="middle" font-size="9" fill="#86868b">Reservoir · 雙腔</text>
+    </g>
+
+    <!-- ══════════════ 主缸 ══════════════ -->
+    <g id="ib-mc">
+      <rect x="196" y="194" width="228" height="92" rx="12" fill="url(#ibMetal)" stroke="#b9bfc7" stroke-width="1.8"/>
+      <!-- 兩腔油液 -->
+      <rect id="ib-ch1" x="204" y="204" width="60" height="72" rx="6" fill="url(#ibFluid)" opacity=".55"/>
+      <rect id="ib-ch2" x="292" y="204" width="60" height="72" rx="6" fill="url(#ibFluid)" opacity=".55"/>
+      <!-- 補油孔 -->
+      <line x1="272" y1="186" x2="272" y2="200" stroke="#b9bfc7" stroke-width="2"/>
+      <line x1="362" y1="186" x2="362" y2="200" stroke="#b9bfc7" stroke-width="2"/>
+      <!-- 活塞(會往左走) -->
+      <g id="ib-p2"><rect x="264" y="200" width="24" height="80" rx="4" fill="#aeb6c0" stroke="#8d949e" stroke-width="1.4"/></g>
+      <g id="ib-p1"><rect x="352" y="200" width="24" height="80" rx="4" fill="#aeb6c0" stroke="#8d949e" stroke-width="1.4"/></g>
+      <path id="ib-mcglow" class="ib-glow" d="M196,194 h228 v92 h-228 z" fill="none" stroke="#e11d48" stroke-width="3" opacity="0" filter="url(#ibHalo)"/>
+      <text x="230" y="316" font-size="12" font-weight="700" fill="#1d1d1f">主缸</text>
+      <text x="230" y="330" font-size="9" fill="#86868b">Master brake cylinder · 串聯雙腔</text>
+    </g>
+
+    <!-- ══════════════ 助力器殼體 ══════════════ -->
+    <rect x="424" y="172" width="438" height="136" rx="22" fill="url(#ibMetal)" stroke="#b9bfc7" stroke-width="1.8"/>
+    <text x="440" y="192" font-size="9.5" font-weight="700" fill="#a5abb4" letter-spacing=".08em">BOOSTER HOUSING</text>
+
+    <!-- ── 助力元件:推桿 + 活塞頭 + 螺桿(整組往左走) ── -->
+    <g id="ib-boost">
+      <rect x="424" y="228" width="86" height="24" rx="5" fill="#aeb6c0" stroke="#8d949e" stroke-width="1.4"/>
+      <rect x="500" y="206" width="46" height="68" rx="8" fill="#c8ced6" stroke="#8d949e" stroke-width="1.6"/>
+      <!-- 螺桿本體 -->
+      <rect x="540" y="228" width="256" height="24" rx="4" fill="#b9c0c9" stroke="#8d949e" stroke-width="1.3"/>
+      <!-- 螺紋:斜線,看得出是螺桿不是光桿 -->
+      <g id="ib-thread" stroke="#8d949e" stroke-width="1.5" opacity=".85"></g>
+      <!-- 後端法蘭:差動行程的「助力側」基準面。靜止時與輸入桿頭距 32px,
+           這段間隙就是反作用彈簧的空間,也是 Δs 能吃掉的最大量 -->
+      <rect x="782" y="214" width="14" height="52" rx="3" fill="#0071e3" opacity=".9"/>
+      <path id="ib-bglow" class="ib-glow" d="M500,206 h46 v68 h-46 z" fill="none" stroke="#0071e3" stroke-width="3" opacity="0" filter="url(#ibHalo)"/>
+    </g>
+
+    <!-- ── 反作用彈簧:輸入桿與助力元件之間,Δs 就是它被壓縮的量 ── -->
+    <path id="ib-spring" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+
+    <!-- ── 輸入推桿(整組往左走) ── -->
+    <g id="ib-rod">
+      <rect x="828" y="230" width="176" height="20" rx="10" fill="url(#ibMetal2)" stroke="#8d949e" stroke-width="1.5"/>
+      <rect x="828" y="216" width="12" height="48" rx="3" fill="#d97706" opacity=".9"/>
+      <circle cx="994" cy="240" r="13" fill="none" stroke="#8d949e" stroke-width="4"/>
+      <path id="ib-rglow" class="ib-glow" d="M828,230 h176 v20 h-176 z" fill="none" stroke="#d97706" stroke-width="3" opacity="0" filter="url(#ibHalo)"/>
+    </g>
+    <!-- 防塵套:跟著輸入桿壓縮 -->
+    <path id="ib-boot" fill="none" stroke="#9aa2ad" stroke-width="2" stroke-linejoin="round"/>
+
+    <!-- ══════════════ 差動行程感測器 ══════════════ -->
+    <g id="ib-sensor">
+      <rect x="790" y="146" width="76" height="30" rx="7" fill="#fff" stroke="#0e7c9a" stroke-width="1.6" filter="url(#ibSh)"/>
+      <circle id="ib-sled" cx="806" cy="161" r="4.5" fill="#cbd5dc"/>
+      <text x="820" y="165" class="m" font-size="9.5" font-weight="700" fill="#0e7c9a">Δs</text>
+      <path id="ib-senglow" class="ib-glow" d="M790,146 h76 v30 h-76 z" fill="none" stroke="#0e7c9a" stroke-width="3" opacity="0" filter="url(#ibHalo)"/>
+    </g>
+
+    <!-- Δs 量測:量的就是「輸入桿頭 ↔ 助力元件法蘭」這段間隙被吃掉多少。
+         橘 tick 跟著輸入桿,藍 tick 跟著助力元件,兩者各自獨立移動 —— 這正是
+         「差動」的意思:量的是兩個件的相對位移,不是任一個件的絕對位置 -->
+    <g id="ib-meas">
+      <line id="ib-tickB" x1="789" y1="198" x2="789" y2="216" stroke="#0071e3" stroke-width="2"/>
+      <line id="ib-tickA" x1="834" y1="198" x2="834" y2="216" stroke="#d97706" stroke-width="2"/>
+      <line id="ib-dbar"  x1="789" y1="202" x2="834" y2="202" stroke="#0e7c9a" stroke-width="2.6"/>
+      <text id="ib-dtext" class="m" x="812" y="194" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0e7c9a">Δs 0.0 mm</text>
+    </g>
+
+    <!-- ══════════════ 三級減速 ══════════════ -->
+    <!-- 齒輪列垂直堆在 x=616:馬達小齒 → 大齒/小齒複合輪 → 螺帽齒輪(坐在主軸上)。
+         垂直堆疊的好處是「齒數 ∝ 半徑」時圓心距自動等於兩半徑和,
+         畫出來一定咬得住,不會有齒卡進齒的破圖。
+         殼體先畫、馬達後畫,讓馬達端面自然蓋住齒輪箱的接合面。 -->
+    <rect x="562" y="258" width="110" height="178" rx="16" fill="#f0f2f5" stroke="#b9bfc7" stroke-width="1.6"/>
+    <!-- 第一級大齒(畫在後面,與第三級在不同軸向層) -->
+    <g transform="translate(616,310)"><g id="ib-g2b"><path fill="#dfe3e8" stroke="#a7aeb8" stroke-width="1.4"/></g></g>
+    <!-- 第三級:滾珠螺桿螺帽齒輪,坐在主軸上 -->
+    <g transform="translate(616,240)"><g id="ib-g3">
+      <path fill="#cfe4fb" stroke="#0071e3" stroke-width="1.6"/>
+      <circle r="13" fill="#fff" stroke="#0071e3" stroke-width="1.6"/>
+    </g></g>
+    <!-- 第二級小齒(與第一級大齒同軸,畫在前面) -->
+    <g transform="translate(616,310)"><g id="ib-g2s">
+      <path fill="#b9c9da" stroke="#7d8794" stroke-width="1.4"/>
+      <circle r="8" fill="#f0f2f5" stroke="#7d8794" stroke-width="1.3"/>
+    </g></g>
+    <!-- 馬達小齒 -->
+    <g transform="translate(616,394)"><g id="ib-g1">
+      <path fill="#cfe4fb" stroke="#0071e3" stroke-width="1.5"/>
+      <circle r="9" fill="#fff" stroke="#0071e3" stroke-width="1.4"/>
+    </g></g>
+    <text x="692" y="352" font-size="12" font-weight="700" fill="#1d1d1f">三級減速機構</text>
+    <text x="692" y="366" font-size="9" fill="#86868b">Three-stage gear unit</text>
+    <text x="692" y="388" class="m" font-size="9.5" fill="#6e6e73">① 齒輪對　降速增扭</text>
+    <text x="692" y="403" class="m" font-size="9.5" fill="#6e6e73">② 齒輪對　降速增扭</text>
+    <text x="692" y="418" class="m" font-size="9.5" fill="#0071e3" font-weight="700">③ 滾珠螺桿　旋轉→直線</text>
+    <path id="ib-gglow" class="ib-glow" d="M562,258 h110 v178 h-110 z" fill="none" stroke="#0071e3" stroke-width="3" opacity="0" filter="url(#ibHalo)"/>
+
+    <!-- ══════════════ PMSM ══════════════ -->
+    <g id="ib-motor">
+      <rect x="366" y="342" width="194" height="104" rx="20" fill="url(#ibMetal)" stroke="#b9bfc7" stroke-width="1.8"/>
+      <line x1="556" y1="386" x2="600" y2="386" stroke="#8d949e" stroke-width="9" stroke-linecap="round"/>
+      <line x1="556" y1="402" x2="600" y2="402" stroke="#8d949e" stroke-width="9" stroke-linecap="round"/>
+      <!-- 定子:12 槽 -->
+      <circle cx="430" cy="394" r="44" fill="#fff" stroke="#9aa2ad" stroke-width="2"/>
+      <g id="ib-slots" stroke="#cdd3da" stroke-width="5" stroke-linecap="round"></g>
+      <!-- 轉子:4 極永磁,會轉 -->
+      <g transform="translate(430,394)"><g id="ib-rotor">
+        <circle r="27" fill="#eef2f6" stroke="#8d949e" stroke-width="1.6"/>
+        <path d="M-25,0 A25,25 0 0,1 0,-25 L0,0 Z" fill="#e11d48" opacity=".82"/>
+        <path d="M0,-25 A25,25 0 0,1 25,0 L0,0 Z" fill="#3b82f6" opacity=".82"/>
+        <path d="M25,0 A25,25 0 0,1 0,25 L0,0 Z" fill="#e11d48" opacity=".82"/>
+        <path d="M0,25 A25,25 0 0,1 -25,0 L0,0 Z" fill="#3b82f6" opacity=".82"/>
+        <circle r="7" fill="#fff" stroke="#8d949e" stroke-width="1.4"/>
+        <line x1="0" y1="-27" x2="0" y2="-34" stroke="#1d1d1f" stroke-width="2.2" stroke-linecap="round"/>
+      </g></g>
+      <!-- 名牌放殼體外:馬達內部要留給定子槽、轉子與出力軸,
+           字壓在軸上會兩邊都看不清楚 -->
+      <text x="474" y="472" text-anchor="middle" font-size="12" font-weight="700" fill="#1d1d1f">PMSM</text>
+      <text x="474" y="487" text-anchor="middle" font-size="9" fill="#86868b">永磁同步馬達 · 內轉子 · 電子換相 FOC</text>
+      <path id="ib-mglow" class="ib-glow" d="M366,342 h194 v104 h-194 z" fill="none" stroke="#0071e3" stroke-width="3" opacity="0" filter="url(#ibHalo)"/>
+    </g>
+
+    <!-- ══════════════ 控制單元 ══════════════ -->
+    <g id="ib-ecu">
+      <rect x="150" y="348" width="196" height="98" rx="16" fill="#fff" stroke="#b9bfc7" stroke-width="1.8" filter="url(#ibSh)"/>
+      <rect x="150" y="348" width="196" height="26" rx="16" fill="#0e7c9a"/>
+      <rect x="150" y="362" width="196" height="12" fill="#0e7c9a"/>
+      <text x="164" y="366" class="m" font-size="10.5" font-weight="700" fill="#fff" letter-spacing=".08em">CONTROL UNIT</text>
+      <text x="164" y="396" font-size="12" font-weight="700" fill="#1d1d1f">控制單元 ECU</text>
+      <!-- 三相電流波形:相位跟著轉子角度走 -->
+      <g id="ib-phase" opacity=".25">
+        <path class="ib-ph" fill="none" stroke="#e11d48" stroke-width="1.8"/>
+        <path class="ib-ph" fill="none" stroke="#0a8a5c" stroke-width="1.8"/>
+        <path class="ib-ph" fill="none" stroke="#0071e3" stroke-width="1.8"/>
+      </g>
+      <path id="ib-eglow" class="ib-glow" d="M150,348 h196 v98 h-196 z" fill="none" stroke="#0e7c9a" stroke-width="3" opacity="0" filter="url(#ibHalo)"/>
+    </g>
+    <!-- ECU → 馬達:三相線 -->
+    <g id="ib-uvw" stroke-width="2.4" fill="none" stroke-linecap="round">
+      <path d="M346,378 H366" stroke="#e11d48"/>
+      <path d="M346,394 H366" stroke="#0a8a5c"/>
+      <path d="M346,410 H366" stroke="#0071e3"/>
+    </g>
+    <text x="356" y="466" text-anchor="middle" class="m" font-size="9" font-weight="700" fill="#86868b">U V W</text>
+
+    <!-- ══════════════ 感測器 → ECU 訊號線(走最外圈) ══════════════ -->
+    <path id="ib-sigpath" d="M866,161 H952 Q964,161 964,173 V512 Q964,524 952,524 H260 Q248,524 248,512 V446"
+          fill="none" stroke="#0e7c9a" stroke-width="2" stroke-dasharray="5 5" opacity=".55" marker-end="url(#ibArrT)"/>
+    <circle id="ib-sigdot" r="5.5" fill="#0e7c9a" opacity="0"/>
+    <text x="650" y="516" text-anchor="middle" font-size="10" font-weight="700" fill="#0e7c9a">差動行程訊號</text>
+
+    <!-- ══════════════ 標註 ══════════════ -->
+    <g stroke="#c7ccd1" stroke-width="1.2" fill="none">
+      <path d="M520,164 V206"/>
+      <path d="M904,132 V146" stroke="#0e7c9a"/>
+      <path d="M952,268 V240"/>
+    </g>
+    <text x="520" y="156" text-anchor="middle" font-size="12" font-weight="700" fill="#1d1d1f">助力元件</text>
+    <text x="520" y="142" text-anchor="middle" font-size="9" fill="#86868b">Boost element</text>
+    <text x="904" y="124" text-anchor="middle" font-size="12" font-weight="700" fill="#0e7c9a">差動行程感測器</text>
+    <text x="904" y="110" text-anchor="middle" font-size="9" fill="#86868b">Differential travel sensor</text>
+    <text x="952" y="284" text-anchor="middle" font-size="12" font-weight="700" fill="#1d1d1f">輸入推桿</text>
+    <text x="952" y="298" text-anchor="middle" font-size="9" fill="#86868b">Input rod ← 煞車踏板</text>
+
+    <!-- 目前步驟:大字,跟著卡片走。放在助力器殼體正上方的空白帶,
+         左上角要留給前輪迴路的卡鉗 -->
+    <text id="ib-stage" x="424" y="48" font-size="15" font-weight="800" fill="#1d1d1f">01 · 踩下踏板</text>
+    <text id="ib-stagesub" x="424" y="68" font-size="11" fill="#86868b">輸入推桿前進，先壓縮反作用彈簧</text>
+  </svg>
+  </div>
+  <div class="ib-hint">← 左右滑動可看完整流程 →</div>
+
+  <!-- ★ 圖以下原本還有五個區塊,已全部移除:控制列(播放/倍速/進度條/計時)、
+       五張步驟卡、「為什麼 ADAS 需要它」三張卡、功能示意的免責說明、資料來源。
+       現在整頁就是「標題 + 圖例 + 一張會自己跑的圖」。
+
+       步驟卡拿掉不會讓人看不懂流程 —— STEPS 那個陣列同時餵給兩個地方,
+       圖左上角的 #ib-stage / #ib-stagesub 一直都在播同一份文字,
+       下面那五張卡本來就是同一份內容的第二次呈現。
+
+       ★ 控制列一起拿掉之後,動畫只會自動循環,沒有暫停與拖曳。
+         相關的 JS(scrub / clock / btn、三個 addEventListener、
+         SPEEDS 倍速陣列)也一併刪了,留著會對不存在的元素取值而整支壞掉。 -->
+
+</div>
+
+<script>
+/* ============================================================
+   時間軸只有一個變數 t ∈ [0,1)。所有零件的位置都是 t 的純函數,
+   沒有任何累積狀態 —— 所以拖動進度條可以直接跳到任何一格,
+   不會出現「倒著拖就亂掉」。
+   ============================================================ */
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var svg = $('ib-svg');
+
+  /* ---------- 幾何常數(與 SVG 內的座標對應,改圖要一起改) ---------- */
+  var AXIS   = 240;   // 主軸 y
+  var STROKE = 26;    // 全行程(px)
+  var MM     = 8;     // 全行程對應的 mm,只用來換算 Δs 讀數
+  var GAP_B  = 796;   // 助力元件法蘭右緣(藍側基準)
+  var GAP_A  = 828;   // 輸入桿頭(橘側基準)。靜止間隙 = 32px > 最大 Δs,
+                      //   所以輸入桿永遠不會「撞穿」助力元件
+  var BOOT_X0 = 862, BOOT_X1 = 934;   // 防塵套:一端固定在殼體,一端跟著輸入桿
+
+  /* ---------- 時間軸:每個動作的起訖(佔整圈的比例) ---------- */
+  var PRESS_IN = [0.10, 0.30], PRESS_OUT = [0.80, 0.93];
+  var BOOST_IN = [0.42, 0.66], BOOST_OUT = [0.82, 0.95];
+  var BOOST_MAX = 0.90;        // 助力側刻意追不滿 —— 追滿就沒有殘差,
+                               // 也就沒有「助力比」這個控制目標了
+  var PERIOD = 9000;           // 一圈 9 秒
+
+  var STEPS = [
+    {n:'01', t:'踩下踏板',              s:'輸入推桿前進，先壓縮反作用彈簧',                 w:[0.08,0.32], c:'o'},
+    {n:'02', t:'量測差動行程 Δs',       s:'量的是輸入桿相對助力元件的位移，不是踏板絕對位置', w:[0.22,0.44], c:'t'},
+    {n:'03', t:'ECU 解算 → 三相電流',   s:'依 Δs 決定助力目標，FOC 場導向控制輸出 U/V/W',    w:[0.34,0.52], c:'t'},
+    {n:'04', t:'PMSM → 三級減速',       s:'兩級齒輪降速增扭，第三級滾珠螺桿把旋轉換成直線',   w:[0.42,0.70], c:'b'},
+    {n:'05', t:'推主缸 → 液壓建立',     s:'Δs 被拉回設定值，這個殘差就是助力比的控制目標',    w:[0.54,0.80], c:'r'}
+  ];
+
+  /* ---------- 小工具 ---------- */
+  function clamp(x,a,b){ return x<a?a:(x>b?b:x); }
+  function ease(x){ return x<0.5 ? 2*x*x : 1-Math.pow(-2*x+2,2)/2; }
+  function seg(t,a,b){ return ease(clamp((t-a)/(b-a),0,1)); }
+  function pt(r,a){ return [r*Math.cos(a), r*Math.sin(a)]; }
+
+  /* ---------- 產生齒輪路徑(比手寫 path 準,也好調齒數) ---------- */
+  function gearD(r,n,depth){
+    var d='', step=Math.PI*2/n, i, a, p;
+    for(i=0;i<n;i++){
+      a = i*step;
+      p = pt(r-depth, a);            d += (i?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1);
+      p = pt(r, a+step*0.16);        d += 'L'+p[0].toFixed(1)+','+p[1].toFixed(1);
+      p = pt(r, a+step*0.34);        d += 'L'+p[0].toFixed(1)+','+p[1].toFixed(1);
+      p = pt(r-depth, a+step*0.50);  d += 'L'+p[0].toFixed(1)+','+p[1].toFixed(1);
+    }
+    return d+'Z';
+  }
+  // 齒數要能對上齒比,不然轉起來會「打滑」:齒數 ∝ 半徑
+  var G1={r:34,n:17}, G2B={r:50,n:25}, G2S={r:26,n:13}, G3={r:44,n:22};
+  $('ib-g1').querySelector('path').setAttribute('d', gearD(G1.r,  G1.n,  5.5));
+  $('ib-g2b').querySelector('path').setAttribute('d', gearD(G2B.r,G2B.n, 6));
+  $('ib-g2s').querySelector('path').setAttribute('d', gearD(G2S.r,G2S.n, 5));
+  $('ib-g3').querySelector('path').setAttribute('d', gearD(G3.r,  G3.n,  6));
+
+  /* ---------- 定子槽 ---------- */
+  (function(){
+    var g=$('ib-slots'), i, a, p1, p2, s='';
+    for(i=0;i<12;i++){
+      a = i*Math.PI/6;
+      p1 = pt(31,a); p2 = pt(41,a);
+      s += '<line x1="'+(430+p1[0]).toFixed(1)+'" y1="'+(394+p1[1]).toFixed(1)+
+           '" x2="'+(430+p2[0]).toFixed(1)+'" y2="'+(394+p2[1]).toFixed(1)+'"/>';
+    }
+    g.innerHTML = s;
+  })();
+
+  /* ---------- 螺紋 ---------- */
+  (function(){
+    var g=$('ib-thread'), x, s='';
+    for(x=548;x<=786;x+=13) s += '<line x1="'+x+'" y1="252" x2="'+(x+9)+'" y2="228"/>';
+    g.innerHTML = s;
+  })();
+
+  /* ---------- 三相波形(畫在 ECU 盒子裡) ---------- */
+  var PH_X0=164, PH_X1=332, PH_Y=422, PH_A=11;
+  function phaseD(shift){
+    var d='', x, y, k;
+    for(x=PH_X0;x<=PH_X1;x+=4){
+      k = (x-PH_X0)/26 + shift;
+      y = PH_Y - PH_A*Math.sin(k);
+      d += (x===PH_X0?'M':'L')+x+','+y.toFixed(1);
+    }
+    return d;
+  }
+
+  /* ---------- 彈簧:長度會變,鋸齒數固定,所以壓縮時自然變密 ---------- */
+  function zigzag(x0,x1,y,amp,n){
+    var d='M'+x0.toFixed(1)+','+y, i, w=(x1-x0)/n;
+    for(i=0;i<n;i++){
+      d += 'L'+(x0+w*(i+0.5)).toFixed(1)+','+(y+(i%2?amp:-amp));
+      d += 'L'+(x0+w*(i+1)).toFixed(1)+','+y;
+    }
+    return d;
+  }
+
+  /* ---------- 防塵套:上下兩條對稱的摺線,看起來才像波紋管 ---------- */
+  function bellows(x0,x1,y,h,n){
+    var d='', w=(x1-x0)/n, i, k;
+    for(k=-1;k<=1;k+=2){
+      d += 'M'+x0.toFixed(1)+','+(y+k*h*0.45).toFixed(1);
+      for(i=0;i<n;i++){
+        d += 'L'+(x0+w*(i+0.5)).toFixed(1)+','+(y+k*h).toFixed(1);
+        d += 'L'+(x0+w*(i+1)).toFixed(1)+','+(y+k*h*0.45).toFixed(1);
+      }
+    }
+    return d;
+  }
+
+  /* ---------- 主渲染 ---------- */
+  /* 註:這裡原本有一段「步驟卡」產生器,把 STEPS 畫成圖下方的五張卡。
+     卡片區塊已移除,產生器跟著刪掉;STEPS 本身要留著 ——
+     圖左上角的 #ib-stage / #ib-stagesub 仍然靠它報現在是第幾步。 */
+  var sigPath=$('ib-sigpath'), sigLen=sigPath.getTotalLength();
+
+  function render(t){
+    /* 1. 兩個位移:輸入側(人給的)與助力側(馬達給的) */
+    var press = seg(t,PRESS_IN[0],PRESS_IN[1]) - seg(t,PRESS_OUT[0],PRESS_OUT[1]);
+    var boost = (seg(t,BOOST_IN[0],BOOST_IN[1]) - seg(t,BOOST_OUT[0],BOOST_OUT[1])) * BOOST_MAX;
+    var dx_in = -STROKE*press, dx_bo = -STROKE*boost;
+    // 差動行程是有號的:踩下時輸入桿跑在前面(正),鬆開時輸入桿先退(負)。
+    // 正負號就是 ECU 判斷「要出力」還是「要退回」的依據,所以不取絕對值。
+    var delta = STROKE*(press-boost);
+
+    $('ib-rod').setAttribute('transform','translate('+dx_in.toFixed(2)+',0)');
+    $('ib-boost').setAttribute('transform','translate('+dx_bo.toFixed(2)+',0)');
+    $('ib-p1').setAttribute('transform','translate('+(dx_bo*0.92).toFixed(2)+',0)');
+    $('ib-p2').setAttribute('transform','translate('+(dx_bo*0.80).toFixed(2)+',0)');
+
+    /* 2. 反作用彈簧與防塵套:兩者都被輸入桿壓縮 */
+    var gB = GAP_B + dx_bo, gA = GAP_A + dx_in;    // 間隙兩端的當前位置
+    $('ib-spring').setAttribute('d', zigzag(gB, gA, AXIS, 9, 4));
+    $('ib-boot').setAttribute('d', bellows(BOOT_X0, BOOT_X1+dx_in, AXIS, 17, 5));
+
+    /* 3. Δs 量測:間隙被吃掉多少,就是差動行程 */
+    $('ib-tickA').setAttribute('transform','translate('+dx_in.toFixed(2)+',0)');
+    $('ib-tickB').setAttribute('transform','translate('+dx_bo.toFixed(2)+',0)');
+    var dbar=$('ib-dbar');
+    dbar.setAttribute('x1',(gB-7).toFixed(1)); dbar.setAttribute('x2',(gA+6).toFixed(1));
+    var dt=$('ib-dtext'), mm=delta/STROKE*MM;
+    dt.setAttribute('x',((gA+gB)/2).toFixed(1));
+    // 正號要標出來 —— 讀者才看得出這個量是有方向的
+    dt.textContent='Δs '+(mm>=0?'+':'')+mm.toFixed(1)+' mm';
+    // 正 = 要求出力(青),負 = 要求退回(橘),接近零 = 沒有需求(灰)
+    var live = Math.abs(delta)>0.6;
+    dt.setAttribute('fill', live ? (delta>0?'#0e7c9a':'#b45309') : '#9aa2ad');
+    $('ib-dbar').setAttribute('stroke', live ? (delta>0?'#0e7c9a':'#b45309') : '#c7ccd1');
+    $('ib-sled').setAttribute('fill', live ? (delta>0?'#0e7c9a':'#b45309') : '#cbd5dc');
+
+    /* 4. 齒輪:角度由「助力側位移」反推,所以齒輪永遠跟推力同步,
+          不會出現螺桿在動而齒輪沒轉 */
+    var a3 = 360*4.2*boost;                 // 第三級(螺帽)
+    var a2 = -a3*(G3.n/G2S.n);              // 第二級小齒
+    var a1 = -a2*(G2B.n/G1.n);              // 馬達小齒
+    $('ib-g3').setAttribute('transform','rotate('+a3.toFixed(2)+')');
+    $('ib-g2s').setAttribute('transform','rotate('+a2.toFixed(2)+')');
+    $('ib-g2b').setAttribute('transform','rotate('+a2.toFixed(2)+')');
+    $('ib-g1').setAttribute('transform','rotate('+a1.toFixed(2)+')');
+    $('ib-rotor').setAttribute('transform','rotate('+a1.toFixed(2)+')');
+
+    /* 5. 三相電流:相位跟著轉子角度走,所以馬達停波形也停 */
+    var phs=svg.querySelectorAll('.ib-ph');
+    for(var i=0;i<3;i++) phs[i].setAttribute('d', phaseD(a1/28 + i*Math.PI*2/3));
+    $('ib-phase').setAttribute('opacity', (t>0.34&&t<0.96) ? 0.95 : 0.25);
+    $('ib-uvw').setAttribute('opacity', (t>0.34&&t<0.96) ? 1 : 0.3);
+
+    /* 6. 訊號點:感測器 → ECU */
+    var sig = clamp((t-0.30)/0.10,0,1);
+    var dot=$('ib-sigdot');
+    if(t>0.30 && t<0.42){
+      var p=sigPath.getPointAtLength(sig*sigLen);
+      dot.setAttribute('cx',p.x); dot.setAttribute('cy',p.y); dot.setAttribute('opacity',1);
+    } else dot.setAttribute('opacity',0);
+
+    /* 7. 液壓 */
+    var pres = boost/BOOST_MAX;
+    $('ib-bar').setAttribute('width',(136*pres).toFixed(1));
+    $('ib-barv').textContent=Math.round(pres*100)+'%';
+    ['ib-flow1','ib-flow2'].forEach(function(id,k){
+      var e=$(id);
+      e.setAttribute('opacity',(pres*0.95).toFixed(2));
+      e.setAttribute('stroke-dashoffset',(-t*PERIOD/12 - k*6).toFixed(1));
+    });
+    $('ib-ch1').setAttribute('opacity',(0.55+0.45*pres).toFixed(2));
+    $('ib-ch2').setAttribute('opacity',(0.55+0.45*pres).toFixed(2));
+    svg.querySelectorAll('.ib-hot').forEach(function(e){ e.setAttribute('opacity',(pres*0.9).toFixed(2)); });
+    svg.querySelectorAll('.ib-pad').forEach(function(e){
+      // data-s 決定往哪邊夾:左片往右推,右片往左推
+      e.setAttribute('transform','translate('+(6*pres*(+e.getAttribute('data-s'))).toFixed(1)+',0)');
+    });
+
+    /* 8. 目前是第幾步 —— 光暈與圖上標題共用同一個判斷
+          (卡片高亮那一路已隨步驟卡一起移除) */
+    var cur=-1;
+    for(var s=STEPS.length-1;s>=0;s--) if(t>=STEPS[s].w[0] && t<STEPS[s].w[1]){ cur=s; break; }
+    var glow={0:'ib-rglow',1:'ib-senglow',2:'ib-eglow',3:'ib-mglow',4:'ib-mcglow'};
+    for(var k=0;k<5;k++) $(glow[k]).classList.toggle('on',k===cur);
+    $('ib-gglow').classList.toggle('on',cur===3);
+    $('ib-bglow').classList.toggle('on',cur===4);
+    if(cur>=0){
+      $('ib-stage').textContent=STEPS[cur].n+' · '+STEPS[cur].t;
+      $('ib-stagesub').textContent=STEPS[cur].s;
+    }else if(t < STEPS[0].w[0]){
+      $('ib-stage').textContent='—— 靜止 · 待命';
+      $('ib-stagesub').textContent='Δs = 0，馬達不出力，主缸無壓力';
+    }else{
+      $('ib-stage').textContent='—— 鬆開踏板 · 回位';
+      $('ib-stagesub').textContent='馬達反轉，助力元件與輸入桿一起退回，液壓歸零';
+    }
+  }
+
+  /* ---------- 播放 ----------
+     控制列移除後這裡只剩「自動循環」一條路:沒有暫停鈕、沒有倍速、
+     沒有進度條,所以 scrub / clock / btn 與 SPEEDS 全部刪除。
+     speed 這個變數留著(固定 1),它仍然是 frame() 推進 t 的係數。 */
+  var t=0, playing=true, speed=1, last=0;
+
+  function setT(v){ t=(v%1+1)%1; render(t); }
+  function pause(){ playing=false; }
+
+  function frame(now){
+    if(playing){
+      if(last) t=(t+(now-last)/PERIOD*speed)%1;
+      last=now;
+      render(t);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // 使用者設了「減少動態效果」就不要自動播,但圖還是要畫出來。
+  // ★ 沒有控制列之後,這條路徑等於「永遠停在 0.60 這一格」——
+  //    那一格是液壓已經建立、Δs 看得到的狀態,單張看也讀得懂,
+  //    所以刻意不是停在 0。
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    pause(); setT(0.60);
+  } else { render(0); }
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>

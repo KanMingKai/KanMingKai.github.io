@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>車用軟體 Model-Based Design 流程 — 兩個客戶專案在 V 模型上的落點</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/nav.css">
+<style>
+/* ============================================================
+   車用軟體 Model-Based Design 流程
+   兩個客戶專案在 V 模型上的落點
+   ------------------------------------------------------------
+   class 一律 .vm- 前綴;顏色一律 var(--token, #fallback)。
+
+   ★ 這張圖刻意「不畫成一個專案跑完整條 V」。
+     核對過兩個資料夾的實際內容:
+       聯華聚能 BMS  有 SRS / SDD / DD / IO Mapping / Requirement Matrix
+                     沒有 Check List、沒有 DD_Global
+       華創 EMS      有 Model / DD_Global / Check List / 命名與單位規則
+                     沒有 SRS、沒有 SDD
+     所以 V 是「參考流程」,兩案各自覆蓋其中一段,合起來才完整。
+     把兩案混成一條完整的 V 會是假的,而且車用軟體主管一問交付物
+     就會穿幫 —— 分得清哪個交付物屬於哪個案子,本身才是專業訊號。
+
+   ★ 版面關鍵:方塊「騎」在斜線上,所以交付物文字一律放在 V 的外側
+     (左臂靠左、右臂靠右)。放在方塊下方會被斜線穿過去,那是這種
+     圖最常見的破圖方式。
+
+   ★ 兩條水平虛線不是裝飾,是 V 模型的核心語意:同一層的開發階段與
+     驗證階段必須互相對應。SRS ←→ 需求追溯、SDD ←→ 模型檢核。
+     所以追溯線畫在 SRS 那一層,不是「從底部繞回來」。
+   ============================================================ */
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:var(--sans,-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif);
+  background:var(--bg,#fff);color:var(--ink,#1d1d1f);line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+.vm{max-width:1180px;margin:0 auto;padding:28px 22px 40px}
+.vm-head,.vm-legend,.vm-cap,.vm-foot{max-width:1020px;margin-left:auto;margin-right:auto}
+
+.vm-head{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:16px}
+.vm-h1{font-size:clamp(22px,3vw,30px);font-weight:900;letter-spacing:-.02em}
+.vm-sub{font-size:clamp(12.5px,1.5vw,15px);color:var(--ink-2,#6e6e73);font-weight:600;
+  padding-left:18px;border-left:1.5px solid var(--line,#d2d2d7)}
+
+/* ---------- 圖例＝篩選器 ---------- */
+.vm-legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;align-items:center}
+.vm-chip{
+  display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:700;
+  border:1px solid var(--line,#d2d2d7);background:#fff;border-radius:999px;
+  padding:7px 14px;cursor:pointer;font-family:inherit;color:var(--ink,#1d1d1f);
+  transition:border-color .2s ease,background .2s ease;
+}
+.vm-chip:hover,.vm-chip:focus-visible{border-color:var(--ink-3,#86868b);background:var(--bg-alt,#f5f5f7)}
+.vm-chip.on{border-color:currentColor}
+.vm-chip i{width:9px;height:9px;border-radius:2px;flex:none}
+.vm-chip--bms{color:var(--blue,#0071e3)} .vm-chip--bms i{background:var(--blue,#0071e3)}
+.vm-chip--ems{color:#0e7c9a}             .vm-chip--ems i{background:#0e7c9a}
+.vm-chip span{color:var(--ink-3,#86868b);font-weight:600;font-size:11.5px}
+.vm-hintt{font-size:11.5px;color:var(--ink-3,#86868b);margin-left:4px}
+
+/* ---------- 圖 ---------- */
+.vm-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line,#d2d2d7);
+  border-radius:16px;background:#fcfcfd;max-width:1020px;margin:0 auto}
+.vm-scroll::-webkit-scrollbar{height:6px}
+.vm-scroll::-webkit-scrollbar-thumb{background:var(--line,#d2d2d7);border-radius:3px}
+.vm-svg{width:100%;min-width:800px;height:auto;display:block}
+.vm-svg text{font-family:var(--sans,-apple-system,"Noto Sans TC",sans-serif)}
+.vm-svg .m{font-family:var(--mono,ui-monospace,monospace)}
+.vm-svg [data-p]{transition:opacity .22s ease}
+.vm-hint{display:none;text-align:center;font-size:11px;color:var(--ink-3,#86868b);
+  margin-top:8px;font-family:var(--mono,monospace)}
+
+.vm-cap{display:flex;align-items:center;gap:14px;margin-top:14px;min-height:26px}
+.vm-dots{display:flex;gap:6px;flex:none}
+.vm-dots b{width:6px;height:6px;border-radius:50%;background:var(--line,#d2d2d7);transition:background .3s ease}
+.vm-dots b.on{background:var(--blue,#0071e3)}
+.vm-cap-t{font-size:13.5px;color:var(--ink-2,#6e6e73);font-weight:600;transition:opacity .3s ease}
+.vm-replay{margin-left:auto;flex:none;font-size:12.5px;color:var(--blue,#0071e3);font-weight:700;
+  background:none;border:0;cursor:pointer;padding:4px 2px;font-family:inherit}
+.vm-replay:hover{color:var(--blue-d,#0066cc);text-decoration:underline}
+
+.vm-foot{margin-top:16px;font-size:12px;color:var(--ink-3,#86868b);line-height:1.75}
+.vm-foot code{font-family:var(--mono,monospace);font-size:11.5px;color:var(--ink-2,#6e6e73)}
+.vm-foot b{color:var(--ink-2,#6e6e73)}
+.vm-src{margin-top:10px;padding-top:10px;border-top:1px solid var(--line,#d2d2d7);font-size:11.5px}
+
+@media(max-width:680px){
+  .vm{padding:20px 14px 30px}
+  .vm-sub{padding-left:0;border-left:0;border-top:1px solid var(--line,#d2d2d7);padding-top:8px;width:100%}
+  .vm-hint{display:block}
+}
+@media(prefers-reduced-motion:reduce){ .vm-cap-t,.vm-dots b,.vm-svg [data-p]{transition:none} }
+</style>
+</head>
+<body>
+
+<nav class="pnav">
+  <div class="in">
+    <a href="../home/index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
+    <div class="tabs">
+      <a class="tab-l" href="../home/index.html">履歷</a>
+      <a class="tab-l" href="../lfs_page/lfs01.html">感知融合經驗</a>
+      <a class="tab-l" href="../trj_page/01_trj_page.html">軌跡規劃經驗</a>
+      <a class="tab-l" href="../dash_page/01_dash_page.html">AMR系統整合</a>
+      <span class="tab-l cur">電子煞車</span>
+    </div>
+  </div>
+</nav>
+
+<div class="vm">
+
+  <div class="vm-head">
+    <div class="vm-h1">需求 → 設計 → 模型 → 檢核 → 回溯</div>
+    <div class="vm-sub">兩個車廠級客戶專案,在同一條 V 模型流程上的實際落點</div>
+  </div>
+
+  <div class="vm-legend">
+    <button class="vm-chip vm-chip--bms" data-proj="bms" type="button">
+      <i></i>聯華聚能 BMS<span>2018.01–05 · 覆蓋 ①–⑤ + 追溯</span>
+    </button>
+    <button class="vm-chip vm-chip--ems" data-proj="ems" type="button">
+      <i></i>華創車電 EMS<span>2018.04–08 · 覆蓋 ④–⑥</span>
+    </button>
+    <span class="vm-hintt">滑過或點選以檢視單一專案的覆蓋範圍</span>
+  </div>
+
+  <div class="vm-scroll">
+  <!-- ============================================================
+       方塊中心座標（斜率固定 Δx=±38 / Δy=90，四個方塊必然共線）
+         左臂 ① (340,124) ② (378,214) ③ (416,304) ④ (454,394)
+         底部 ⑤ (540,500)  w=200
+         右臂 ⑥ (652,304) ⑦ (690,214)
+       兩條水平對應線：y=304（SDD↔模型檢核）、y=214（需求追溯→SRS）
+       ============================================================ -->
+  <svg class="vm-svg" id="vm-svg" viewBox="0 0 1020 700" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="V 模型流程圖。左臂由上而下為上層功能需求、軟體需求規格、軟體設計說明、模型實作,底部為資料字典與 IO Mapping,右臂由下而上為模型檢核與需求追溯。聯華聚能 BMS 專案覆蓋左臂全部階段與需求追溯,華創車電 EMS 專案覆蓋模型實作、資料字典與模型檢核。">
+    <title>兩個客戶專案在 V 模型上的落點</title>
+    <desc>V 模型左臂為開發、右臂為驗證,同層互相對應;需求追溯以虛線回連至軟體需求規格。</desc>
+
+    <defs>
+      <marker id="vm-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="var(--blue,#0071e3)"/>
+      </marker>
+      <clipPath id="vm-clipT"><rect id="vm-rT" x="615" y="196" width="0" height="36"/></clipPath>
+      <clipPath id="vm-clipC"><rect id="vm-rC" x="491" y="286" width="0" height="36"/></clipPath>
+    </defs>
+
+    <!-- ---------- V 骨架 ---------- -->
+    <path id="vm-armL" d="M330.7,102 L489.4,478" fill="none" stroke="var(--line,#d2d2d7)" stroke-width="1.6"/>
+    <path id="vm-armR" d="M699.3,192 L578.5,478" fill="none" stroke="var(--line,#d2d2d7)" stroke-width="1.6"/>
+    <g id="vm-armlab" opacity="0">
+      <text x="196" y="96" font-size="11.5" font-weight="700" fill="var(--ink-3,#86868b)">左臂 · 開發</text>
+      <text x="824" y="186" font-size="11.5" font-weight="700" text-anchor="end" fill="var(--ink-3,#86868b)">右臂 · 驗證</text>
+    </g>
+
+    <!-- ---------- 水平對應線 ---------- -->
+    <g clip-path="url(#vm-clipC)">
+      <line x1="491" y1="304" x2="577" y2="304" stroke="var(--ink-3,#86868b)" stroke-width="1.2" stroke-dasharray="4 4"/>
+    </g>
+    <text id="vm-clab" x="534" y="296" font-size="9" text-anchor="middle" opacity="0" fill="var(--ink-3,#86868b)">驗證對應</text>
+
+    <g clip-path="url(#vm-clipT)">
+      <line x1="615" y1="214" x2="459" y2="214" stroke="var(--blue,#0071e3)" stroke-width="1.4"
+            stroke-dasharray="5 4" marker-end="url(#vm-ar)"/>
+    </g>
+    <text class="m" id="vm-tlab" x="537" y="206" font-size="9.5" font-weight="700" text-anchor="middle"
+          opacity="0" fill="var(--blue,#0071e3)">Traceability</text>
+
+    <!-- ---------- 階段方塊 ----------
+         每組結構固定：色條 → 方塊 → 編號 → 標題 → mono 代號 → 兩行交付物
+         交付物一律在 V 的外側，避免被斜線穿過 -->
+
+    <!-- ① 上層功能需求 -->
+    <g class="vm-st" id="vm-s1" opacity="0">
+      <rect x="265" y="102" width="150" height="44" rx="8" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.3"/>
+      <rect data-p="bms" x="265" y="102" width="5" height="44" fill="var(--blue,#0071e3)"/>
+      <circle cx="284" cy="124" r="10.5" fill="var(--ink,#1d1d1f)"/>
+      <text x="284" y="128" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">1</text>
+      <text x="302" y="129" font-size="11.5" font-weight="700" fill="var(--ink,#1d1d1f)">上層功能需求</text>
+      <text class="m" x="403" y="128" font-size="8.5" text-anchor="end" fill="var(--ink-3,#86868b)">BPRS</text>
+      <g class="vm-dl">
+        <circle data-p="bms" cx="257" cy="115" r="2.6" fill="var(--blue,#0071e3)"/>
+        <text data-p="bms" class="m" x="247" y="118" font-size="9.5" text-anchor="end" fill="var(--ink-2,#6e6e73)">BMS 功能需求管理文件 BPRS_V0.3</text>
+        <circle data-p="bms" cx="257" cy="133" r="2.6" fill="var(--blue,#0071e3)"/>
+        <text data-p="bms" class="m" x="247" y="136" font-size="9.5" text-anchor="end" fill="var(--ink-2,#6e6e73)">北科 BMS_SWRM_V0.3</text>
+      </g>
+    </g>
+
+    <!-- ② 軟體需求規格 -->
+    <g class="vm-st" id="vm-s2" opacity="0">
+      <rect id="vm-s2box" x="303" y="192" width="150" height="44" rx="8" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.3"/>
+      <rect data-p="bms" x="303" y="192" width="5" height="44" fill="var(--blue,#0071e3)"/>
+      <circle cx="322" cy="214" r="10.5" fill="var(--ink,#1d1d1f)"/>
+      <text x="322" y="218" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">2</text>
+      <text x="340" y="219" font-size="11.5" font-weight="700" fill="var(--ink,#1d1d1f)">軟體需求規格</text>
+      <text class="m" x="441" y="218" font-size="8.5" text-anchor="end" fill="var(--ink-3,#86868b)">SRS</text>
+      <g class="vm-dl">
+        <circle data-p="bms" cx="295" cy="205" r="2.6" fill="var(--blue,#0071e3)"/>
+        <text data-p="bms" class="m" x="285" y="208" font-size="9.5" text-anchor="end" fill="var(--ink-2,#6e6e73)">BMS_SRS_HVM.docx / BMS_SRS_DHM.docx</text>
+        <circle data-p="bms" cx="295" cy="223" r="2.6" fill="var(--blue,#0071e3)"/>
+        <text data-p="bms" class="m" x="285" y="226" font-size="9.5" text-anchor="end" fill="var(--ink-2,#6e6e73)">需求編號格式 BCU_SRS_CSM_YYY</text>
+      </g>
+    </g>
+
+    <!-- ③ 軟體設計說明 -->
+    <g class="vm-st" id="vm-s3" opacity="0">
+      <rect x="341" y="282" width="150" height="44" rx="8" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.3"/>
+      <rect data-p="bms" x="341" y="282" width="5" height="44" fill="var(--blue,#0071e3)"/>
+      <circle cx="360" cy="304" r="10.5" fill="var(--ink,#1d1d1f)"/>
+      <text x="360" y="308" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">3</text>
+      <text x="378" y="309" font-size="11.5" font-weight="700" fill="var(--ink,#1d1d1f)">軟體設計說明</text>
+      <text class="m" x="479" y="308" font-size="8.5" text-anchor="end" fill="var(--ink-3,#86868b)">SDD</text>
+      <g class="vm-dl">
+        <circle data-p="bms" cx="333" cy="295" r="2.6" fill="var(--blue,#0071e3)"/>
+        <text data-p="bms" class="m" x="323" y="298" font-size="9.5" text-anchor="end" fill="var(--ink-2,#6e6e73)">BMS_SDD_HVM.docx / BMS_SDD_DHM.docx</text>
+        <circle data-p="bms" cx="333" cy="313" r="2.6" fill="var(--blue,#0071e3)"/>
+        <text data-p="bms" x="323" y="316" font-size="9.5" text-anchor="end" fill="var(--ink-2,#6e6e73)">HVM 上下電時序 · DHM 故障分級處理</text>
+      </g>
+    </g>
+
+    <!-- ④ 模型實作 -->
+    <g class="vm-st" id="vm-s4" opacity="0">
+      <rect x="379" y="372" width="150" height="44" rx="8" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.3"/>
+      <rect data-p="bms" x="379" y="372" width="5" height="22" fill="var(--blue,#0071e3)"/>
+      <rect data-p="ems" x="379" y="394" width="5" height="22" fill="#0e7c9a"/>
+      <circle cx="398" cy="394" r="10.5" fill="var(--ink,#1d1d1f)"/>
+      <text x="398" y="398" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">4</text>
+      <text x="416" y="399" font-size="11.5" font-weight="700" fill="var(--ink,#1d1d1f)">模型實作</text>
+      <text class="m" x="517" y="398" font-size="8.5" text-anchor="end" fill="var(--ink-3,#86868b)">MAAB</text>
+      <g class="vm-dl">
+        <circle data-p="bms" cx="371" cy="385" r="2.6" fill="var(--blue,#0071e3)"/>
+        <text data-p="bms" x="361" y="388" font-size="9.5" text-anchor="end" fill="var(--ink-2,#6e6e73)">HVM / DHM — Simulink，兩車型共用架構</text>
+        <circle data-p="ems" cx="371" cy="403" r="2.6" fill="#0e7c9a"/>
+        <text data-p="ems" class="m" x="361" y="406" font-size="9.5" text-anchor="end" fill="var(--ink-2,#6e6e73)">EXHSExhdm · ETRQSSpdctl — .mdl → .slx</text>
+      </g>
+    </g>
+
+    <!-- ⑤ 資料字典（V 底，兩案共同覆蓋） -->
+    <g class="vm-st" id="vm-s5" opacity="0">
+      <rect x="440" y="478" width="200" height="44" rx="8" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.3"/>
+      <rect data-p="bms" x="440" y="478" width="5" height="22" fill="var(--blue,#0071e3)"/>
+      <rect data-p="ems" x="440" y="500" width="5" height="22" fill="#0e7c9a"/>
+      <circle cx="459" cy="500" r="10.5" fill="var(--ink,#1d1d1f)"/>
+      <text x="459" y="504" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">5</text>
+      <text x="477" y="505" font-size="11.5" font-weight="700" fill="var(--ink,#1d1d1f)">資料字典 · IO Mapping</text>
+      <g class="vm-dl">
+        <circle data-p="bms" cx="404" cy="541" r="2.6" fill="var(--blue,#0071e3)"/>
+        <text data-p="bms" class="m" x="414" y="544" font-size="9.5" fill="var(--ink-2,#6e6e73)">BMS_DD_HVM / DHM · BMS_IOIF IO Name Mapping</text>
+        <circle data-p="ems" cx="404" cy="559" r="2.6" fill="#0e7c9a"/>
+        <text data-p="ems" class="m" x="414" y="562" font-size="9.5" fill="var(--ink-2,#6e6e73)">DD_Global / DD_GlobalH · 單位與命名縮寫表</text>
+      </g>
+    </g>
+
+    <!-- ⑥ 模型檢核 -->
+    <g class="vm-st" id="vm-s6" opacity="0">
+      <rect x="577" y="282" width="150" height="44" rx="8" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.3"/>
+      <rect data-p="ems" x="577" y="282" width="5" height="44" fill="#0e7c9a"/>
+      <circle cx="596" cy="304" r="10.5" fill="var(--ink,#1d1d1f)"/>
+      <text x="596" y="308" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">6</text>
+      <text x="614" y="309" font-size="11.5" font-weight="700" fill="var(--ink,#1d1d1f)">模型檢核</text>
+      <text class="m" x="715" y="308" font-size="8.5" text-anchor="end" fill="var(--ink-3,#86868b)">Check List</text>
+      <g class="vm-dl">
+        <circle data-p="ems" cx="735" cy="295" r="2.6" fill="#0e7c9a"/>
+        <text data-p="ems" class="m" x="745" y="298" font-size="9.5" fill="var(--ink-2,#6e6e73)">EMS_Model_Check_List.xlsx — 逐項驗收</text>
+        <circle data-p="ems" cx="735" cy="313" r="2.6" fill="#0e7c9a"/>
+        <text data-p="ems" class="m" x="745" y="316" font-size="9.5" fill="var(--ink-2,#6e6e73)">tryauto.m — 自動化檢查腳本</text>
+      </g>
+    </g>
+
+    <!-- ⑦ 需求追溯 -->
+    <g class="vm-st" id="vm-s7" opacity="0">
+      <rect x="615" y="192" width="150" height="44" rx="8" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.3"/>
+      <rect data-p="bms" x="615" y="192" width="5" height="44" fill="var(--blue,#0071e3)"/>
+      <circle cx="634" cy="214" r="10.5" fill="var(--ink,#1d1d1f)"/>
+      <text x="634" y="218" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">7</text>
+      <text x="652" y="219" font-size="11.5" font-weight="700" fill="var(--ink,#1d1d1f)">需求追溯</text>
+      <text class="m" x="753" y="218" font-size="8.5" text-anchor="end" fill="var(--ink-3,#86868b)">Matrix</text>
+      <g class="vm-dl">
+        <circle data-p="bms" cx="773" cy="205" r="2.6" fill="var(--blue,#0071e3)"/>
+        <text data-p="bms" class="m" x="783" y="208" font-size="9.5" fill="var(--ink-2,#6e6e73)">SRS Appendix B — Requirement Matrix</text>
+        <circle data-p="bms" cx="773" cy="223" r="2.6" fill="var(--blue,#0071e3)"/>
+        <text data-p="bms" x="783" y="226" font-size="9.5" fill="var(--ink-2,#6e6e73)">每條需求編號可回溯至來源條目</text>
+      </g>
+    </g>
+
+    <!-- ---------- 覆蓋範圍與結論 ---------- -->
+    <g id="vm-cards" opacity="0">
+      <rect x="60" y="596" width="452" height="76" rx="12" fill="var(--bg-alt,#f5f5f7)" stroke="var(--line,#d2d2d7)" stroke-width="1"/>
+      <text x="80" y="622" font-size="12.5" font-weight="800" fill="var(--ink,#1d1d1f)">兩案合計覆蓋 ①–⑦ 全流程</text>
+      <text x="80" y="642" font-size="11.5" fill="var(--ink-2,#6e6e73)">2 家車廠級客戶 · MAAB 建模規範 · 需求可追溯</text>
+      <text x="80" y="660" font-size="11" fill="var(--ink-3,#86868b)">單一專案各覆蓋其中一段，非同一案跑完整條 V</text>
+
+      <rect x="536" y="596" width="424" height="76" rx="12" fill="#fff" stroke="var(--line,#d2d2d7)" stroke-width="1"/>
+      <rect x="536" y="596" width="5" height="76" rx="2.5" fill="var(--blue,#0071e3)"/>
+      <text x="558" y="620" font-size="11.5" font-weight="700" fill="var(--blue,#0071e3)">聯華聚能 BMS</text>
+      <text class="m" x="944" y="620" font-size="10" text-anchor="end" fill="var(--ink-3,#86868b)">① ② ③ ④ ⑤ ⑦</text>
+      <line x1="558" y1="632" x2="944" y2="632" stroke="var(--line,#d2d2d7)" stroke-width="1"/>
+      <text x="558" y="652" font-size="11.5" font-weight="700" fill="#0e7c9a">華創車電 EMS</text>
+      <text class="m" x="944" y="652" font-size="10" text-anchor="end" fill="var(--ink-3,#86868b)">④ ⑤ ⑥</text>
+      <text x="558" y="666" font-size="10" fill="var(--ink-3,#86868b)">EMS 為既有模型的規範化重構，故無 ①–③；BMS 無 ⑥</text>
+    </g>
+  </svg>
+  </div>
+  <div class="vm-hint">← 左右滑動可看完整圖 →</div>
+
+  <div class="vm-cap">
+    <span class="vm-dots" id="vm-dots"><b></b><b></b><b></b><b></b><b></b></span>
+    <span class="vm-cap-t" id="vm-cap">V 模型:左臂開發、右臂驗證,同一層彼此對應</span>
+    <button class="vm-replay" id="vm-replay" type="button">重播 ↻</button>
+  </div>
+
+  <div class="vm-foot">
+    <b>這張圖要說的事。</b>
+    不是演算法,是流程紀律:需求怎麼展開成設計、設計怎麼落成符合規範的模型、模型怎麼被逐項檢核、以及檢核結果怎麼連得回最初的需求條目。<code>BCU_SRS_CSM_YYY</code> 這種編號格式存在的唯一理由,就是讓最後一步做得到。<br>
+
+    <b>為什麼不畫成一個專案跑完整條 V。</b>
+    核對兩個專案的實際交付物後:聯華聚能 BMS 有 SRS、SDD、資料字典、IO Name Mapping 與 SRS 附錄 B 的 Requirement Matrix,<b>但沒有 Model Check List</b>;華創車電 EMS 有模型、全域資料字典、命名與單位規則與 <code>EMS_Model_Check_List.xlsx</code>,<b>但沒有 SRS 與 SDD</b>（該案是既有模型的規範化重構,需求由客戶端持有）。
+    因此圖上的 V 是<b>參考流程</b>,兩案各自覆蓋一段,合起來才完整 —— 把兩案混成一條完整的 V 並不誠實,而且一問交付物就會穿幫。<br>
+
+    <b>關於水平虛線。</b>
+    V 模型的核心語意是「同一層的開發階段與驗證階段互相對應」,所以追溯線畫在 SRS 那一層（⑦ → ②）,而不是從圖的底部繞回來;<code>驗證對應</code> 那條則對應 SDD ↔ 模型檢核。<br>
+
+    <b>此處未涵蓋。</b>
+    本圖只描述已執行的流程與交付物,<b>不代表通過任何功能安全或流程評鑑</b>。兩個專案的資料中均未見 ISO 26262 或 ASPICE 相關文件,故不宣稱相關等級或評鑑結果。單元測試、整合測試、程式碼產生與在環測試（MIL/SIL/HIL）亦不在本圖範圍。
+    <div class="vm-src">
+      資料來源:<code>聯華聚能/</code>（BMS_SRS_HVM、BMS_SRS_DHM、BMS_SDD_*、BMS_DD_*、BMS_IOIF_EV_IO Name MappingV0.0.xlsm）與 <code>華創_MAAB程式優化計畫/華創/</code>（EMS_Model_Check_List.xlsx、DD_Global、模型縮寫.xlsx、Abbreviation of commonly used units.xlsx）。
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var $=function(id){return document.getElementById(id);};
+  var svg=$('vm-svg'); if(!svg) return;
+
+  /* ---- 節奏表(ms) ---- */
+  var B=[
+    {t0:0,    cap:'V 模型:左臂開發、右臂驗證,同一層彼此對應'},
+    {t0:2200, cap:'左臂 —— 從上層需求一路展開到模型與資料字典'},
+    {t0:5600, cap:'右臂 —— 模型逐項檢核,需求逐條回溯'},
+    {t0:7200, cap:'Traceability:驗證結果必須連得回左臂的需求條目'},
+    {t0:9000, cap:'兩案各覆蓋一段,合起來才是完整流程'}
+  ];
+  var T_END=10800;
+  function cl(v){ return v<0?0:(v>1?1:v); }
+  function ease(t){ return t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2; }
+
+  /* 骨架用 dashoffset 畫出來(兩條都是實線,不會和虛線樣式打架) */
+  ['vm-armL','vm-armR'].forEach(function(id){
+    var el=$(id); el.__L=el.getTotalLength();
+    el.style.strokeDasharray=el.__L; el.style.strokeDashoffset=el.__L;
+  });
+  function drawArm(id,p){ var el=$(id); el.style.strokeDashoffset=el.__L*(1-cl(p)); }
+
+  /* 交付物文字進場：只做 8px 位移，不縮放、不彈跳 —— 這張圖要像正式文件 */
+  var dls=svg.querySelectorAll('.vm-dl');
+  var STAGE=['vm-s1','vm-s2','vm-s3','vm-s4','vm-s5','vm-s6','vm-s7'];
+  // 左臂由上而下 ①→⑤，右臂由下而上 ⑥→⑦
+  var ORDER=[0,1,2,3,4,5,6];
+  var dots=$('vm-dots').children, capEl=$('vm-cap'), curBeat=-1;
+
+  function render(T){
+    /* beat 1 — 骨架 */
+    drawArm('vm-armL', ease(cl(T/1100)));
+    drawArm('vm-armR', ease(cl((T-1100)/900)));
+    $('vm-armlab').setAttribute('opacity', cl((T-1700)/500));
+
+    /* beat 2 / 3 — 階段依序亮起。
+       左臂 ①–⑤ 每 600ms 一階，右臂 ⑥–⑦ 在 beat 3 起每 700ms 一階 */
+    for(var i=0;i<STAGE.length;i++){
+      var t0 = (i<5) ? (B[1].t0 + i*600) : (B[2].t0 + (i-5)*700);
+      var p = cl((T-t0)/420);
+      var g = $(STAGE[i]);
+      g.setAttribute('opacity', p);
+      var dl = g.querySelector('.vm-dl');
+      if(dl){
+        var q = ease(cl((T-t0-160)/420));
+        // 左臂交付物在左側 → 由左滑入；右臂在右側 → 由右滑入
+        var dir = (i===4) ? 1 : (i<5 ? -1 : 1);
+        dl.setAttribute('transform','translate('+(dir*8*(1-q)).toFixed(2)+',0)');
+        dl.setAttribute('opacity', q);
+      }
+    }
+
+    /* beat 4 — 對應線與追溯線 */
+    $('vm-rC').setAttribute('width', (86*ease(cl((T-B[3].t0)/600))).toFixed(1));
+    $('vm-clab').setAttribute('opacity', cl((T-B[3].t0-400)/400));
+    // 追溯線由右往左長出來：矩形右緣固定在 615，左緣往 453 推
+    var w = 162*ease(cl((T-B[3].t0-600)/900));
+    $('vm-rT').setAttribute('x', (615-w).toFixed(1));
+    $('vm-rT').setAttribute('width', w.toFixed(1));
+    $('vm-tlab').setAttribute('opacity', cl((T-B[3].t0-900)/400));
+    // 箭頭抵達 SRS 時，方塊描邊脈衝一次（單次、不重複，不搶戲）
+    var fl = cl((T-B[3].t0-1500)/700);
+    var pulse = fl>0 && fl<1 ? Math.sin(fl*Math.PI) : 0;
+    var box=$('vm-s2box');
+    box.setAttribute('stroke', pulse>0.05 ? 'var(--blue,#0071e3)' : 'var(--ink,#1d1d1f)');
+    box.setAttribute('stroke-width', (1.3+1.1*pulse).toFixed(2));
+
+    /* beat 5 — 覆蓋範圍與結論 */
+    $('vm-cards').setAttribute('opacity', cl((T-B[4].t0)/600));
+
+    /* 節奏列 */
+    var b=0; for(var k=0;k<B.length;k++){ if(T>=B[k].t0) b=k; }
+    if(b!==curBeat){
+      curBeat=b;
+      capEl.style.opacity=0;
+      setTimeout(function(){ capEl.textContent=B[b].cap; capEl.style.opacity=1; },160);
+      for(var j=0;j<dots.length;j++){ dots[j].className=(j<=b?'on':''); }
+    }
+  }
+
+  /* ---- 圖例篩選:滑過看單一專案的覆蓋範圍 ---- */
+  var marks=svg.querySelectorAll('[data-p]');
+  var locked=null;
+  function highlight(p){
+    for(var i=0;i<marks.length;i++){
+      var dp=marks[i].getAttribute('data-p');
+      marks[i].setAttribute('opacity', (!p || dp===p) ? 1 : 0.15);
+    }
+    // 整個階段方塊也一起淡出，否則只有色條變化太不明顯
+    var own={ 'vm-s1':'bms','vm-s2':'bms','vm-s3':'bms','vm-s4':null,
+              'vm-s5':null,'vm-s6':'ems','vm-s7':'bms' };
+    STAGE.forEach(function(id){
+      var o=own[id];
+      $(id).setAttribute('opacity', (!p || o===null || o===p) ? 1 : 0.3);
+    });
+  }
+  var chips=document.querySelectorAll('.vm-chip');
+  for(var c=0;c<chips.length;c++){
+    (function(chip){
+      var p=chip.getAttribute('data-proj');
+      chip.addEventListener('mouseenter', function(){ if(!locked) highlight(p); });
+      chip.addEventListener('mouseleave', function(){ if(!locked) highlight(null); });
+      chip.addEventListener('focus',      function(){ if(!locked) highlight(p); });
+      chip.addEventListener('blur',       function(){ if(!locked) highlight(null); });
+      chip.addEventListener('click', function(){
+        locked = (locked===p) ? null : p;
+        for(var k=0;k<chips.length;k++){ chips[k].className=chips[k].className.replace(' on',''); }
+        if(locked){ chip.className+=' on'; }
+        highlight(locked);
+      });
+    })(chips[c]);
+  }
+
+  /* ---- 播放控制 ---- */
+  var raf=null,t0=0;
+  function stop(){ if(raf){ cancelAnimationFrame(raf); raf=null; } }
+  function tick(ts){
+    if(!t0) t0=ts;
+    var T=ts-t0;
+    render(Math.min(T,T_END));
+    if(T<T_END){ raf=requestAnimationFrame(tick); } else { raf=null; }
+  }
+  function play(){ stop(); t0=0; raf=requestAnimationFrame(tick); }
+
+  var reduce=window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){
+    render(T_END);
+  }else{
+    render(0);
+    if('IntersectionObserver' in window){
+      var io=new IntersectionObserver(function(es){
+        es.forEach(function(e){ if(e.isIntersecting){ play(); io.disconnect(); } });
+      },{threshold:0.3});
+      io.observe(svg);
+    }else{ play(); }
+  }
+  $('vm-replay').addEventListener('click', function(){
+    if(reduce){ render(T_END); return; }
+    curBeat=-1; play(); locked=null;
+    for(var k=0;k<chips.length;k++){ chips[k].className=chips[k].className.replace(' on',''); }
+  });
+})();
+</script>
+
+</body>
+</html>

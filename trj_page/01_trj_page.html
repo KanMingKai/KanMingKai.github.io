@@ -390,9 +390,10 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
     <a href="../home/index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
     <div class="tabs">
       <a class="tab-l" href="../home/index.html">履歷</a>
-      <a class="tab-l" href="../lfs_page/lfs01.html">LFS 車道融合</a>
-      <span class="tab-l cur">TRJ 軌跡規劃</span>
-      <a class="tab-l" href="../dash_page/01_dash_page.html">架構儀表板</a>
+      <a class="tab-l" href="../lfs_page/lfs01.html">感知融合經驗</a>
+      <span class="tab-l cur">軌跡規劃經驗</span>
+      <a class="tab-l" href="../dash_page/01_dash_page.html">AMR系統整合</a>
+      <a class="tab-l" href="../ibooster_page/01_ibooster.html">電子煞車</a>
     </div>
   </div>
 </nav>
@@ -627,7 +628,9 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
             <th class="k">運算量</th>
             <td class="dim" data-m="MPPI"><div>
               <div class="lv">&gt;100%</div>
-              <span class="why">上千次 rollout，單週期算不完</span>
+              <!-- TC397 三個字從註腳搬進格子裡:註腳有 900 字,沒人會讀到那裡,
+                   而少了基準,「>100%」在任何有 GPU 的場域都會被直接反駁 -->
+              <span class="why">上千次 rollout，TC397 單週期算不完</span>
             </div></td>
             <td data-m="S-L"><div>
               <div class="lv lv--a">100%</div>
