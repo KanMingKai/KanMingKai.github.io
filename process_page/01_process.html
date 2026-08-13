@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>車規開發流程 — V 模型 · ISO 26262 · ASPICE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/nav.css">
+<style>
+/* ============================================================
+   車規開發流程 — V 模型 / ISO 26262 / ASPICE
+   ------------------------------------------------------------
+   這頁存在的理由:流程能力原本散在四段經歷裡(履歷頁兩則、LFS 頁
+   最後一節、iBooster 章節的 04_vmodel),招募方要看「你到底跑過
+   整條 V 沒有」時得自己拼。這頁把它們收在同一條 V 上。
+
+   ★ 內容規則:本頁不新增任何未在其他頁出現過的事實。
+     每一格都能在 home/index.html、lfs_page/lfs01.html、
+     ibooster_page/04_vmodel.html 裡找到對應敘述 —— 這頁是重新
+     組織,不是重新宣稱。
+
+   ★ 誠實邊界:就學期間那兩個產學案(聯華聚能 BMS、華創 EMS)跑的是
+     車廠 V 模型與 MAAB,資料中未見 ISO 26262 / ASPICE 文件,所以
+     那一欄不掛功能安全等級。這條界線在 04_vmodel.html 已經聲明過,
+     這裡沿用同一條(見 #coverage 的註腳)。
+
+   ★ 樣式:共用 token 見 ../assets/tokens.css,導覽見 ../assets/nav.css。
+     版面 class 沿用其他專案頁的命名(section / .wrap / .unit-*),
+     本頁專屬元件一律 .pv- 前綴。
+   ============================================================ */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:980px;margin:0 auto;padding:0 22px}
+
+.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+/* 章節底色白 / 灰嚴格交錯 —— 章節之間沒有分隔線,底色是唯一的分界。
+   新增章節時記得把後面所有 .band-alt 重新交錯一次。
+   目前:vmodel 白 / coverage 灰 / iso26262 白 / aspice 灰 /
+        artifact 白 / transfer 灰 / close 白 */
+section{padding:clamp(52px,8vw,92px) 0}
+.band-alt{background:var(--bg-alt)}
+.unit{margin:0 auto}
+.unit-head{text-align:center;margin-bottom:32px}
+.unit-tag{font-size:12px;font-weight:700;color:var(--blue);letter-spacing:.06em;margin-bottom:8px}
+.unit-title{font-size:clamp(21px,3vw,30px);font-weight:700;letter-spacing:-.015em;line-height:1.28}
+.unit-lead{font-size:13.5px;color:var(--ink-2);margin-top:14px;max-width:600px;margin-left:auto;margin-right:auto;line-height:1.75}
+.unit-lead b{color:var(--ink)}
+.p-narr{font-size:14.5px;color:var(--ink);line-height:1.85;max-width:640px;margin:0 auto}
+.p-narr b{font-weight:700}
+.gold{font-size:15px;color:var(--ink-2);line-height:1.85;max-width:620px;margin:30px auto 0;text-align:center;font-style:italic}
+.eb{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--blue);text-transform:uppercase;margin:0 0 12px}
+code{font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);border:1px solid #e8e8ec;border-radius:4px;padding:1px 5px;color:var(--ink)}
+.band-alt code{background:#fff}
+
+/* ---------- hero ---------- */
+.pv-hero{padding-top:clamp(34px,5vw,52px);padding-bottom:clamp(34px,5vw,52px)}
+.pv-eyebrow{font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase;margin-bottom:14px}
+.pv-h1{font-size:clamp(25px,4vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.25}
+/* 標題裡那個 <br class="nb"> 只在寬螢幕有意義(把「再把它搬上機器人」推成第二行);
+   窄螢幕本來就會自己換行,留著它會多切出一行只有五個字的孤行。 */
+@media(max-width:640px){.nb{display:none}}
+.pv-lead{font-size:15px;color:var(--ink-2);line-height:1.85;margin-top:18px;max-width:700px}
+.pv-lead b{color:var(--ink);font-weight:600}
+.pv-belief{margin-top:20px;font-size:15px;color:var(--ink);font-weight:600;border-left:3px solid var(--blue);padding-left:14px;line-height:1.7;max-width:640px}
+.pv-stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.pv-chip{border:1px solid var(--line);border-radius:11px;padding:11px 15px;background:#fff}
+.pv-chip .v{font-size:16px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
+.pv-chip .v.m{font-family:var(--mono)}
+.pv-chip .l{font-size:11.5px;color:var(--ink-3);margin-top:3px}
+
+/* ---------- 橫向捲動容器(V 圖與對照表共用) ---------- */
+.pv-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);
+  border-radius:16px;background:#fcfcfd;max-width:980px;margin:0 auto}
+.pv-scroll::-webkit-scrollbar{height:6px}
+.pv-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.pv-hint{display:none;text-align:center;font-size:11px;color:var(--ink-3);margin-top:9px;font-family:var(--mono)}
+@media(max-width:820px){.pv-hint{display:block}}
+
+/* ---------- V 模型圖 ---------- */
+.pv-svg{width:100%;min-width:860px;height:auto;display:block}
+.pv-svg text{font-family:var(--sans)}
+.pv-svg .m{font-family:var(--mono)}
+
+.pv-legend{display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:center;margin-top:16px}
+.pv-lg{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2);font-weight:600}
+.pv-lg i{width:11px;height:11px;border-radius:3px;flex:none}
+.pv-lg i.dev{background:var(--blue)}
+.pv-lg i.ver{background:#0a8a5c}
+.pv-lg i.tr{width:20px;height:0;border-top:1.5px dashed #9a9aa0;border-radius:0}
+
+/* ---------- 對照表(V 落點 / 車用→機器人)---------- */
+.pv-tbl{border-collapse:collapse;width:100%;min-width:900px;background:#fff}
+.pv-tbl th,.pv-tbl td{border:1px solid #e8e8ec;padding:12px 13px;vertical-align:top;text-align:left}
+.pv-tbl thead th{background:var(--bg-alt);font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.45;position:sticky;top:0}
+.pv-tbl thead th span{display:block;font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--ink-3);margin-top:4px;letter-spacing:-.01em}
+.pv-tbl tbody th{width:168px;background:#fcfcfd;font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.5}
+.pv-tbl tbody th span{display:block;font-family:var(--mono);font-size:10px;font-weight:600;color:var(--blue);margin-top:4px}
+.pv-tbl td{font-size:12px;color:var(--ink-2);line-height:1.7}
+.pv-tbl td b{color:var(--ink);font-weight:600}
+.pv-tbl td code{font-size:10.5px}
+/* 「這一段沒做」的格子。破折號用 mono 撐出視覺重量(掃過去一眼看得出是空的),
+   但後面的理由仍用一般字體 —— 理由是要讀的,不是要被跳過的。 */
+.pv-tbl td.none{color:var(--ink-3)}
+.pv-tbl td.none em{font-family:var(--mono);font-style:normal;font-size:14px;color:#c9c9ce;margin-right:8px}
+/* 四欄的欄色:與各段經歷在其他頁的用色一致(履歷深綠不用在這,這裡用亮綠) */
+.pv-tbl thead th.c1{box-shadow:inset 0 -3px 0 #b45309}
+.pv-tbl thead th.c2{box-shadow:inset 0 -3px 0 #0a8a5c}
+.pv-tbl thead th.c3{box-shadow:inset 0 -3px 0 #0071e3}
+.pv-tbl thead th.c4{box-shadow:inset 0 -3px 0 #0e7c9a}
+.pv-note{font-size:11.5px;color:var(--ink-3);line-height:1.8;margin-top:14px;max-width:980px;margin-left:auto;margin-right:auto}
+.pv-note code{font-size:11px;background:transparent;border:0;padding:0;color:var(--ink-2)}
+.pv-note b{color:var(--ink-2)}
+
+/* ---------- 卡片組 ---------- */
+.pv-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:980px;margin:0 auto}
+@media(max-width:860px){.pv-cards{grid-template-columns:1fr}}
+.pv-card{border:1px solid var(--line);border-radius:16px;background:#fff;padding:20px 21px 22px;display:flex;flex-direction:column}
+.pv-card .k{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--blue);text-transform:uppercase}
+.pv-card h4{font-size:15.5px;font-weight:700;color:var(--ink);line-height:1.45;margin-top:9px}
+.pv-card .per{font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--ink-3);margin-top:6px}
+.pv-card ul{list-style:none;margin-top:13px;padding:0}
+.pv-card li{font-size:12.5px;color:var(--ink-2);line-height:1.72;padding-left:14px;position:relative}
+.pv-card li+li{margin-top:7px}
+.pv-card li::before{content:"–";position:absolute;left:0;color:var(--ink-3)}
+.pv-card li b{color:var(--ink);font-weight:600}
+.pv-card .out{color:var(--ink);font-weight:600}
+
+/* ---------- 引述框 ---------- */
+.pv-quote{max-width:720px;margin:clamp(28px,4vw,40px) auto 0;background:#f4f9ff;border:1px solid #d6e6fb;
+  border-radius:16px;padding:22px 24px;display:flex;gap:16px;align-items:flex-start}
+.band-alt .pv-quote{background:#fff;border-color:var(--line)}
+.pv-quote .ic{flex:none;width:34px;height:34px;border-radius:10px;background:#fff;border:1px solid #cfe2fb;
+  display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;font-family:var(--mono);color:var(--blue)}
+.band-alt .pv-quote .ic{background:var(--bg-alt)}
+.pv-quote p{font-size:14.5px;color:#3d4a5c;line-height:1.78}
+.pv-quote p b{font-weight:700;color:var(--ink)}
+
+/* ---------- 交付物清單 ---------- */
+.pv-arts{display:grid;gap:10px;max-width:900px;margin:0 auto}
+.pv-art{display:grid;grid-template-columns:236px 168px 1fr;gap:16px;align-items:baseline;
+  border:1px solid var(--line);border-radius:12px;padding:14px 17px;background:#fff}
+.pv-art .a{font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.45}
+.pv-art .a span{display:block;font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--ink-3);margin-top:3px}
+.pv-art .t{font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--blue)}
+.pv-art .s{font-size:12px;color:var(--ink-2);line-height:1.65}
+@media(max-width:760px){
+  .pv-art{grid-template-columns:1fr;gap:6px}
+  .pv-art .t{font-size:11px}
+}
+
+/* ---------- 遷移對照 ---------- */
+.pv-map{display:grid;gap:9px;max-width:900px;margin:0 auto}
+.pv-row{display:grid;grid-template-columns:1fr 30px 1fr;gap:12px;align-items:center}
+.pv-side{border:1px solid var(--line);border-radius:12px;padding:13px 16px;background:#fff;min-height:100%}
+.pv-side.car{background:#fff}
+.pv-side.bot{background:#f4f9ff;border-color:#d6e6fb}
+.pv-side .h{font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.5}
+.pv-side .d{font-size:11.5px;color:var(--ink-2);line-height:1.65;margin-top:4px}
+.pv-side .d b{color:var(--ink);font-weight:600}
+.pv-arrow{text-align:center;color:#b4b4ba;font-size:15px;font-weight:700}
+.pv-maphead{display:grid;grid-template-columns:1fr 30px 1fr;gap:12px;margin-bottom:4px}
+.pv-maphead div{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--ink-3);text-transform:uppercase;padding:0 4px}
+.pv-maphead div:last-child{color:var(--blue)}
+@media(max-width:720px){
+  .pv-row,.pv-maphead{grid-template-columns:1fr}
+  .pv-arrow{transform:rotate(90deg);font-size:13px}
+  .pv-maphead div:nth-child(2){display:none}
+}
+
+/* ---------- CTA ---------- */
+.pv-cta{padding:clamp(44px,6vw,68px) 0}
+.pv-btns{display:flex;flex-wrap:wrap;gap:11px;justify-content:center}
+.pv-btns a{font-size:13.5px;font-weight:600;text-decoration:none;border-radius:11px;padding:12px 18px;transition:background .2s,border-color .2s,color .2s}
+.pv-btns a.p{background:var(--blue);color:#fff;border:1px solid var(--blue)}
+.pv-btns a.p:hover{background:var(--blue-d);border-color:var(--blue-d)}
+.pv-btns a.s{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.pv-btns a.s:hover{border-color:var(--ink-3)}
+
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<!-- 固定導覽列(六頁共用元件,樣式見 assets/nav.css)-->
+<nav class="pnav">
+  <div class="in">
+    <a href="../home/index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
+    <div class="tabs">
+      <a class="tab-l" href="../home/index.html">履歷</a>
+      <a class="tab-l" href="../lfs_page/lfs01.html">感知融合經驗</a>
+      <a class="tab-l" href="../trj_page/01_trj_page.html">軌跡規劃經驗</a>
+      <a class="tab-l" href="../dash_page/01_dash_page.html">AMR系統整合</a>
+      <a class="tab-l" href="../ibooster_page/01_ibooster.html">底層控制經驗(研究所)</a>
+    </div>
+  </div>
+</nav>
+
+<!-- 章節快速跳轉。data-sec 必須等於對應 <section> 的 id。 -->
+<nav class="chnav" aria-label="章節導覽">
+  <div class="in">
+    <a href="#vmodel"   data-sec="vmodel">那條 V</a>
+    <a href="#coverage" data-sec="coverage">四段落點</a>
+    <a href="#iso26262" data-sec="iso26262">ISO 26262</a>
+    <a href="#aspice"   data-sec="aspice">ASPICE</a>
+    <a href="#artifact" data-sec="artifact">交付物</a>
+    <a href="#transfer" data-sec="transfer">搬上機器人</a>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="pv-hero">
+<div class="wrap">
+  <div class="pv-eyebrow">車規開發流程 · V-Model / ISO 26262 / ASPICE</div>
+  <h1 class="pv-h1">同一條 V 模型，<span class="grad">我從左臂走到右臂，<br class="nb">再把它搬上機器人</span></h1>
+  <p class="pv-lead">
+    2018 年在學校跑車廠客戶的 <b>V 模型左臂</b>(SRS → SDD → 資料字典 → 模型檢核 → 需求追溯);
+    2020 年與 <b>Siemens 依 ISO 26262</b> 共同開發量產車道融合模組,做安全需求、ASIL 分解、FMEA / DFA,
+    追溯鏈以 Polarion 管理;2021 年之後在 MobileDrive 完成 <b>80h ISO 26262 + 40h ASPICE</b> 正式訓練、
+    <b>擔任 ASPICE 供應商稽核</b>,並參與公司通過 <b>DEKRA ISO 26262 ASIL-D</b> 認證;
+    2025 年把同一套流程紀律移植到 <b>ROS 2 機器人團隊</b>。
+    這頁把散在四段經歷裡的流程能力,收回同一條 V 上。
+  </p>
+  <p class="pv-belief">演算法能不能跑，我自己驗得出來；能不能交到別人手上，得照工業標準的規矩走。</p>
+
+  <div class="pv-stats">
+    <div class="pv-chip"><div class="v m">120 小時</div><div class="l">80h ISO 26262 + 40h ASPICE 正式訓練</div></div>
+    <div class="pv-chip"><div class="v">ASIL-D</div><div class="l">參與公司通過 DEKRA 認證</div></div>
+    <div class="pv-chip"><div class="v">稽核方</div><div class="l">擔任 ASPICE 供應商稽核</div></div>
+    <div class="pv-chip"><div class="v m">4 段</div><div class="l">經歷跑過同一條 V · 2018 → 現在</div></div>
+  </div>
+</div>
+</section>
+
+<!-- ===== 1. 那條 V ===== -->
+<section id="vmodel">
+<div class="wrap">
+  <div class="unit">
+    <div class="unit-head">
+      <div class="unit-tag">THE V · 流程全景</div>
+      <div class="unit-title">左臂逐層展開，右臂逐層驗證回去<br>中間那幾條虛線，才是重點</div>
+      <p class="unit-lead">V 模型的核心語意不是「先設計後測試」，而是<b>同一層的開發階段與驗證階段必須互相對應</b>——每一份驗證證據，都要追得回它在證明哪一條需求。下圖是這條 V 的標準結構，方塊上的 <code>SYS.x</code> / <code>SWE.x</code> 是 Automotive SPICE 的製程編號，第二行則是我在該階段實際用過的工具。</p>
+    </div>
+
+    <div class="pv-scroll">
+    <!-- ============================================================
+         幾何:谷底 (510,470),兩臂斜率 m = Δx/Δy = 1.02,四層 y = 70/170/270/370
+           左臂 x = 510 − (470−y)·1.02 → 102 / 204 / 306 / 408
+           右臂 x = 510 + (470−y)·1.02 → 918 / 816 / 714 / 612
+         方塊 w=150,所以第四層兩塊之間剩 54px —— 這是這張圖的幾何下限,
+         再加一層或把方塊加寬,左右臂在谷底就會撞在一起。
+         ★ 交付物文字刻意不畫進 SVG:V 的內側三角形在底層只剩 54px,
+           任何註解放進去都會被斜臂穿過。細節一律交給下一節的表格。
+         ============================================================ -->
+    <svg class="pv-svg" viewBox="0 0 1020 580" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="V 模型流程圖。左臂由上而下為系統需求分析 SYS.2、系統架構設計 SYS.3、軟體需求分析 SWE.1、軟體架構設計 SWE.2,谷底為軟體單元建構 SWE.3 與軟體單元驗證 SWE.4,右臂由下而上為軟體整合測試 SWE.5、軟體合格測試 SWE.6、系統整合測試 SYS.4、系統合格測試 SYS.5。各層之間以雙向虛線表示需求與驗證的逐層追溯。">
+      <title>V 模型 · 開發與驗證逐層對應</title>
+      <desc>左臂為開發階段、右臂為驗證階段,同一層以雙向虛線相連表示追溯關係;底部為貫穿全流程的標準與規範。</desc>
+
+      <!-- 兩條斜臂(方塊之間的縫隙才看得到,所以用淡色寬筆) -->
+      <path d="M102 70 L510 470" fill="none" stroke="#dbe9fb" stroke-width="15" stroke-linecap="round"/>
+      <path d="M510 470 L918 70" fill="none" stroke="#d3f0e2" stroke-width="15" stroke-linecap="round"/>
+
+      <!-- 頂部:兩臂性質 + 追溯工具 -->
+      <text x="102" y="38" font-size="12.5" font-weight="700" fill="#0071e3" text-anchor="middle">開發 · 需求逐層展開</text>
+      <text x="918" y="38" font-size="12.5" font-weight="700" fill="#0a8a5c" text-anchor="middle">驗證 · 逐層驗證回去</text>
+      <rect x="447" y="20" width="126" height="23" rx="11.5" fill="#eef5ff" stroke="#0071e3" stroke-width="1"/>
+      <text class="m" x="510" y="35.5" font-size="10" font-weight="700" fill="#0071e3" text-anchor="middle">Polarion 追溯</text>
+      <text x="510" y="58" font-size="10" fill="#86868b" text-anchor="middle">每一條需求都要追得到它的驗證證據</text>
+
+      <!-- 逐層對應的雙向虛線 -->
+      <g stroke="#9a9aa0" stroke-width="1" fill="none">
+        <line x1="187" y1="70"  x2="833" y2="70"  stroke-dasharray="4 4"/>
+        <line x1="289" y1="170" x2="731" y2="170" stroke-dasharray="4 4"/>
+        <line x1="391" y1="270" x2="629" y2="270" stroke-dasharray="4 4"/>
+        <line x1="493" y1="370" x2="527" y2="370" stroke-dasharray="4 4"/>
+      </g>
+      <g fill="#9a9aa0">
+        <polygon points="179,70 187,66 187,74"/>    <polygon points="841,70 833,66 833,74"/>
+        <polygon points="281,170 289,166 289,174"/> <polygon points="739,170 731,166 731,174"/>
+        <polygon points="383,270 391,266 391,274"/> <polygon points="637,270 629,266 629,274"/>
+        <polygon points="485,370 493,366 493,374"/> <polygon points="535,370 527,366 527,374"/>
+      </g>
+
+      <!-- 左臂:開發 -->
+      <g fill="#0071e3">
+        <rect x="27"  y="47"  width="150" height="46" rx="8"/>
+        <rect x="129" y="147" width="150" height="46" rx="8"/>
+        <rect x="231" y="247" width="150" height="46" rx="8"/>
+        <rect x="333" y="347" width="150" height="46" rx="8"/>
+      </g>
+      <g text-anchor="middle" fill="#fff">
+        <text x="102" y="67"  font-size="12.5" font-weight="700">系統需求分析</text>
+        <text x="204" y="167" font-size="12.5" font-weight="700">系統架構設計</text>
+        <text x="306" y="267" font-size="12.5" font-weight="700">軟體需求分析</text>
+        <text x="408" y="367" font-size="12.5" font-weight="700">軟體架構設計</text>
+      </g>
+      <g class="m" text-anchor="middle" fill="#ffffff" opacity=".82">
+        <text x="102" y="83"  font-size="8.5">SYS.2 · 安全目標</text>
+        <text x="204" y="183" font-size="8.5">SYS.3 · ASIL 分解</text>
+        <text x="306" y="283" font-size="8.5">SWE.1 · SRS</text>
+        <text x="408" y="383" font-size="8.5">SWE.2 · SDD</text>
+      </g>
+
+      <!-- 右臂:驗證 -->
+      <g fill="#0a8a5c">
+        <rect x="843" y="47"  width="150" height="46" rx="8"/>
+        <rect x="741" y="147" width="150" height="46" rx="8"/>
+        <rect x="639" y="247" width="150" height="46" rx="8"/>
+        <rect x="537" y="347" width="150" height="46" rx="8"/>
+      </g>
+      <g text-anchor="middle" fill="#fff">
+        <text x="918" y="67"  font-size="12.5" font-weight="700">系統合格測試</text>
+        <text x="816" y="167" font-size="12.5" font-weight="700">系統整合測試</text>
+        <text x="714" y="267" font-size="12.5" font-weight="700">軟體合格測試</text>
+        <text x="612" y="367" font-size="12.5" font-weight="700">軟體整合測試</text>
+      </g>
+      <g class="m" text-anchor="middle" fill="#ffffff" opacity=".82">
+        <text x="918" y="83"  font-size="8.5">SYS.5 · 實車 FOT</text>
+        <text x="816" y="183" font-size="8.5">SYS.4 · 整車整合</text>
+        <text x="714" y="283" font-size="8.5">SWE.6 · dSPACE HIL</text>
+        <text x="612" y="383" font-size="8.5">SWE.5 · SIL / CIL</text>
+      </g>
+
+      <!-- 谷底:實作與單元驗證。左半藍(仍屬開發)、右半綠(已屬驗證),
+           兩塊之間留 4px 縫,讓「V 的轉折點就在這裡」看得出來 -->
+      <rect x="395" y="446" width="111" height="48" rx="8" fill="#0058b0"/>
+      <rect x="514" y="446" width="111" height="48" rx="8" fill="#0a7a51"/>
+      <g text-anchor="middle" fill="#fff">
+        <text x="450.5" y="467" font-size="12" font-weight="700">軟體單元建構</text>
+        <text x="569.5" y="467" font-size="12" font-weight="700">軟體單元驗證</text>
+      </g>
+      <g class="m" text-anchor="middle" fill="#ffffff" opacity=".82">
+        <text x="450.5" y="483" font-size="8.5">SWE.3 · 實作</text>
+        <text x="569.5" y="483" font-size="8.5">SWE.4 · 單元測試</text>
+      </g>
+
+      <!-- 底部:貫穿全流程的標準與規範 -->
+      <rect x="27" y="518" width="966" height="40" rx="10" fill="#f5f5f7" stroke="#d2d2d7" stroke-width="1"/>
+      <text x="510" y="543" font-size="12" font-weight="600" fill="#6e6e73" text-anchor="middle">貫穿全流程 · ISO 26262 功能安全 &#160;|&#160; ASPICE 流程能力 &#160;|&#160; MAAB 建模規範 &#160;|&#160; 需求雙向可追溯</text>
+    </svg>
+    </div>
+    <div class="pv-hint">← 左右捲動查看完整流程 →</div>
+
+    <div class="pv-legend">
+      <span class="pv-lg"><i class="dev"></i>開發階段(左臂)</span>
+      <span class="pv-lg"><i class="ver"></i>驗證階段(右臂)</span>
+      <span class="pv-lg"><i class="tr"></i>同層對應與雙向追溯</span>
+    </div>
+
+    <p class="pv-note" style="text-align:center;max-width:640px">
+      <code>SYS.x</code> / <code>SWE.x</code> 為 Automotive SPICE 的標準製程編號,用來標示各階段在標準中的位置;
+      第二行的工具與產物名稱,則是我在該階段實際使用或交付過的東西——逐項對應下一節的表格。
+    </p>
+  </div>
+</div>
+</section>
+
+<!-- ===== 2. 四段落點 ===== -->
+<section id="coverage" class="band-alt">
+<div class="wrap">
+  <div class="unit">
+    <div class="unit-head">
+      <div class="unit-tag">COVERAGE · 四段經歷的落點</div>
+      <div class="unit-title">不是「我懂 V 模型」<br>是這一格一格，我到底交出過什麼</div>
+      <p class="unit-lead">同一條 V，四段經歷各自覆蓋不同的段落：學生時期先跑左臂與模型檢核，LFS 補上功能安全與追溯，MobileDrive 把整條 V 做到量產與稽核，AMR 則把右臂自動化。<b>橫著看是能力的累積，直著看是一段經歷的完整交付。</b></p>
+    </div>
+
+    <div class="pv-scroll">
+    <table class="pv-tbl">
+      <thead>
+        <tr>
+          <th style="width:168px">V 模型階段</th>
+          <th class="c1">就學期間 · 產學與實習<span>2018 – 2020 · 聯華聚能 BMS / 華創 EMS / 華創實習 / 碩論</span></th>
+          <th class="c2">FIH ADAS · LFS 車道融合<span>2020.05 – 2021.06 · 與 Siemens 共同開發</span></th>
+          <th class="c3">MobileDrive · ADAS 量產<span>2021.06 – 2025.06 · LFS + TRJ</span></th>
+          <th class="c4">FIH Robotics · 工廠 AMR<span>2025.05 – 現職 · ROS 2</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>系統需求分析<span>SYS.2</span></th>
+          <td class="none"><em>—</em>上層功能需求由客戶端持有</td>
+          <td>依 ISO 26262 完成<b>安全需求定義</b>,與 Siemens ADAS 團隊以英文共同展開</td>
+          <td>需求規格與 OEM 交付需求對齊;流程導入 <b>LFS 車道融合</b>與 <b>TRJ 軌跡規劃</b>兩個量產模組</td>
+          <td>編寫 ROS 2 <b>系統設計規格 SDS</b>,先定義模組行為與輸入輸出,再實作</td>
+        </tr>
+        <tr>
+          <th>系統架構設計<span>SYS.3</span></th>
+          <td class="none"><em>—</em></td>
+          <td><b>ASIL 分解</b>、<b>FMEA / DFA</b>、設計審查;涵蓋 LFS 與 OFS 兩系統,我負責 LFS</td>
+          <td>維護<b>架構設計文件</b>與需求／架構／測試規劃的雙向追溯</td>
+          <td>以 <b>Mermaid</b> 維護 topic / node 架構圖並納入版控,介面變更須於 Merge Request 審查</td>
+        </tr>
+        <tr>
+          <th>軟體需求與設計<span>SWE.1 · SWE.2</span></th>
+          <td>聯華聚能 BMS:自上層功能需求展開 <b>SRS → SDD → 資料字典 → IO Name Mapping</b></td>
+          <td>車道融合模組軟體需求與設計(Kalman filter 融合車道線與本車動態,狀態為 <code>C0–C3</code>)</td>
+          <td>兩個量產模組的需求與設計文件產出、設計審查與版本管理</td>
+          <td>SDS 凍結 <b>topic / service / action</b> 命名規則、資料型態、QoS 與節點生命週期</td>
+        </tr>
+        <tr>
+          <th>實作<span>SWE.3</span></th>
+          <td>符合 <b>MAAB 規範</b>的 Simulink 模型:BMS 預充／主接觸器時序、EMS 排氣門後壓力與怠速扭矩儲備</td>
+          <td>Simulink 模型化設計;於實車以 <b>INCA</b> 標定 Kalman filter 的 <code>Q / R</code> 雜訊協方差</td>
+          <td>量產實作與 <code>TC277</code> 車規部署;TRJ 通用型軌跡規劃架構(專利 TW202426860A)</td>
+          <td>把 Simulink 子系統分層概念移植到 <b>Python 物件導向</b>:<code>MapGraph</code> / <code>MissionManager</code> / <code>RouteFSM</code> / <code>NodeGraphPlanner</code></td>
+        </tr>
+        <tr>
+          <th>單元與整合測試<span>SWE.4 · SWE.5</span></th>
+          <td>華創 EMS:依 <b>Model Check List 逐項驗收</b>,建置全域資料字典與命名／單位規則</td>
+          <td>MIL / CIL 回報問題重新歸類,讓一套演算法一次對應多個同類問題</td>
+          <td><b>MIL / SIL / CIL</b> 分層驗證;建立<b>場景重播機制</b>重建失效條件執行回歸</td>
+          <td><b>L1</b> 單元測試(pytest / gtest)、<b>L2</b> 子系統整合(定位＋控制閉環);GitLab Project Runner 佈於 <b>Jetson</b> 目標硬體</td>
+        </tr>
+        <tr>
+          <th>系統驗證與確效<span>SWE.6 · SYS.4 · SYS.5</span></th>
+          <td><b>dSPACE HIL</b> 與 ARTC 場地實車(以 VBOX 高精度 GPS 為基準);碩論以 BikeSim ＋自建 HIL 雙層驗證</td>
+          <td>實車驗證與標定,<b>導入 2 款量產車型</b></td>
+          <td>dSPACE HIL → 深圳至上海 <b>1,600 km Mini-FOT</b> → <b>5 款量產車 L2.9</b>;自動失敗擷取工具</td>
+          <td><b>L3</b> 端到端場景測試:Isaac Sim 每晚無人值守 <b>300 個場景</b>,成功率 40% → ~100%;Sim-to-Real <b>3 台實機</b>於廠區運行</td>
+        </tr>
+        <tr>
+          <th>追溯與稽核<span>貫穿全流程</span></th>
+          <td>BMS:需求編號格式 <code>BCU_SRS_CSM_YYY</code> 與 <b>SRS 附錄 B Requirement Matrix</b> 追溯機制</td>
+          <td>需求與追溯鏈以 <b>Polarion</b> 管理,每一條安全需求都要能一路追到對應的驗證證據</td>
+          <td>需求／架構設計／系統測試規劃<b>雙向追溯</b>;擔任 <b>ASPICE 供應商稽核</b>;參與公司通過 <b>DEKRA ISO 26262 ASIL-D</b></td>
+          <td>介面變更須同步更新架構圖並於 MR 審查;訊號規格改由 GitLab CI <b>每天 09:00 自原始碼重解</b>,不再人工維護</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="pv-hint">← 左右捲動查看四段經歷 →</div>
+
+    <p class="pv-note">
+      <b>誠實邊界:</b>就學期間那兩個客戶專案(聯華聚能 BMS、華創車電 EMS)跑的是<b>車廠 V 模型流程與 MAAB 建模規範</b>,
+      兩案的資料中<b>均未見 ISO 26262 或 ASPICE 相關文件</b>,故該欄不宣稱任何功能安全等級或流程評鑑結果;
+      兩案各自覆蓋 V 的一段(BMS 有 SRS / SDD / DD / IO Mapping / Requirement Matrix 但無 Check List;
+      EMS 有模型／全域字典／Check List 但無 SRS / SDD),合起來才完整。
+      逐一交付物的落點圖見 <a href="../ibooster_page/04_vmodel.html" style="color:var(--blue);text-decoration:none;border-bottom:1px solid rgba(0,113,227,.3)">研究所章節的 V 模型頁</a>。
+      本表只描述<b>已執行的流程與已交付的產物</b>,不代表個人取得任何證照或評鑑等級。
+    </p>
+  </div>
+</div>
+</section>
+
+<!-- ===== 3. ISO 26262 ===== -->
+<section id="iso26262">
+<div class="wrap">
+  <div class="unit">
+    <div class="unit-head">
+      <div class="unit-tag">ISO 26262 · 功能安全</div>
+      <div class="unit-title">自己執行、被稽核，<br>再到團隊層級的標準內化</div>
+      <p class="unit-lead">功能安全我碰到的是三個層次，而不是一張證書：<b>執行</b>(把安全需求真的做出來並留下證據)、<b>認證</b>(整個團隊被第三方檢核)、<b>訓練</b>(把標準讀成能用的東西)。三層都經歷過，才知道稽核員為什麼問那個問題。</p>
+    </div>
+
+    <div class="pv-cards">
+      <div class="pv-card">
+        <div class="k">Layer 1 · 執行</div>
+        <h4>與 Siemens 依 ISO 26262 共同開發 LFS 車道融合模組</h4>
+        <div class="per">2020.05 – 2021.06 · 12 個月</div>
+        <ul>
+          <li><b>與團隊 PM 共同擔任我方負責人</b>,與 Siemens ADAS 團隊以英文協作,共同推進車道融合模組自開發至量產</li>
+          <li>完成<b>安全需求定義</b>、<b>ASIL 分解</b>、<b>FMEA / DFA</b>、驗證證據產出與設計審查</li>
+          <li>需求與追溯鏈以 <b>Polarion</b> 管理,<span class="out">每一條安全需求都要能一路追到對應的驗證證據</span></li>
+          <li>流程涵蓋 LFS 與 OFS 兩個系統,我負責 <b>LFS</b>;成果<span class="out">導入 2 款量產車型</span></li>
+        </ul>
+      </div>
+
+      <div class="pv-card">
+        <div class="k">Layer 2 · 認證</div>
+        <h4>參與公司通過 DEKRA ISO 26262 ASIL-D 認證</h4>
+        <div class="per">MobileDrive · 2021.06 – 2025.06</div>
+        <ul>
+          <li>建立並維護<b>需求 / 架構設計 / 系統測試規劃</b>之<span class="out">雙向追溯</span>文件,作為稽核證據</li>
+          <li>ADAS 團隊整體通過<b>德凱 DEKRA</b> 的 ISO 26262 / ASPICE 認證,等級為 <b>ASIL-D</b>(ISO 26262 最高等級)</li>
+          <li>依同一套追溯與證據要求<b>配合 OEM 交付</b>;技術交付 6+ 整車客戶,成果上 5 款量產車</li>
+        </ul>
+      </div>
+
+      <div class="pv-card">
+        <div class="k">Layer 3 · 訓練</div>
+        <h4>80 小時 ISO 26262 官方正式訓練</h4>
+        <div class="per">MobileDrive 期間</div>
+        <ul>
+          <li>完成 <b>80 小時 ISO 26262</b> 正式訓練(另有 40 小時 ASPICE,見下一節)</li>
+          <li>訓練不是拿來掛在履歷上:<span class="out">流程實際導入 LFS 車道融合與 TRJ 軌跡規劃兩個量產模組</span>的開發流程</li>
+          <li>最早的底子來自更早的實習與產學案——<b>華創車電實習期間即實戰接觸 ISO 26262 與 dSPACE HIL</b></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="pv-quote">
+      <div class="ic">”</div>
+      <p>這兩段經驗，讓我對安全流程的理解，從<b>「自己執行、被稽核」</b>延伸到<b>「團隊層級的稽核與標準內化」</b>——這也是我後來能定出驗證方法、讓四家大廠與兩個團隊都能照著做的底氣來源。</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ===== 4. ASPICE ===== -->
+<section id="aspice" class="band-alt">
+<div class="wrap">
+  <div class="unit">
+    <div class="unit-head">
+      <div class="unit-tag">ASPICE · 流程能力</div>
+      <div class="unit-title">同一套判準，<br>我在被檢核的那一邊和檢核的那一邊都站過</div>
+      <p class="unit-lead">ASPICE 檢核的從來不是「你的演算法好不好」，而是<b>需求可不可追溯、設計有沒有依據、驗證留不留得下證據</b>。被 Siemens 與 DEKRA 檢核過之後，我換到另一邊，去檢核供應商——這件事對我的價值是：從此寫文件時，我知道最後會有人怎麼讀它。</p>
+    </div>
+
+    <div class="pv-cards">
+      <div class="pv-card">
+        <div class="k">訓練</div>
+        <h4>40 小時 ASPICE 正式訓練</h4>
+        <div class="per">MobileDrive · 與 80h ISO 26262 合計 120 小時</div>
+        <ul>
+          <li>完成 <b>40 小時 ASPICE</b> 正式訓練,理解 <code>SYS.2</code> / <code>SYS.3</code> / <code>SWE.1–SWE.6</code> / <code>SYS.4</code> / <code>SYS.5</code> 各製程的輸入、輸出與工作產物要求</li>
+          <li>與 ISO 26262 訓練同期,兩者在同一批量產模組上<span class="out">一起落地,而不是兩套平行的文件</span></li>
+        </ul>
+      </div>
+
+      <div class="pv-card">
+        <div class="k">稽核方</div>
+        <h4>擔任 ASPICE 供應商稽核</h4>
+        <div class="per">MobileDrive · ADAS 供應鏈</div>
+        <ul>
+          <li>以<b>流程能力視角</b>檢核供應商之<b>需求追溯、設計與驗證產出</b>——看的是產物之間對不對得上,不是看簡報做得漂不漂亮</li>
+          <li>同期也以同一套框架與判準對 <b>Mobileye、StradVision、Horizon Robotics、PCT</b> 做感知品質橫向評測,並把失效案例回饋供應商</li>
+          <li><span class="out">從被稽核方換到稽核方,是我對「什麼叫交得出去」理解最快的一段</span></li>
+        </ul>
+      </div>
+
+      <div class="pv-card">
+        <div class="k">落地</div>
+        <h4>雙向追溯導入兩個量產模組</h4>
+        <div class="per">LFS 車道融合 · TRJ 軌跡規劃</div>
+        <ul>
+          <li>建立並維護<b>需求 ↔ 架構設計 ↔ 系統測試規劃</b>的雙向追溯文件</li>
+          <li>TRJ 架構收斂後<span class="out">驗證週期由 1 年縮短至 1 個月</span>——追溯做得清楚,才知道改一個共用模組要重驗哪些項目、不必重驗哪些</li>
+          <li>更早的底子在學生時期就打過:BMS 專案以 <code>BCU_SRS_CSM_YYY</code> 需求編號與 Requirement Matrix 建立追溯機制</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ===== 5. 交付物 ===== -->
+<section id="artifact">
+<div class="wrap">
+  <div class="unit">
+    <div class="unit-head">
+      <div class="unit-tag">ARTIFACTS · 交付物與工具</div>
+      <div class="unit-title">流程講到最後，<br>就是這幾份東西存不存在</div>
+      <p class="unit-lead">「跑過 V 模型」是一句話，「產出過哪些工作產物、用什麼工具維護、在哪個專案」是三件可以被查證的事。下面是我實際交付過的清單。</p>
+    </div>
+
+    <div class="pv-arts">
+      <div class="pv-art">
+        <div class="a">軟體需求規格<span>SRS · Software Requirements</span></div>
+        <div class="t">Word / Polarion</div>
+        <div class="s">聯華聚能 BMS(<code>BMS_SRS_HVM</code> / <code>BMS_SRS_DHM</code>)、LFS 車道融合(與 Siemens)、MobileDrive 兩個量產模組</div>
+      </div>
+      <div class="pv-art">
+        <div class="a">軟體設計說明<span>SDD · Software Design Description</span></div>
+        <div class="t">Word / Polarion</div>
+        <div class="s">聯華聚能 BMS(<code>BMS_SDD_HVM</code> / <code>BMS_SDD_DHM</code>)、LFS 車道融合模組設計與審查</div>
+      </div>
+      <div class="pv-art">
+        <div class="a">需求追溯矩陣<span>Requirement Matrix</span></div>
+        <div class="t">Excel / Polarion</div>
+        <div class="s">BMS SRS 附錄 B,需求編號格式 <code>BCU_SRS_CSM_YYY</code>;MobileDrive 期間擴為需求／架構／測試規劃的雙向追溯</div>
+      </div>
+      <div class="pv-art">
+        <div class="a">安全分析與安全需求<span>FMEA · DFA · ASIL 分解</span></div>
+        <div class="t">Polarion</div>
+        <div class="s">LFS 與 Siemens 依 ISO 26262 共同產出;每一條安全需求追到對應驗證證據</div>
+      </div>
+      <div class="pv-art">
+        <div class="a">資料字典與 IO 對應表<span>Data Dictionary · IO Name Mapping</span></div>
+        <div class="t">Excel</div>
+        <div class="s">聯華聚能 BMS(<code>IO Name Mapping</code>)、華創車電 EMS(全域字典 <code>DD_Global</code>、單位與命名縮寫規則)</div>
+      </div>
+      <div class="pv-art">
+        <div class="a">模型檢核清單<span>Model Check List</span></div>
+        <div class="t">Excel</div>
+        <div class="s">華創車電 EMS(<code>EMS_Model_Check_List.xlsx</code>),舊版 <code>.mdl</code> 遷移為合規模型後逐項驗收</div>
+      </div>
+      <div class="pv-art">
+        <div class="a">MAAB 合規建模<span>Modeling Guideline</span></div>
+        <div class="t">MATLAB / Simulink</div>
+        <div class="s">BMS 上下電時序與故障分級、EMS 排氣門後壓力與怠速扭矩儲備、LFS 融合模型</div>
+      </div>
+      <div class="pv-art">
+        <div class="a">實車標定紀錄<span>Calibration</span></div>
+        <div class="t">INCA</div>
+        <div class="s">LFS 於實車標定 Kalman filter 的 <code>Q / R</code> 雜訊協方差,在追隨性與輸出平順度間取得平衡</div>
+      </div>
+      <div class="pv-art">
+        <div class="a">硬體在環測試<span>HIL</span></div>
+        <div class="t">dSPACE</div>
+        <div class="s">華創車電實習、機車 ABS 快速原型、ADAS 量產驗證;碩論另有 BikeSim ＋自建 HIL 雙層驗證</div>
+      </div>
+      <div class="pv-art">
+        <div class="a">實車驗證報告<span>FOT · Field Operational Test</span></div>
+        <div class="t">CANalyzer / 自研工具</div>
+        <div class="s">深圳→上海 1,600 km Mini-FOT,自研自動失敗擷取工具與場景重播機制</div>
+      </div>
+      <div class="pv-art">
+        <div class="a">系統設計規格(ROS 2)<span>SDS · 介面合約</span></div>
+        <div class="t">Markdown / Git</div>
+        <div class="s">AMR:topic / service / action 命名規則、資料型態、QoS 設定與節點生命週期</div>
+      </div>
+      <div class="pv-art">
+        <div class="a">架構圖版本控管<span>Architecture as Code</span></div>
+        <div class="t">Mermaid / GitLab</div>
+        <div class="s">AMR:介面變更須同步更新架構圖並於 Merge Request 審查,避免文件過時與幽靈介面</div>
+      </div>
+      <div class="pv-art">
+        <div class="a">分層回歸測試報告<span>L1 / L2 / L3</span></div>
+        <div class="t">GitLab CI · pytest / gtest</div>
+        <div class="s">AMR:Project Runner 佈署於 Jetson,CI 直接在 ARM 目標硬體上執行並自動產出報告</div>
+      </div>
+      <div class="pv-art">
+        <div class="a">場景回歸成功率報表<span>Scenario Regression</span></div>
+        <div class="t">Isaac Sim</div>
+        <div class="s">AMR:每晚無人值守 300 個場景,自動分類失敗原因;成功率 40% → ~100%</div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ===== 6. 搬上機器人 ===== -->
+<section id="transfer" class="band-alt">
+<div class="wrap">
+  <div class="unit">
+    <div class="unit-head">
+      <div class="unit-tag">TRANSFER · 把 V 搬上機器人</div>
+      <div class="unit-title">機器人團隊不會有人跟你談 ASIL<br>但那套紀律，換個名字照樣成立</div>
+      <p class="unit-lead">2025 年進 FIH Robotics 之後，我沒有把 ISO 26262 那套文件硬搬過去——沒有 OEM 要看，搬過去只會變成沒人維護的樣板。<b>我搬的是機制:規格先行、分層驗證、介面凍結、追溯不靠人。</b>左欄是車用的做法，右欄是它在 ROS 2 上長成的樣子。</p>
+    </div>
+
+    <div class="pv-map">
+      <div class="pv-maphead">
+        <div>車用 ADAS 的做法</div><div></div><div>我在 AMR 的對應做法</div>
+      </div>
+
+      <div class="pv-row">
+        <div class="pv-side car"><div class="h">SRS / SDD 規格先行</div><div class="d">先寫需求與設計,再實作,再回頭對規格驗證</div></div>
+        <div class="pv-arrow">→</div>
+        <div class="pv-side bot"><div class="h">ROS 2 系統設計規格 SDS</div><div class="d">先以 SDS 定義模組行為與輸入輸出,取代原本靠補丁堆疊、模組間<b>循環相依</b>的程式碼</div></div>
+      </div>
+
+      <div class="pv-row">
+        <div class="pv-side car"><div class="h">Simulink 子系統分層</div><div class="d">模型化設計把系統切成單一職責的子系統</div></div>
+        <div class="pv-arrow">→</div>
+        <div class="pv-side bot"><div class="h">Python 物件導向分層</div><div class="d"><b>MapGraph / MissionManager / RouteFSM / NodeGraphPlanner</b> 各對應單一職責的類別,使<b>架構圖與程式碼一一對應</b>、可逐層審查</div></div>
+      </div>
+
+      <div class="pv-row">
+        <div class="pv-side car"><div class="h">介面凍結與需求追溯(Polarion)</div><div class="d">介面與需求變更要留下追溯紀錄</div></div>
+        <div class="pv-arrow">→</div>
+        <div class="pv-side bot"><div class="h">Mermaid 架構圖納入版控</div><div class="d">介面變更須<b>同步更新架構圖並於 Merge Request 審查</b>,避免文件過時與幽靈介面</div></div>
+      </div>
+
+      <div class="pv-row">
+        <div class="pv-side car"><div class="h">Signal definition 訊號規格</div><div class="d">每條訊號進版本前先定義名稱、型別、值域、更新週期;模擬與單元測試直接照規格生測資</div></div>
+        <div class="pv-arrow">→</div>
+        <div class="pv-side bot"><div class="h">規格不再靠人填</div><div class="d">改由<b>每天 09:00 GitLab CI 從原始碼重解一次</b>再自動繪圖;<b>沒有人工這關,就不會有文件品質不一的問題</b></div></div>
+      </div>
+
+      <div class="pv-row">
+        <div class="pv-side car"><div class="h">MIL 單元驗證</div><div class="d">模型層級的單元行為驗證</div></div>
+        <div class="pv-arrow">→</div>
+        <div class="pv-side bot"><div class="h">L1 單元測試</div><div class="d"><b>pytest / gtest</b>,隨 Merge Request 自動觸發</div></div>
+      </div>
+
+      <div class="pv-row">
+        <div class="pv-side car"><div class="h">SIL / CIL 子系統整合</div><div class="d">軟體在環與程式碼在環的整合驗證</div></div>
+        <div class="pv-arrow">→</div>
+        <div class="pv-side bot"><div class="h">L2 子系統整合</div><div class="d">如<b>定位 + 控制閉環</b>的整合測試</div></div>
+      </div>
+
+      <div class="pv-row">
+        <div class="pv-side car"><div class="h">dSPACE HIL · 目標硬體驗證</div><div class="d">在真正的車規控制器(TC277)上驗,而不只在開發機</div></div>
+        <div class="pv-arrow">→</div>
+        <div class="pv-side bot"><div class="h">CI Runner 佈署於 Jetson</div><div class="d">自架 GitLab <b>Project Runner</b> 佈在 Jetson,使 CI 在<b>實際 ARM 目標硬體</b>上執行,而非僅在 x86 開發機驗證</div></div>
+      </div>
+
+      <div class="pv-row">
+        <div class="pv-side car"><div class="h">1,600 km Mini-FOT 與場景重播</div><div class="d">自長里程 log 自動篩出失效案例,重建當下環境條件跑回歸</div></div>
+        <div class="pv-arrow">→</div>
+        <div class="pv-side bot"><div class="h">Isaac Sim 夜間 300 場景回歸</div><div class="d">自 SLAM 地圖自動採樣可通行目標量產測試場景,<b>整夜無人值守</b>、可固定隨機種子重跑;自動分類失敗原因並產出成功率報表,<b>40% → ~100%</b></div></div>
+      </div>
+
+      <div class="pv-row">
+        <div class="pv-side car"><div class="h">量產實車驗證</div><div class="d">5 款量產車 · L2.9 高速公路自駕上路</div></div>
+        <div class="pv-arrow">→</div>
+        <div class="pv-side bot"><div class="h">Sim-to-Real 實機部署</div><div class="d">整套導航堆疊自模擬部署至實機,<b>3 台於廠區運行</b>,並逐項定位模擬與實機的行為落差(如 RS485 不具即時性)</div></div>
+      </div>
+    </div>
+
+    <div class="pv-quote">
+      <div class="ic">→</div>
+      <p>車用那套流程的價值不在文件本身，在<b>「任何一個結論都找得到它的依據」</b>。工具會換、標準名稱會換，但這件事不換——所以它搬得動。</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ===== CLOSE + CTA ===== -->
+<section class="pv-cta">
+<div class="wrap">
+  <p class="p-narr" style="text-align:center">
+    <b>流程不是為了做文件。</b>它是把「我做得到」變成「團隊接得住、客戶信得過」的唯一方法。
+  </p>
+  <p class="gold">從被大廠驗證，到定標準給大廠用，再到教會別的團隊自己驗——我留下的不是一份報告，是一套方法。</p>
+
+  <div class="pv-btns" style="margin-top:34px">
+    <a class="p" href="mailto:tkps50803@gmail.com?subject=關於車規開發流程與功能安全經驗">想聊聊？寄信給我</a>
+    <a class="s" href="../lfs_page/lfs01.html#safety">看 LFS 的安全流程那一節 →</a>
+    <a class="s" href="../ibooster_page/04_vmodel.html">看研究所產學案的 V 落點圖 →</a>
+    <a class="s" href="../home/index.html">回履歷 →</a>
+  </div>
+</div>
+</section>
+
+<script src="../assets/nav.js"></script>
+
+</body>
+</html>

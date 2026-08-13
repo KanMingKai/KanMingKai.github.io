@@ -22,6 +22,16 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1
 h1{font-size:clamp(26px,3.8vw,38px);font-weight:700;letter-spacing:-.015em;line-height:1.2}
 h1 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .belief{margin-top:16px;font-size:15px;color:var(--ink);font-weight:600;border-left:3px solid var(--blue);padding-left:14px;line-height:1.6}
+/* 一句話把四個專案頁串成一條鏈(感知 → 決策 → 致動)。
+   刻意不加左邊框 —— 上面的 .belief 已經有一條藍邊,再來一條會變成
+   兩句在互相搶重點。這句的重量靠開頭那三個詞與四個連結撐,不靠框線。
+   ★ 連結文字寫「做了什麼」而不是頁面名稱:頁面名稱在導覽列已經有一份,
+     這裡再列一次只是重複;寫成一句話才有串起來的作用。 */
+.chain{margin-top:14px;font-size:14.5px;color:var(--ink-2);line-height:1.9;max-width:680px}
+.chain .arrow{color:var(--ink);font-weight:800;letter-spacing:.02em}
+.chain a{color:var(--blue);text-decoration:none;border-bottom:1px solid rgba(0,113,227,.3);transition:border-color .2s ease}
+.chain a:hover,.chain a:focus-visible{border-bottom-color:currentColor}
+@media(prefers-reduced-motion:reduce){ .chain a{transition:none} }
 
 /* reveal */
 .reveal{opacity:1;transform:none}
@@ -261,7 +271,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
       <a class="tab-l" href="../lfs_page/lfs01.html">感知融合經驗</a>
       <a class="tab-l" href="../trj_page/01_trj_page.html">軌跡規劃經驗</a>
       <a class="tab-l" href="../dash_page/01_dash_page.html">AMR系統整合</a>
-      <a class="tab-l" href="../ibooster_page/01_ibooster.html">電子煞車</a>
+      <a class="tab-l" href="../ibooster_page/01_ibooster.html">底層控制經驗(研究所)</a>
     </div>
   </div>
 </nav>
@@ -306,6 +316,17 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     <p class="lead">在自主系統的兩端都做過、也都上線:量產 ADAS(高速公路 L2.9)與工廠 AMR。最自豪的一件事——發現每個功能團隊都在各做一套軌跡邏輯,於是退一步看人到底怎麼開車,把整套橫向規劃收斂成一個共用模組(TRJ):新功能只需定義參考線與偏移量,開發時間從 4 個月縮到 2~3 天。同一套「找結構性根因、以簡馭繁」的做法,現在正搬到工廠機器人上。</p>
     <p class="belief">穩定的路徑感知,才能支撐無震盪的軌跡決策。</p>
 
+    <!-- 定位敘述:把四個專案頁串成一條「感知 → 決策 → 致動」的鏈。
+         導覽列只列得出四個頁名,列不出它們之間的關係;這一句補的就是關係。 -->
+    <p class="chain">
+      <span class="arrow">感知 → 決策 → 致動</span>，這條鏈的每一段我都親手做過 ——
+      <a href="../lfs_page/lfs01.html">讓不完美的感知也能安全地用</a>、
+      <a href="../trj_page/01_trj_page.html">把 9 項橫向功能收斂成一個軌跡模組</a>、
+      <a href="../dash_page/01_dash_page.html">把整套搬上工廠機器人</a>，
+      以及研究所時期<a href="../ibooster_page/01_ibooster.html">拆開一顆電子煞車助力器、把控制權重建回來</a>。
+      這四段共用同一條<a href="../process_page/01_process.html">車規 V 模型與功能安全流程</a>——它是把這些成果交得出去的那條線。
+    </p>
+
     <div class="stats">
       <div class="chip"><div class="v">ADAS → AMR</div><div class="l">量產與工廠機器人</div></div>
       <div class="chip"><div class="v m">5 款</div><div class="l">量產車 · L2.9 上路</div></div>
@@ -330,7 +351,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     <div class="xp">
       <div class="xp-m"><div class="big sm">規格先行</div><div class="unit">車用 V 型開發流程</div></div>
       <div class="xp-c">
-        <h4>自研全域導航規劃模組 · 以車用 V 型流程開發</h4>
+        <h4>自研全域導航規劃模組 · 以車用 V 型流程開發<a class="jump" href="../process_page/01_process.html#transfer">看流程怎麼搬過來 →</a></h4>
         <p class="xp-sum">用<span class="hl">系統設計規格</span>驅動演算法開發,並把 <span class="hl">Simulink 模型化設計</span>的分層方法移植到 Python 物件導向</p>
         <div class="xp-detail">
         <ul>
@@ -463,7 +484,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     <div class="xp">
       <div class="xp-m"><div class="big sm">120 小時</div><div class="unit">ISO 26262 + ASPICE 訓練</div></div>
       <div class="xp-c">
-        <h4>功能安全與流程合規 · 訓練、導入與供應商稽核</h4>
+        <h4>功能安全與流程合規 · 訓練、導入與供應商稽核<a class="jump" href="../process_page/01_process.html">看完整專案 →</a></h4>
         <p class="xp-sum">完成 <span class="hl">80h ISO 26262 + 40h ASPICE</span> 正式訓練,參與公司取得 <span class="hl">DEKRA ISO 26262 ASIL-D</span> 認證</p>
         <div class="xp-detail">
         <ul>
