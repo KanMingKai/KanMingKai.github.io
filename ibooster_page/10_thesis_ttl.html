@@ -1,0 +1,2151 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>應用鎖死時間於機車防鎖死煞車系統之控制</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/nav.css">
+<style>
+/* ============================================================
+   應用鎖死時間於機車防鎖死煞車系統之控制
+   國立臺北科技大學 車輛工程系 先進車輛控制實驗室 — 碩士論文(108/07/25)
+   ------------------------------------------------------------
+   class 一律 .tt- 前綴;顏色一律 var(--token, #fallback)。
+   與 05_abs_chain(.ab-)、06_road_id(.rd-)、09_vse_chain(.vs-)
+   同一套版式,但層級不同:
+
+     05_abs_chain  中科院案「估測器之後怎麼控制」
+     06_road_id    中科院案「路面識別怎麼繞開正向力」
+     09_vse_chain  中科院案「估測器之前,訊號怎麼進來」
+     ★ 本頁        碩士論文本體 —— 上面那些是後來的案子,
+                   這一頁是它們的源頭:一套完整的機車 ABS,
+                   從液壓模組模型一路到 HIL 台架。
+
+   ★ 這一頁的主線就是論文的因果鏈,九章各回答一個問題:
+       00 命題    為什麼機車 ABS 不能照抄汽車的做法
+       01 受控體  電磁閥式 EHB 只能增壓/持壓/洩壓,且有作動延遲
+       02 估測    只有輪速計與加速規,如何得到 r、ε、V_x、α_w
+       03 目標一  最佳滑差目標值 λ_op 從哪裡來
+       04 目標二  ★ 最佳輪角加速度目標值 α_op —— 論文命名的由來
+       05 控制器  同時追 λ 與 α_w 的 MISO 模糊控制器
+       06 致動    考慮電磁閥延遲的模式切換策略
+       07 結果    平地/斜坡 × 高中低摩擦係數,四種控制器
+       08 台架    HIL 驗證平台
+       09 結論
+
+   ★ 視覺層級:
+       ink 粗線 + 白底方塊   主線:感測 → 估測 → 目標 → 控制 → 致動
+       藍  --blue           本論文自己提出的環節
+       琥珀 #b45309         量不到 / 成本上做不到 / 簡報未載明
+       青  #0e7c9a          液壓與致動路徑
+
+   ★★ 數值出處(未載明者一律標示,不得補值):
+       全部內容取自
+         應用鎖死時間於機車防鎖死煞車系統之控制-論文架構V7.pptx(95 頁)
+         應用鎖死時間於機車防鎖死煞車系統之控制V2.docx(論文本文)
+       肇事統計    ── 簡報 p.3 內嵌圖表 chart1 逐筆照抄:
+                      機車 653、小客車 374、小貨車 148、大貨車 121、
+                      行人 65、大客車 22、其他 12(合計 1395 → 機車 46.8%)
+       模擬結果    ── 簡報 p.56 chart2/chart3(平地)、
+                      p.65-66 chart4/chart5(斜坡)逐筆照抄
+       車輛參數    ── 論文表 4.1(BikeSim Scooter, Big (CVT))
+       取樣時間    ── 論文 4 章:BikeSim 0.5ms、估測器與控制器 10ms
+       ε = 0.06g   ── 論文 4.1「本文假設為0.06g」
+       t_od = 7ms  ── 簡報 p.43「TTUB < t_od(7ms) , release」
+       μ-λ 曲線    ── 論文資料夾 mu curve.csv 正規化曲線逐點照抄
+                      (峰值 λ=0.12, μ_norm=1.00135)
+     ★ 以下三處簡報與本文不一致或未載明,頁尾「註記」逐條說明,
+       不在正文裡假裝有值:
+         中摩擦係數到底是 0.5 還是 0.6
+         λ_UB / λ_LB / TH_P / TH_N 的實際數值
+         模糊規則表 NS 列有一格不符對角規律
+   ============================================================ */
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:var(--sans,-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif);
+  background:var(--bg,#fff);color:var(--ink,#1d1d1f);line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+.tt{max-width:1180px;margin:0 auto;padding:28px 22px 40px}
+.tt-head,.tt-legend,.tt-scroll,.tt-cap,.tt-foot,.tt-eq,.tt-sec,.tt-toc,.tt-grid,.tt-note,.tt-tbl,.tt-ctl{
+  max-width:1020px;margin-left:auto;margin-right:auto}
+
+/* ---------- 頁首 ---------- */
+.tt-head{margin-bottom:16px}
+.tt-h1{font-size:clamp(23px,3.2vw,33px);font-weight:900;letter-spacing:-.025em;line-height:1.25}
+.tt-h1en{font-size:clamp(12px,1.5vw,14.5px);font-weight:600;color:var(--ink-3,#86868b);
+  margin-top:7px;letter-spacing:.01em}
+.tt-meta{margin-top:13px;padding-top:12px;border-top:1px solid var(--line,#d2d2d7);
+  display:flex;flex-wrap:wrap;gap:7px 20px;font-size:12px;color:var(--ink-2,#6e6e73)}
+.tt-meta b{color:var(--ink,#1d1d1f);font-weight:700}
+
+/* 一句話講完整本論文 —— 讀者只讀這一段也要拿得到重點 */
+.tt-tldr{max-width:1020px;margin:16px auto 0;border-left:3px solid var(--blue,#0071e3);
+  background:#f7fbff;border-radius:0 12px 12px 0;padding:14px 18px;font-size:13.5px;line-height:1.95}
+.tt-tldr b{color:var(--blue,#0071e3);font-weight:800}
+.tt-tldr .m{font-family:var(--mono,monospace);font-size:12.5px;font-weight:700}
+
+/* ---------- 章節快捷 ---------- */
+.tt-toc{display:flex;flex-wrap:wrap;gap:6px;margin:18px auto 4px}
+.tt-toc a{font-size:11.5px;font-weight:700;color:var(--ink-2,#6e6e73);text-decoration:none;
+  border:1px solid var(--line,#d2d2d7);border-radius:20px;padding:5px 12px;background:#fff;
+  transition:all .16s ease;white-space:nowrap}
+.tt-toc a:hover{border-color:var(--blue,#0071e3);color:var(--blue,#0071e3)}
+.tt-toc a i{font-style:normal;font-family:var(--mono,monospace);font-size:10px;
+  color:var(--ink-3,#86868b);margin-right:5px}
+.tt-toc a:hover i{color:var(--blue,#0071e3)}
+.tt-toc a.hot{border-color:var(--blue,#0071e3);background:#eaf4ff;color:var(--blue,#0071e3)}
+.tt-toc a.hot i{color:var(--blue,#0071e3)}
+
+/* ---------- 圖例 ---------- */
+.tt-legend{display:flex;flex-wrap:wrap;gap:16px;margin:16px auto 12px;font-size:11.5px;color:var(--ink-2,#6e6e73)}
+.tt-lg{display:flex;align-items:center;gap:7px;font-weight:600}
+.tt-lg i{width:16px;height:3px;border-radius:2px;display:inline-block}
+.tt-lg--m i{background:var(--ink,#1d1d1f)}
+.tt-lg--b i{background:var(--blue,#0071e3)}
+.tt-lg--a i{background:#b45309}
+.tt-lg--t i{background:#0e7c9a}
+
+/* ---------- 章節標題 ---------- */
+.tt-sec{margin:44px auto 12px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  scroll-margin-top:70px}
+.tt-sec-n{font-family:var(--mono,monospace);font-size:11px;font-weight:700;letter-spacing:.14em;
+  color:#fff;background:var(--ink,#1d1d1f);border-radius:5px;padding:3px 8px}
+.tt-sec--key .tt-sec-n{background:var(--blue,#0071e3)}
+/* 全景那一塊不編號(它是地圖不是章),徽章改青色與編號章區別開來 */
+.tt-sec--map .tt-sec-n{background:#0e7c9a;letter-spacing:.04em}
+.tt-sec-t{font-size:17px;font-weight:800;letter-spacing:-.01em}
+.tt-sec--key .tt-sec-t{color:var(--blue,#0071e3)}
+.tt-sec-s{font-size:12px;color:var(--ink-3,#86868b);font-weight:600}
+
+/* ---------- 圖:SVG 有自己的最小寬度,窄螢幕橫捲而不是縮到讀不到 ---------- */
+.tt-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line,#d2d2d7);
+  border-radius:16px;background:#fcfcfd;padding:6px;margin-top:6px}
+.tt-scroll::-webkit-scrollbar{height:6px}
+.tt-scroll::-webkit-scrollbar-thumb{background:var(--line,#d2d2d7);border-radius:3px}
+.tt-svg{width:100%;min-width:900px;height:auto;display:block}
+.tt-svg--n{min-width:720px}
+.tt-svg text{font-family:var(--sans,-apple-system,"Noto Sans TC",sans-serif)}
+.tt-svg .m{font-family:var(--mono,ui-monospace,monospace)}
+.tt-hint{display:none;text-align:center;font-size:11px;color:var(--ink-3,#86868b);
+  margin-top:8px;font-family:var(--mono,monospace)}
+@media(max-width:920px){ .tt-hint{display:block} }
+
+/* ---------- 說明文 ---------- */
+.tt-cap{margin-top:12px;font-size:12.5px;color:var(--ink-2,#6e6e73);line-height:1.85}
+.tt-cap + .tt-cap{margin-top:9px}
+.tt-cap b{color:var(--ink,#1d1d1f)}
+.tt-cap em{font-style:normal;color:var(--blue,#0071e3);font-weight:700}
+.tt-cap code{font-family:var(--mono,monospace);font-size:11.5px;background:#eceef1;
+  padding:1px 5px;border-radius:4px;color:#0f5c74}
+
+/* ---------- 方程式 ---------- */
+.tt-eq{border-left:3px solid var(--blue,#0071e3);background:#f7fbff;border-radius:0 10px 10px 0;
+  padding:12px 16px;font-family:var(--mono,monospace);font-size:12.5px;line-height:2;
+  color:var(--ink,#1d1d1f);overflow-x:auto;white-space:nowrap;margin-top:14px}
+.tt-eq small{color:var(--ink-3,#86868b);font-family:var(--sans,sans-serif);font-size:11.5px;white-space:normal}
+.tt-eq b{color:var(--blue,#0071e3)}
+.tt-eq--n{border-left-color:var(--ink-3,#86868b);background:#f6f6f7}
+.tt-eq--n b{color:var(--ink,#1d1d1f)}
+
+/* ---------- 兩欄卡片 ---------- */
+.tt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:14px}
+.tt-card{border:1px solid var(--line,#d2d2d7);border-radius:14px;background:#fff;padding:15px 17px}
+.tt-card h4{font-size:13px;font-weight:800;margin-bottom:8px;letter-spacing:-.01em}
+.tt-card p{font-size:12px;color:var(--ink-2,#6e6e73);line-height:1.85}
+.tt-card .m{font-family:var(--mono,monospace);font-size:11.5px;color:var(--ink,#1d1d1f)}
+.tt-card--b{border-color:var(--blue,#0071e3);background:#f7fbff}
+.tt-card--b h4{color:var(--blue,#0071e3)}
+.tt-card--a{border-color:var(--amber-line,#fde3c8);background:var(--amber-bg,#fff7ed)}
+.tt-card--a h4{color:#b45309}
+
+/* ---------- 控制列(圖表切換) ---------- */
+.tt-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+.tt-ctl .g{display:inline-flex;border:1px solid var(--line,#d2d2d7);border-radius:9px;
+  overflow:hidden;background:#fff}
+.tt-ctl button{font-family:inherit;font-size:11.5px;font-weight:700;color:var(--ink-2,#6e6e73);
+  background:#fff;border:0;padding:7px 14px;cursor:pointer;transition:all .14s ease}
+.tt-ctl button + button{border-left:1px solid var(--line,#d2d2d7)}
+.tt-ctl button[aria-pressed="true"]{background:var(--ink,#1d1d1f);color:#fff}
+.tt-ctl .lb{font-size:11px;color:var(--ink-3,#86868b);font-weight:700;margin-right:2px}
+
+/* ---------- 表格 ---------- */
+.tt-tbl{margin-top:14px;overflow-x:auto;border:1px solid var(--line,#d2d2d7);border-radius:14px}
+.tt-tbl table{border-collapse:collapse;width:100%;min-width:520px;font-size:12px}
+.tt-tbl th,.tt-tbl td{padding:8px 12px;text-align:right;border-bottom:1px solid #ececf0;
+  font-family:var(--mono,monospace)}
+.tt-tbl th{background:#f6f6f7;font-weight:700;color:var(--ink-2,#6e6e73);font-size:11px;
+  letter-spacing:.03em;position:sticky;top:0}
+.tt-tbl th:first-child,.tt-tbl td:first-child{text-align:left;font-family:var(--sans,sans-serif);
+  font-weight:700;color:var(--ink,#1d1d1f)}
+.tt-tbl tr:last-child td{border-bottom:0}
+.tt-tbl td.hi{color:var(--blue,#0071e3);font-weight:700}
+.tt-tbl caption{caption-side:top;text-align:left;padding:11px 12px 9px;font-size:11.5px;
+  color:var(--ink-3,#86868b);font-weight:600}
+.tt-tbl[hidden]{display:none}
+
+/* 模糊規則表:方格要小、要密,才看得出對角線 */
+.tt-fz{margin-top:14px;overflow-x:auto}
+.tt-fz table{border-collapse:collapse;font-size:11.5px;font-family:var(--mono,monospace);margin:0 auto}
+.tt-fz th,.tt-fz td{width:38px;height:30px;text-align:center;border:1px solid #e6e6ea;font-weight:700}
+.tt-fz th{background:#f6f6f7;color:var(--ink-2,#6e6e73);font-size:10.5px}
+.tt-fz td.P{background:#eaf4ff;color:var(--blue,#0071e3)}
+.tt-fz td.N{background:var(--amber-bg,#fff7ed);color:#b45309}
+.tt-fz td.Z{background:#f0f0f2;color:var(--ink-2,#6e6e73)}
+.tt-fz td.odd{outline:2px solid #b45309;outline-offset:-2px}
+.tt-fz .cnr{background:#ececf0;color:var(--ink-3,#86868b);font-size:9.5px}
+
+/* ---------- 即時讀數 ---------- */
+.tt-live{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.tt-live > div{border:1px solid var(--line,#d2d2d7);border-radius:12px;background:#fff;padding:10px 12px}
+.tt-live i{display:block;font-style:normal;font-family:var(--mono,monospace);font-size:9.5px;
+  letter-spacing:.09em;color:var(--ink-3,#86868b);margin-bottom:4px}
+.tt-live b{font-family:var(--mono,monospace);font-size:16px;font-weight:700;color:var(--ink,#1d1d1f)}
+.tt-live--v b{color:var(--blue,#0071e3)}
+@media(max-width:640px){ .tt-live{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
+/* 滑桿:這一頁唯一的輸入,做大一點 */
+.tt-slider{margin-top:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  border:1px solid var(--line,#d2d2d7);border-radius:14px;background:#fff;padding:13px 17px}
+.tt-slider label{font-size:12px;font-weight:700;color:var(--ink-2,#6e6e73);white-space:nowrap}
+.tt-slider label span{font-family:var(--mono,monospace);color:var(--blue,#0071e3);font-weight:700}
+.tt-slider input[type=range]{flex:1;min-width:220px;accent-color:var(--blue,#0071e3);height:22px}
+.tt-slider .rst{font-family:inherit;font-size:11px;font-weight:700;color:var(--ink-2,#6e6e73);
+  background:#f2f2f4;border:0;border-radius:7px;padding:6px 12px;cursor:pointer}
+.tt-slider .rst:hover{background:#e6e6ea}
+
+/* ---------- 提示 / 註記 ---------- */
+.tt-note{margin-top:14px;border:1px dashed #e5c08a;background:#fffdf7;border-radius:12px;
+  padding:12px 15px;color:var(--ink-2,#6e6e73);font-size:12px;line-height:1.85}
+.tt-note b{color:#b45309}
+
+.tt-foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--line,#d2d2d7);
+  font-size:12px;color:var(--ink-3,#86868b);line-height:1.85}
+.tt-foot h3{font-size:13px;font-weight:800;color:var(--ink,#1d1d1f);margin-bottom:9px}
+.tt-foot b{color:var(--ink,#1d1d1f)}
+.tt-foot code{font-family:var(--mono,monospace);font-size:11px;color:var(--ink-2,#6e6e73)}
+.tt-foot ol{margin:0 0 0 18px}
+.tt-foot li{margin-bottom:7px}
+.tt-foot .lnk{margin-top:16px;padding-top:14px;border-top:1px solid #ececf0}
+.tt-foot .lnk a{color:var(--blue,#0071e3);text-decoration:none;font-weight:700}
+.tt-foot .lnk a:hover{text-decoration:underline}
+
+/* ---------- tooltip ---------- */
+.tt-tip{position:fixed;z-index:400;pointer-events:none;opacity:0;transition:opacity .12s ease;
+  background:rgba(29,29,31,.94);color:#fff;border-radius:9px;padding:8px 11px;font-size:11.5px;
+  line-height:1.6;box-shadow:0 8px 24px rgba(0,0,0,.2);max-width:230px}
+.tt-tip b{font-family:var(--mono,monospace);font-weight:700}
+.tt-tip.on{opacity:1}
+
+/* 進場:只做一次,不干擾閱讀 */
+.tt-rv{opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s ease}
+.tt-rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){
+  .tt-rv{opacity:1;transform:none;transition:none}
+  .tt-svg *{animation:none !important}
+}
+</style>
+</head>
+<body>
+
+<nav class="pnav">
+  <div class="in">
+    <a href="../home/index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
+    <div class="tabs">
+      <a class="tab-l" href="../home/index.html">履歷</a>
+      <a class="tab-l" href="../lfs_page/lfs01.html">感知融合經驗</a>
+      <a class="tab-l" href="../trj_page/01_trj_page.html">軌跡規劃經驗</a>
+      <a class="tab-l" href="../dash_page/01_dash_page.html">AMR系統整合</a>
+      <span class="tab-l cur">底層控制經驗(研究所)</span>
+    </div>
+  </div>
+</nav>
+
+<div class="tt">
+
+  <!-- ==================== 頁首 ==================== -->
+  <div class="tt-head">
+    <h1 class="tt-h1">應用鎖死時間於機車防鎖死煞車系統之控制</h1>
+    <div class="tt-h1en">Application of Time-to-Lockup to the Control of a Motorcycle Anti-lock Braking System</div>
+    <div class="tt-meta">
+      <span>國立臺北科技大學 車輛工程系 · <b>先進車輛控制實驗室</b></span>
+      <span>指導教授 <b>陳柏全</b> 教授</span>
+      <span>研究生 <b>甘銘凱</b></span>
+      <span>口試 <b>2019 / 07 / 25</b></span>
+    </div>
+  </div>
+
+  <div class="tt-tldr">
+    機車 ABS 模組<b>沒有油壓感知器</b>,騎士體重與姿態又一直變 —— 傳統靠正向力反推摩擦係數的路走不通。
+    本論文只用量產機車本來就有的<b>輪速計與加速規</b>,先估出輪胎滾動半徑與加速規偏移量,
+    再用<b>車輪鎖死時間 TTL</b> 與<b>車輛煞停時間 TTS</b> 相等的條件,
+    直接算出當下最佳的輪角加速度目標值 <span class="m">α_op = ω_w · a_x / v_x</span>,
+    交給同時追滑差與輪角加速度的模糊控制器,最後用一套<b>考慮電磁閥 7ms 作動延遲</b>的模式切換策略
+    驅動三態電磁閥。模擬與 HIL 結果:煞車距離比傳統 Bang-Bang 控制器短 <b>9 – 18%</b>。
+  </div>
+
+  <nav class="tt-toc" aria-label="章節導覽">
+    <a href="#s0"><i>00</i>命題</a>
+    <a href="#smap"><i>◎</i>整體架構</a>
+    <a href="#s1"><i>01</i>受控體 EHB</a>
+    <a href="#s2"><i>02</i>估測鏈</a>
+    <a href="#s3"><i>03</i>最佳滑差 λ_op</a>
+    <a href="#s4" class="hot"><i>04</i>TTL / TTS → α_op</a>
+    <a href="#s5"><i>05</i>模糊控制器</a>
+    <a href="#s6"><i>06</i>模式切換</a>
+    <a href="#s7"><i>07</i>模擬結果</a>
+    <a href="#s8"><i>08</i>HIL 平台</a>
+    <a href="#s9"><i>09</i>結論</a>
+  </nav>
+
+  <div class="tt-legend">
+    <span class="tt-lg tt-lg--m"><i></i>主線:感測 → 估測 → 目標值 → 控制 → 致動</span>
+    <span class="tt-lg tt-lg--b"><i></i>本論文提出的環節</span>
+    <span class="tt-lg tt-lg--t"><i></i>液壓與致動路徑</span>
+    <span class="tt-lg tt-lg--a"><i></i>量不到 / 成本做不到 / 簡報未載明</span>
+  </div>
+
+
+  <!-- ==================== 00 命題 ==================== -->
+  <div class="tt-sec" id="s0">
+    <span class="tt-sec-n">00</span>
+    <span class="tt-sec-t">命題</span>
+    <span class="tt-sec-s">為什麼機車 ABS 不能照抄汽車的做法</span>
+  </div>
+
+  <div class="tt-cap tt-rv">
+    汽車 ABS 早已成熟,機車卻不是。106 年的肇事統計裡,<b>機車是所有車種中件數最高的一類</b>;
+    美國公路協會的統計則指出,配有 ABS 的機車可減少 <b>31%</b> 的重大撞擊。
+    問題不在要不要做,而在<em>機車上做不出汽車那一套</em>。
+  </div>
+
+  <div class="tt-scroll tt-rv">
+  <svg class="tt-svg tt-svg--n" viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="106 年道路交通事故肇事件數依當事者種類統計:機車 653 件最高,其次小客車 374 件、小貨車 148 件、大貨車 121 件、行人 65 件、大客車 22 件、其他 12 件,合計 1395 件,機車占 46.8%。">
+    <title>106 年肇事件數:機車占近半</title>
+    <desc>單一序列橫向長條圖,機車以品牌藍強調,其餘為中性灰。數值直接標在長條右端。</desc>
+    <text x="24" y="30" font-size="13" font-weight="800" fill="var(--ink,#1d1d1f)">106 年道路交通事故肇事件數 · 依當事者種類</text>
+    <text x="24" y="49" font-size="11" fill="var(--ink-3,#86868b)">資料:內政部警政署統計(簡報 p.3 內嵌圖表逐筆照抄)．單位:件</text>
+
+    <!-- 基線 -->
+    <line x1="118" y1="66" x2="118" y2="272" stroke="var(--line,#d2d2d7)" stroke-width="1"/>
+
+    <g id="tt-acc" class="m" font-size="11.5">
+      <!-- 條長比例:653 → 660px 為滿格 -->
+      <g><text x="108" y="87" text-anchor="end" font-size="11.5" font-weight="700" fill="var(--blue,#0071e3)" font-family="var(--sans)">機車</text>
+         <rect class="bar" x="118" y="74" height="20" rx="4" width="660" fill="var(--blue,#0071e3)" data-w="660"/>
+         <text x="792" y="89" font-weight="700" fill="var(--blue,#0071e3)">653</text></g>
+      <g><text x="108" y="115" text-anchor="end" font-size="11.5" font-weight="600" fill="var(--ink-2,#6e6e73)" font-family="var(--sans)">小客車</text>
+         <rect class="bar" x="118" y="102" height="20" rx="4" width="378" fill="#c9c9cf" data-w="378"/>
+         <text x="510" y="117" fill="var(--ink-2,#6e6e73)">374</text></g>
+      <g><text x="108" y="143" text-anchor="end" font-size="11.5" font-weight="600" fill="var(--ink-2,#6e6e73)" font-family="var(--sans)">小貨車</text>
+         <rect class="bar" x="118" y="130" height="20" rx="4" width="150" fill="#c9c9cf" data-w="150"/>
+         <text x="282" y="145" fill="var(--ink-2,#6e6e73)">148</text></g>
+      <g><text x="108" y="171" text-anchor="end" font-size="11.5" font-weight="600" fill="var(--ink-2,#6e6e73)" font-family="var(--sans)">大貨車</text>
+         <rect class="bar" x="118" y="158" height="20" rx="4" width="122" fill="#c9c9cf" data-w="122"/>
+         <text x="254" y="173" fill="var(--ink-2,#6e6e73)">121</text></g>
+      <g><text x="108" y="199" text-anchor="end" font-size="11.5" font-weight="600" fill="var(--ink-2,#6e6e73)" font-family="var(--sans)">行人</text>
+         <rect class="bar" x="118" y="186" height="20" rx="4" width="66" fill="#c9c9cf" data-w="66"/>
+         <text x="198" y="201" fill="var(--ink-2,#6e6e73)">65</text></g>
+      <g><text x="108" y="227" text-anchor="end" font-size="11.5" font-weight="600" fill="var(--ink-2,#6e6e73)" font-family="var(--sans)">大客車</text>
+         <rect class="bar" x="118" y="214" height="20" rx="4" width="22" fill="#c9c9cf" data-w="22"/>
+         <text x="154" y="229" fill="var(--ink-2,#6e6e73)">22</text></g>
+      <g><text x="108" y="255" text-anchor="end" font-size="11.5" font-weight="600" fill="var(--ink-2,#6e6e73)" font-family="var(--sans)">其他</text>
+         <rect class="bar" x="118" y="242" height="20" rx="4" width="12" fill="#c9c9cf" data-w="12"/>
+         <text x="144" y="257" fill="var(--ink-2,#6e6e73)">12</text></g>
+    </g>
+
+    <text x="118" y="288" font-size="11" font-weight="700" fill="var(--blue,#0071e3)">合計 1395 件 → 機車占 46.8%</text>
+  </svg>
+  </div>
+  <div class="tt-hint">← 左右捲動看完整圖 →</div>
+
+  <div class="tt-grid tt-rv">
+    <div class="tt-card tt-card--a">
+      <h4>擋路的是「正向力量不到」</h4>
+      <p>絕大多數 ABS 研究先估路面摩擦係數 <span class="m">μ = F_x / F_z</span>,再查表得到最佳滑差目標值。
+      分母的正向力 <span class="m">F_z</span> 在機車上會隨<b>騎士體重、姿態、載客與負載轉移</b>大幅變動,
+      量測需要額外感知器;分子的縱向力也要油壓感知器或煞車扭矩資訊 —— <b>量產成本上都做不到</b>。</p>
+    </div>
+    <div class="tt-card tt-card--b">
+      <h4>本論文換一條路</h4>
+      <p>只用<b>輪速計 + 加速規</b>。先把輪胎滾動半徑與加速規偏移量估出來,再從
+      <b>時間</b>下手 —— 用車輪鎖死時間與車輛煞停時間的相對關係,
+      直接得到當下最佳的輪角加速度目標值,<b>完全不需要摩擦係數的絕對值</b>。</p>
+    </div>
+  </div>
+
+  <div class="tt-cap tt-rv" style="margin-top:14px">
+    <b>文獻定位。</b>More 等人對兩輪車 ABS 採 PID,運算快但控制效果與強健性不理想;
+    Lin 等人以滑差滑動模式為基礎設計自適應模糊控制器,在變動路面滑差控制良好;
+    Savaresi 等人提出<b>混合滑差-輪減速度控制</b>,以權重結合兩者,大幅降低滑差雜訊問題並提升強健性。
+    本論文延續第三條路線,並補上它沒有回答的一題:<em>混合控制的兩個目標值,各自該設多少</em>。
+  </div>
+
+
+  <!-- ==================== 整體架構(不編號)====================
+       擺在 00 與 01 之間:先講完「為什麼」,再給一張全景,
+       之後每一章都是這張圖裡的一個方塊放大。
+       ★ 刻意不給章號 —— 它不是一章,是這一頁的地圖。
+         給了章號就得把後面 01–09 全部往後推,而本頁正文裡有
+         「第 02 章的估測鏈」「第 04 章比較…」「第 06 章那套…」
+         「第 07 章的完整統計」這些交叉參照,一起改風險高、收益低。
+       ★ 每個方塊右下角的 §nn 就是「這一塊在哪一章展開」,
+         所以這張圖同時是架構圖也是目錄。
+       ★ 出處:簡報 slide 26「整體架構」重繪。方塊、連線與訊號標註
+         逐一照抄,只做三件事 ——
+           (1) 版面重排以適應網頁寬度(原圖 4:3 投影片)
+           (2) 原圖 "Road Fiction Identification" 應為 Friction,
+               本圖寫正確拼法,見圖下註記
+           (3) 補上 §nn 章號徽章,原圖沒有
+       ============================================================ -->
+  <div class="tt-sec tt-sec--map" id="smap">
+    <span class="tt-sec-n">全景</span>
+    <span class="tt-sec-t">整體架構</span>
+    <span class="tt-sec-s">一張圖看完:感測 → 估測 → 目標值 → 控制 → 致動 → 車輛,然後回到感測</span>
+  </div>
+
+  <div class="tt-cap tt-rv">
+    這是論文的系統方塊圖。<b>它是一個閉環</b>:右邊 BikeSim 跑車輛動態,訊號經量測模擬與輪速擷取進到左下的估測群,
+    估測出來的量往左送給路面識別產生兩個目標值,再往上交給控制器,控制器輸出三態閥命令驅動 EHB,油壓回到車輛 ——
+    繞完一圈。<em>後面每一章,都是把這張圖裡的一個方塊打開</em>。
+  </div>
+
+  <div class="tt-scroll tt-rv">
+  <svg class="tt-svg" viewBox="0 0 1020 552" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="論文整體架構方塊圖,一個閉環。BikeSim 輸出車輛加速度與輪轉角到量測模擬;量測模擬輸出加速規訊號 a_m 給適應性參數估測器,並輸出霍爾感知器方波給瞬時輪速計算;瞬時輪速計算輸出 ω_m 給輪角加速度估測器,並分支給適應性參數估測器;適應性參數估測器估出加速規偏移量與前後輪滾動半徑,交給車速估測器得到車速與車輛加速度;車速與車輛加速度、輪角加速度與輪角速度一起進到路面識別,產生最佳輪角加速度目標值與最佳滑差目標值;控制器內部依序為模糊控制、策略、切換控制,輸出進出油閥命令到 EHB 動態;駕駛者另外提供總泵油壓;EHB 輸出分泵油壓回到 BikeSim,完成閉環。">
+    <title>論文整體架構(簡報 slide 26 重繪)</title>
+    <desc>閉環方塊圖:感測 → 估測 → 目標值 → 控制器 → EHB → 車輛 → 回到感測。每個方塊標註本頁對應章號。</desc>
+
+    <defs>
+      <marker id="tt-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="var(--ink,#1d1d1f)"/>
+      </marker>
+    </defs>
+
+    <!-- ==================== 控制器(虛線群組)==================== -->
+    <!-- 三格窄一點,是為了把 Ṗ_WC / mode / C_ic,C_oc 三個標籤的縫留出來 —— -->
+    <!-- 原本各格較寬,縫只有 30px,標籤一定會壓到框線 -->
+    <rect x="226" y="74" width="356" height="150" rx="6" fill="none"
+          stroke="var(--ink,#1d1d1f)" stroke-width="1.2" stroke-dasharray="6 4"/>
+    <text x="238" y="92" font-size="11.5" font-weight="800" fill="var(--ink,#1d1d1f)">Controller</text>
+
+    <!-- ==================== 估測群(虛線群組)==================== -->
+    <rect x="270" y="254" width="372" height="136" rx="6" fill="none"
+          stroke="var(--ink,#1d1d1f)" stroke-width="1.2" stroke-dasharray="6 4"/>
+
+    <!-- ==================== 方塊 ==================== -->
+    <g stroke="var(--ink,#1d1d1f)" stroke-width="1.5" fill="#fff">
+      <rect x="14"  y="92"  width="134" height="116"/>
+      <!-- 三格等高對齊。原圖 Strategy 的框略高一點,但那不帶任何意思 -->
+      <rect x="240" y="126" width="70"  height="80"/>
+      <rect x="346" y="126" width="78"  height="80"/>
+      <rect x="470" y="126" width="96"  height="80"/>
+      <rect x="642" y="70"  width="86"  height="32"/>
+      <rect x="658" y="146" width="146" height="50"/>
+      <rect x="852" y="70"  width="114" height="152"/>
+      <rect x="812" y="260" width="154" height="90"/>
+      <rect x="812" y="384" width="154" height="88"/>
+      <rect x="356" y="384" width="156" height="88"/>
+      <rect x="286" y="268" width="116" height="108"/>
+      <rect x="500" y="268" width="126" height="108"/>
+    </g>
+
+    <!-- 方塊文字。§nn 徽章 = 這一塊在本頁哪一章展開 -->
+    <g font-size="12.5" font-weight="800" text-anchor="middle" fill="var(--ink,#1d1d1f)">
+      <text x="81" y="142">Road Friction</text>
+      <text x="81" y="160">Identification</text>
+      <text x="275" y="158">Fuzzy</text>
+      <text x="275" y="176">Control</text>
+      <text x="385" y="166">Strategy</text>
+      <text x="518" y="158">Switching</text>
+      <text x="518" y="176">Control</text>
+      <text x="685" y="92">Driver</text>
+      <text x="731" y="176">EHB Dynamics</text>
+      <text x="889" y="200">BikeSim</text>
+      <text x="889" y="298">Measurement</text>
+      <text x="889" y="316">Simulation</text>
+      <text x="889" y="412">Instantaneous</text>
+      <text x="889" y="430">Wheel Speed</text>
+      <text x="889" y="448">Calculation</text>
+      <text x="434" y="412">Angular</text>
+      <text x="434" y="430">Acceleration</text>
+      <text x="434" y="448">Estimator</text>
+      <text x="344" y="306">Vehicle</text>
+      <text x="344" y="324">Speed</text>
+      <text x="344" y="342">Estimator</text>
+      <text x="563" y="306">Adaptive</text>
+      <text x="563" y="324">Parameter</text>
+      <text x="563" y="342">Estimator</text>
+    </g>
+    <g class="m" font-size="9" font-weight="700" text-anchor="middle" fill="var(--blue,#0071e3)">
+      <text x="81"  y="198">§03 · §04</text>
+      <text x="275" y="198">§05</text>
+      <text x="385" y="198">§06</text>
+      <text x="518" y="198">§06</text>
+      <text x="731" y="190">§01</text>
+      <text x="889" y="213">§07</text>
+      <text x="889" y="342">§02</text>
+      <text x="889" y="465">§02</text>
+      <text x="434" y="465">§02</text>
+      <text x="344" y="368">§02</text>
+      <text x="563" y="368">§02</text>
+    </g>
+
+    <!-- BikeSim 的車輛圖示 -->
+    <g>
+      <circle cx="889" cy="140" r="38" fill="#f2f4f7" stroke="var(--ink-3,#86868b)" stroke-width="1.2"/>
+      <g transform="translate(889,142) scale(.92)" fill="none" stroke="#3a4048" stroke-width="2.4" stroke-linecap="round">
+        <circle cx="-16" cy="9" r="7.5"/>
+        <circle cx="16" cy="9" r="7.5"/>
+        <path d="M-16,9 L-6,-6 L8,-6 L16,9"/>
+        <path d="M-9,-6 L-4,-13 L6,-13"/>
+      </g>
+    </g>
+
+    <!-- ==================== 連線 ==================== -->
+    <g fill="none" stroke="var(--ink,#1d1d1f)" stroke-width="1.5" marker-end="url(#tt-ar)">
+      <!-- 路面識別 → 模糊控制:兩個目標值(箭頭要碰到 Fuzzy 的框,不是停在虛線群組邊上) -->
+      <path d="M148,146 L240,146"/>
+      <!-- 控制器內部串接 -->
+      <path d="M310,166 L342,166"/>
+      <path d="M424,166 L466,166"/>
+      <!-- 切換控制 → EHB -->
+      <path d="M566,166 L654,166"/>
+      <!-- 駕駛者 → EHB -->
+      <path d="M685,102 L685,142"/>
+      <!-- EHB → BikeSim -->
+      <path d="M804,170 L848,170"/>
+      <!-- BikeSim → 量測模擬 -->
+      <path d="M889,222 L889,256"/>
+      <!-- 量測模擬 → 適應性參數估測器 -->
+      <path d="M812,292 L630,292"/>
+      <!-- 量測模擬 → 瞬時輪速計算 -->
+      <path d="M889,350 L889,380"/>
+      <!-- 瞬時輪速計算 → 輪角加速度估測器 -->
+      <path d="M812,428 L516,428"/>
+      <!-- ω_m 分支 → 適應性參數估測器 -->
+      <path d="M700,428 L700,334 L630,334"/>
+      <!-- 適應性參數估測器 → 車速估測器 -->
+      <path d="M500,322 L406,322"/>
+      <!-- λ̂:從車速估測器的框上緣起,進 Fuzzy 的框下緣。x=300 同時落在
+           VSE(286–402)與 Fuzzy(240–310)的範圍內,兩端才都接在框上 -->
+      <path d="M300,268 L300,210"/>
+      <!-- α̂_w, ω̂_w branch → 控制器 -->
+      <path d="M186,428 L186,182 L240,182"/>
+      <!-- α̂_w, ω̂_w 主線 → 路面識別:走最外側(x=36)。原圖就是這條在外、
+           V̂_x 那條在內 —— 兩條的內外順序不能對調,否則會多出一個交叉 -->
+      <path d="M356,428 L36,428 L36,212"/>
+      <!-- V̂_x, â_x → 路面識別:走內側(x=76),在 x=186 處跨過上面那條
+           往控制器的直軌(見下方跳接半圓) -->
+      <path d="M286,322 L206,322 M166,322 L76,322 L76,212"/>
+    </g>
+    <!-- 分支點:只有這兩處是真的接在一起 -->
+    <g fill="var(--ink,#1d1d1f)">
+      <circle cx="700" cy="428" r="3.6"/>
+      <circle cx="186" cy="428" r="3.6"/>
+    </g>
+    <!-- 跨線跳接:V̂_x 橫線與往控制器的 α̂_w 直軌在 x=186 交叉但不相連,
+         畫成向上的半圓才看得出「只是跨過去」。sweep-flag 0 才是向上凸。 -->
+    <path d="M206,322 A20,20 0 0 0 166,322" fill="none" stroke="var(--ink,#1d1d1f)" stroke-width="1.5"/>
+
+    <!-- ==================== 訊號標註 ==================== -->
+    <g class="m" font-size="11.5" font-weight="700" fill="var(--ink,#1d1d1f)">
+      <text x="156" y="138">α̂_op, λ̂_op</text>
+      <text x="156" y="174">α̂_w, ω̂_w</text>
+      <!-- 三個標籤都置中在自己那段箭頭上方,縫已在方塊寬度那邊留好 -->
+      <text x="327" y="157" font-size="10.5" text-anchor="middle">Ṗ_WC</text>
+      <text x="445" y="157" text-anchor="middle">mode</text>
+      <text x="610" y="157" text-anchor="middle">C_ic, C_oc</text>
+      <text x="694" y="126">P_MC</text>
+      <text x="808" y="162">P_WC</text>
+      <text x="897" y="244">a_x, θ_w</text>
+      <text x="722" y="284">a_m</text>
+      <text x="708" y="422">ω_m</text>
+      <text x="412" y="314">ε̂, r̂_f, r̂_r</text>
+      <text x="306" y="248">λ̂</text>
+      <text x="96" y="312">V̂_x, â_x</text>
+      <text x="92" y="418">α̂_w, ω̂_w</text>
+    </g>
+    <text x="880" y="372" font-size="10.5" text-anchor="end" fill="var(--ink-2,#6e6e73)">Hall Sensor Signal</text>
+
+    <!-- 閉環標記 -->
+    <text x="14" y="512" font-size="11" font-weight="700" fill="var(--blue,#0071e3)">
+      這一圈就是全部:車輛 → 量測 → 估測 → 目標值 → 控制器 → 閥 → 車輛
+    </text>
+    <text x="14" y="532" font-size="10.5" fill="var(--ink-3,#86868b)">
+      虛線框是兩個群組:上面的 Controller(§05 · §06)、下面的估測群(§02)．方塊右下 §nn = 該塊在本頁展開的章次
+    </text>
+  </svg>
+  </div>
+  <div class="tt-hint">← 左右捲動看完整圖 →</div>
+
+  <div class="tt-cap tt-rv">
+    <b>三個地方值得先看一眼</b>,因為它們是後面所有章節的因果來源:
+  </div>
+
+  <div class="tt-grid tt-rv">
+    <div class="tt-card">
+      <h4>閉環裡沒有油壓感知器</h4>
+      <p>從 EHB 出來的 <span class="m">P_WC</span> 直接進 BikeSim,<b>沒有一條線回到控制器</b>。
+      油壓是開迴路給的 —— 這就是為什麼路面識別不能走「先求摩擦係數」那條路。</p>
+    </div>
+    <div class="tt-card">
+      <h4>量測模擬是刻意加進來的</h4>
+      <p>BikeSim 的輸出沒有直接餵給估測器,而是先過 <b>Measurement Simulation</b>:
+      加上解析度、雜訊與偏移量,再輸出霍爾方波。<b>把訊號弄髒</b>,估測器才算真的被考過。</p>
+    </div>
+    <div class="tt-card tt-card--b">
+      <h4>兩個目標值都出自同一個方塊</h4>
+      <p>Road Friction Identification 同時吐出 <span class="m">λ̂_op</span> 與 <span class="m">α̂_op</span> ——
+      前者來自減速度極值(§03),後者來自 TTL 與 TTS 相等(§04)。<b>兩者都不需要摩擦係數的絕對值</b>。</p>
+    </div>
+  </div>
+
+  <div class="tt-note tt-rv">
+    <b>原圖的一個筆誤。</b>簡報 slide 26 上這個方塊寫的是 <code>Road Fiction Identification</code>,
+    應為 <b>Friction</b>(摩擦)。本圖用正確拼法,在此註明 —— 不是本頁改了論文的用詞。
+  </div>
+
+
+  <!-- ==================== 01 受控體 ==================== -->
+  <div class="tt-sec" id="s1">
+    <span class="tt-sec-n">01</span>
+    <span class="tt-sec-t">受控體:電磁閥式 EHB 模組</span>
+    <span class="tt-sec-s">只能增壓 / 持壓 / 洩壓,而且會遲到</span>
+  </div>
+
+  <div class="tt-cap tt-rv">
+    控制器再好,也只能透過這個模組把力送到輪胎。它的兩個性質決定了後面所有設計:
+    <b>分泵油壓不能線性給定</b>,只能靠進油閥與出油閥開關組出三種模式;而且電磁閥<b>從收到命令到油壓真的開始變化,中間有延遲</b>。
+  </div>
+
+  <div class="tt-scroll tt-rv">
+  <svg class="tt-svg" viewBox="0 0 1020 330" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="電液壓煞車模組三種工作模式示意。增壓模式進油閥開、出油閥關,總泵油壓經孔口流入分泵;持壓模式兩閥皆關,分泵油壓維持;洩壓模式進油閥關、出油閥開,分泵油壓經出油孔流向低壓端與蓄壓器。三種模式由孔口流量方程描述。">
+    <title>EHB 三種工作模式</title>
+    <desc>增壓、持壓、洩壓三格並列,各自標出閥件開關狀態與對應的體積流率方程。</desc>
+
+    <defs>
+      <marker id="tt-a-t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="#0e7c9a"/>
+      </marker>
+      <marker id="tt-a-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="var(--ink-3,#86868b)"/>
+      </marker>
+    </defs>
+
+    <!-- 三格 -->
+    <g id="tt-ehb">
+      <!-- ========== 增壓 ========== -->
+      <g>
+        <rect x="20" y="26" width="315" height="230" rx="14" fill="#fff" stroke="#0e7c9a" stroke-width="1.6"/>
+        <rect x="20" y="26" width="315" height="30" rx="14" fill="#0e7c9a"/>
+        <rect x="20" y="44" width="315" height="12" fill="#0e7c9a"/>
+        <text x="38" y="47" font-size="12.5" font-weight="800" fill="#fff">增壓 Apply</text>
+        <text x="150" y="47" font-size="10.5" fill="#d6f0f7" class="m">mode = 2</text>
+
+        <!-- 總泵 -->
+        <rect x="40" y="76" width="86" height="38" rx="7" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.3"/>
+        <text x="83" y="93" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">Master Cyl.</text>
+        <text x="83" y="107" font-size="11" text-anchor="middle" class="m" font-weight="700" fill="var(--ink,#1d1d1f)">P_MC</text>
+        <!-- 進油閥 開 -->
+        <path d="M126,95 L176,95" stroke="#0e7c9a" stroke-width="2.4" marker-end="url(#tt-a-t)"/>
+        <rect x="176" y="78" width="62" height="34" rx="6" fill="#e6f6fa" stroke="#0e7c9a" stroke-width="1.6"/>
+        <text x="207" y="93" font-size="9" text-anchor="middle" fill="#0e7c9a">Inlet</text>
+        <text x="207" y="106" font-size="10" text-anchor="middle" font-weight="800" fill="#0e7c9a">開</text>
+        <path d="M238,95 L288,95" stroke="#0e7c9a" stroke-width="2.4" marker-end="url(#tt-a-t)"/>
+        <!-- 分泵 -->
+        <rect x="230" y="132" width="86" height="38" rx="7" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.6"/>
+        <text x="273" y="149" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">Wheel Cyl.</text>
+        <text x="273" y="163" font-size="11" text-anchor="middle" class="m" font-weight="700" fill="var(--ink,#1d1d1f)">P_WC ↑</text>
+        <!-- 出油閥 關 -->
+        <rect x="60" y="132" width="62" height="34" rx="6" fill="#f2f2f4" stroke="var(--ink-3,#86868b)" stroke-width="1.3" stroke-dasharray="4 3"/>
+        <text x="91" y="147" font-size="9" text-anchor="middle" fill="var(--ink-3,#86868b)">Outlet</text>
+        <text x="91" y="160" font-size="10" text-anchor="middle" font-weight="800" fill="var(--ink-3,#86868b)">關</text>
+
+        <line x1="36" y1="186" x2="319" y2="186" stroke="#e6e6ea" stroke-width="1"/>
+        <text x="38" y="205" font-size="10" class="m" fill="#0e7c9a">Q_in = C_in·A_in·√(2/ρ·(P_MC−P_WC))</text>
+        <text x="38" y="222" font-size="10" class="m" fill="var(--ink-3,#86868b)">Q_o  = 0</text>
+        <text x="38" y="243" font-size="10.5" class="m" font-weight="700" fill="var(--ink,#1d1d1f)">Ṗ_WC = (β_in/V_in)·Q_in</text>
+      </g>
+
+      <!-- ========== 持壓 ========== -->
+      <g>
+        <rect x="352" y="26" width="315" height="230" rx="14" fill="#fff" stroke="var(--ink-3,#86868b)" stroke-width="1.6"/>
+        <rect x="352" y="26" width="315" height="30" rx="14" fill="var(--ink-3,#86868b)"/>
+        <rect x="352" y="44" width="315" height="12" fill="var(--ink-3,#86868b)"/>
+        <text x="370" y="47" font-size="12.5" font-weight="800" fill="#fff">持壓 Hold</text>
+        <text x="478" y="47" font-size="10.5" fill="#eaeaed" class="m">mode = 3</text>
+
+        <rect x="372" y="76" width="86" height="38" rx="7" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.3"/>
+        <text x="415" y="93" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">Master Cyl.</text>
+        <text x="415" y="107" font-size="11" text-anchor="middle" class="m" font-weight="700" fill="var(--ink,#1d1d1f)">P_MC</text>
+        <rect x="508" y="78" width="62" height="34" rx="6" fill="#f2f2f4" stroke="var(--ink-3,#86868b)" stroke-width="1.3" stroke-dasharray="4 3"/>
+        <text x="539" y="93" font-size="9" text-anchor="middle" fill="var(--ink-3,#86868b)">Inlet</text>
+        <text x="539" y="106" font-size="10" text-anchor="middle" font-weight="800" fill="var(--ink-3,#86868b)">關</text>
+        <rect x="562" y="132" width="86" height="38" rx="7" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.6"/>
+        <text x="605" y="149" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">Wheel Cyl.</text>
+        <text x="605" y="163" font-size="11" text-anchor="middle" class="m" font-weight="700" fill="var(--ink,#1d1d1f)">P_WC —</text>
+        <rect x="392" y="132" width="62" height="34" rx="6" fill="#f2f2f4" stroke="var(--ink-3,#86868b)" stroke-width="1.3" stroke-dasharray="4 3"/>
+        <text x="423" y="147" font-size="9" text-anchor="middle" fill="var(--ink-3,#86868b)">Outlet</text>
+        <text x="423" y="160" font-size="10" text-anchor="middle" font-weight="800" fill="var(--ink-3,#86868b)">關</text>
+
+        <line x1="368" y1="186" x2="651" y2="186" stroke="#e6e6ea" stroke-width="1"/>
+        <text x="370" y="205" font-size="10" class="m" fill="var(--ink-3,#86868b)">Q_in = 0</text>
+        <text x="370" y="222" font-size="10" class="m" fill="var(--ink-3,#86868b)">Q_o  = 0</text>
+        <text x="370" y="243" font-size="10.5" class="m" font-weight="700" fill="var(--ink,#1d1d1f)">Ṗ_WC = 0</text>
+      </g>
+
+      <!-- ========== 洩壓 ========== -->
+      <g>
+        <rect x="684" y="26" width="315" height="230" rx="14" fill="#fff" stroke="#0e7c9a" stroke-width="1.6"/>
+        <rect x="684" y="26" width="315" height="30" rx="14" fill="#0e7c9a"/>
+        <rect x="684" y="44" width="315" height="12" fill="#0e7c9a"/>
+        <text x="702" y="47" font-size="12.5" font-weight="800" fill="#fff">洩壓 Release</text>
+        <text x="822" y="47" font-size="10.5" fill="#d6f0f7" class="m">mode = 4</text>
+
+        <rect x="704" y="76" width="86" height="38" rx="7" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.3"/>
+        <text x="747" y="93" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">Master Cyl.</text>
+        <text x="747" y="107" font-size="11" text-anchor="middle" class="m" font-weight="700" fill="var(--ink,#1d1d1f)">P_MC</text>
+        <rect x="840" y="78" width="62" height="34" rx="6" fill="#f2f2f4" stroke="var(--ink-3,#86868b)" stroke-width="1.3" stroke-dasharray="4 3"/>
+        <text x="871" y="93" font-size="9" text-anchor="middle" fill="var(--ink-3,#86868b)">Inlet</text>
+        <text x="871" y="106" font-size="10" text-anchor="middle" font-weight="800" fill="var(--ink-3,#86868b)">關</text>
+        <rect x="894" y="132" width="86" height="38" rx="7" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.6"/>
+        <text x="937" y="149" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">Wheel Cyl.</text>
+        <text x="937" y="163" font-size="11" text-anchor="middle" class="m" font-weight="700" fill="var(--ink,#1d1d1f)">P_WC ↓</text>
+        <rect x="724" y="132" width="62" height="34" rx="6" fill="#e6f6fa" stroke="#0e7c9a" stroke-width="1.6"/>
+        <text x="755" y="147" font-size="9" text-anchor="middle" fill="#0e7c9a">Outlet</text>
+        <text x="755" y="160" font-size="10" text-anchor="middle" font-weight="800" fill="#0e7c9a">開</text>
+        <path d="M894,151 L790,151" stroke="#0e7c9a" stroke-width="2.4" marker-end="url(#tt-a-t)"/>
+        <!-- 蓄壓器 -->
+        <rect x="704" y="182" width="80" height="26" rx="6" fill="#fff" stroke="#0e7c9a" stroke-width="1.2"/>
+        <text x="744" y="199" font-size="9" text-anchor="middle" fill="#0e7c9a">Accumulator</text>
+        <path d="M755,166 L748,180" stroke="#0e7c9a" stroke-width="1.6" marker-end="url(#tt-a-t)"/>
+
+        <line x1="700" y1="218" x2="983" y2="218" stroke="#e6e6ea" stroke-width="1"/>
+        <text x="702" y="234" font-size="10" class="m" fill="var(--ink-3,#86868b)">Q_in = 0</text>
+        <text x="702" y="249" font-size="9.8" class="m" fill="#0e7c9a">Q_o = C_o·A_o·√(2/ρ·(P_WC−P_Low))</text>
+      </g>
+    </g>
+
+    <!-- 底部:延遲 -->
+    <g>
+      <rect x="20" y="268" width="979" height="48" rx="12" fill="var(--amber-bg,#fff7ed)" stroke="var(--amber-line,#fde3c8)" stroke-width="1.4"/>
+      <text x="40" y="288" font-size="11.5" font-weight="800" fill="#b45309">而且會遲到:</text>
+      <text x="128" y="288" font-size="11" fill="#b45309">控制器下命令 → 電磁閥真的動 → 分泵油壓開始變化,中間有一段死時間</text>
+      <text x="40" y="306" font-size="10.5" class="m" font-weight="700" fill="#b45309">t_ind(進油閥延遲) · t_od(出油閥延遲,論文台架量到 7 ms)</text>
+      <text x="470" y="306" font-size="10.5" fill="#b45309">→ 這個 7 ms 後面第 06 章會再出現一次,它是模式切換策略的整個理由</text>
+    </g>
+  </svg>
+  </div>
+  <div class="tt-hint">← 左右捲動看完整圖 →</div>
+
+  <div class="tt-eq tt-rv">
+    <b>簡化油壓模型</b>（把兩個閥的孔口特性併成兩個等效係數,並帶進閥件延遲）<br>
+    Ṗ_WC = k_in,j · C_ic · √( 2/ρ · (P_MC − P_WC) ) &nbsp;−&nbsp; k_o · C_oc · √( 2/ρ · (P_WC − P_Low) )<br>
+    <small>C_ic、C_oc ∈ {0,1} 為進 / 出油閥的開關命令,分別延遲 t_ind、t_od 後才生效;
+    k_in,j 依增壓段別(j = 1,2)取不同值。</small>
+  </div>
+
+  <div class="tt-eq tt-rv tt-eq--n">
+    <b>參數識別</b>（以台架實測的分泵油壓為真值,最小平方擬合）<br>
+    e_k = P_m,k − P_est,k &nbsp;&nbsp;&nbsp; J = Σ<sub>k=1..N</sub> e_k²<br>
+    ( k*_in,1 , k*_in,2 , t*_ind , k*_o , t*_od ) = arg min J<br>
+    <small>識別完成後以<b>開迴路</b>估測分泵油壓 —— 不給模型任何回授修正,估出來的壓力仍能貼合實測,
+    才算證明模型本身是對的。</small>
+  </div>
+
+  <div class="tt-cap tt-rv">
+    這一步的意義常被略過:<b>它決定了後面所有模擬的可信度</b>。
+    參數是用實體 EHB 台架的油壓量測擬合出來的,再拿開迴路估測值與實測值比對驗證;
+    模擬裡的液壓模組因此不是理想化的一階模型,而是<em>帶著真實延遲與非線性孔口流量的模組</em>。
+  </div>
+
+
+  <!-- ==================== 02 估測鏈 ==================== -->
+  <div class="tt-sec" id="s2">
+    <span class="tt-sec-n">02</span>
+    <span class="tt-sec-t">估測鏈:兩支感知器要撐起四個狀態</span>
+    <span class="tt-sec-s">r_f · r_r · ε · V_x · α_w</span>
+  </div>
+
+  <div class="tt-cap tt-rv">
+    輸入只有<b>霍爾式輪速計</b>與<b>雙軸加速規</b>。麻煩在於兩者都不乾淨:
+    輪速受解析度與滾動半徑影響,加速規有高頻雜訊、解析度限制,還有一個會隨坡度改變的<b>量測偏移量</b>。
+    論文把它拆成三層,每層只解一個問題。
+  </div>
+
+  <div class="tt-scroll tt-rv">
+  <svg class="tt-svg" viewBox="0 0 1020 400" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="估測鏈方塊圖。霍爾輪速計以 Frequency Measurement 擷取方波得到輪角速度,經卡爾曼濾波器得到輪角速度與輪角加速度;加速規訊號與輪角加速度進入適應性參數卡爾曼濾波器,依車輛狀態分階段估測前輪滾動半徑、後輪滾動半徑與加速規量測偏移量,煞車階段凍結參數;最後車速估測器依滑差大小調整權重,融合各輪輪速與加速度積分得到車速與滑差。">
+    <title>估測鏈:從方波與加速規到 V_x、λ、α_w</title>
+    <desc>三層結構:輪角加速度估測、適應性參數估測(含五階段狀態機與凍結)、車速融合。</desc>
+
+    <defs>
+      <marker id="tt-a-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="var(--blue,#0071e3)"/>
+      </marker>
+      <marker id="tt-a-k" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="var(--ink,#1d1d1f)"/>
+      </marker>
+    </defs>
+
+    <!-- 感知器 -->
+    <g>
+      <rect x="24" y="40" width="164" height="52" rx="9" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.4"/>
+      <text x="106" y="62" font-size="11" font-weight="700" text-anchor="middle" fill="var(--ink,#1d1d1f)">霍爾式輪速計</text>
+      <text x="106" y="79" font-size="9.5" text-anchor="middle" class="m" fill="var(--ink-3,#86868b)">方波 → Frequency Meas.</text>
+
+      <rect x="24" y="238" width="164" height="52" rx="9" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.4"/>
+      <text x="106" y="260" font-size="11" font-weight="700" text-anchor="middle" fill="var(--ink,#1d1d1f)">雙軸加速規</text>
+      <text x="106" y="277" font-size="9.5" text-anchor="middle" class="m" fill="var(--ink-3,#86868b)">a_m = a_x + ε + noise</text>
+    </g>
+
+    <path d="M188,66 L232,66" stroke="var(--ink,#1d1d1f)" stroke-width="1.6" marker-end="url(#tt-a-k)"/>
+    <path d="M188,264 L232,264" stroke="var(--ink,#1d1d1f)" stroke-width="1.6" marker-end="url(#tt-a-k)"/>
+
+    <!-- 第一層:輪角加速度 KF -->
+    <g>
+      <rect x="232" y="30" width="248" height="72" rx="10" fill="#f7fbff" stroke="var(--blue,#0071e3)" stroke-width="1.7"/>
+      <text x="248" y="51" font-size="11.5" font-weight="800" fill="var(--blue,#0071e3)">輪角加速度估測器 · Kalman</text>
+      <text x="248" y="70" font-size="9.8" class="m" fill="var(--ink-2,#6e6e73)">α_{k+1}=α_k ,  ω_{k+1}=ω_k+T·α_k</text>
+      <text x="248" y="88" font-size="9.8" class="m" fill="var(--ink-2,#6e6e73)">y = ω_m ,  H_w = [ 0  1 ]</text>
+      <text x="466" y="96" font-size="9" text-anchor="end" fill="var(--ink-3,#86868b)">→ α̂_w , ω̂_w</text>
+    </g>
+
+    <!-- 第二層:參數 KF -->
+    <g>
+      <rect x="232" y="152" width="248" height="196" rx="10" fill="#f7fbff" stroke="var(--blue,#0071e3)" stroke-width="1.7"/>
+      <text x="248" y="174" font-size="11.5" font-weight="800" fill="var(--blue,#0071e3)">適應性參數估測器 · Kalman</text>
+      <text x="248" y="192" font-size="9.5" fill="var(--ink-2,#6e6e73)">關鍵恆等式(不含正向力):</text>
+      <rect x="246" y="200" width="220" height="26" rx="6" fill="#eaf4ff"/>
+      <text x="356" y="217" font-size="11" class="m" font-weight="700" text-anchor="middle" fill="var(--blue,#0071e3)">r_f · α_f = a_m − ε</text>
+      <text x="248" y="246" font-size="9.6" class="m" fill="var(--ink-2,#6e6e73)">x̂ = [ 1/r_f ,  ε/r_f ]ᵀ</text>
+      <text x="248" y="263" font-size="9.6" class="m" fill="var(--ink-2,#6e6e73)">C_k = [ a_m,k ,  −1 ] ,  y = α_f,k</text>
+      <line x1="248" y1="275" x2="464" y2="275" stroke="#d8e8f8" stroke-width="1"/>
+      <text x="248" y="292" font-size="9.5" fill="var(--ink-2,#6e6e73)">等速滑行時 r_f ω̂_f = r_r ω̂_r</text>
+      <text x="248" y="308" font-size="9.6" class="m" font-weight="700" fill="var(--blue,#0071e3)">→ r̂_r = r̂_f · ω̂_f / ω̂_r</text>
+      <text x="248" y="332" font-size="9.5" fill="var(--ink-3,#86868b)">輸出 r̂_f , r̂_r , ε̂</text>
+    </g>
+
+    <path d="M356,102 L356,148" stroke="var(--blue,#0071e3)" stroke-width="1.6" marker-end="url(#tt-a-b)"/>
+    <text x="364" y="128" font-size="9" class="m" fill="var(--blue,#0071e3)">α̂_f</text>
+
+    <!-- 狀態機 -->
+    <g>
+      <rect x="510" y="152" width="222" height="196" rx="10" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.5"/>
+      <text x="526" y="174" font-size="11.5" font-weight="800" fill="var(--ink,#1d1d1f)">參數更新策略 · 五階段</text>
+      <text x="526" y="191" font-size="9.3" fill="var(--ink-3,#86868b)">哪個階段能估哪個參數,是有條件的</text>
+
+      <g class="m" font-size="9.4">
+        <rect x="524" y="200" width="194" height="24" rx="5" fill="#f6f6f7"/>
+        <text x="534" y="216" font-weight="700" fill="var(--ink-2,#6e6e73)">0 Static</text>
+        <text x="606" y="216" fill="var(--ink-2,#6e6e73)">靜止 → 估 ε_s</text>
+
+        <rect x="524" y="228" width="194" height="24" rx="5" fill="#eaf4ff"/>
+        <text x="534" y="244" font-weight="700" fill="var(--blue,#0071e3)">1 Accel</text>
+        <text x="606" y="244" fill="var(--blue,#0071e3)">起步 → 估 r_f</text>
+
+        <rect x="524" y="256" width="194" height="24" rx="5" fill="#eaf4ff"/>
+        <text x="534" y="272" font-weight="700" fill="var(--blue,#0071e3)">2 Normal</text>
+        <text x="606" y="272" fill="var(--blue,#0071e3)">加速 → 續估 r_f , ε_a</text>
+
+        <rect x="524" y="284" width="194" height="24" rx="5" fill="#eaf4ff"/>
+        <text x="534" y="300" font-weight="700" fill="var(--blue,#0071e3)">3 Sliding</text>
+        <text x="606" y="300" fill="var(--blue,#0071e3)">滑行 → 估 r_r</text>
+
+        <rect x="524" y="312" width="194" height="26" rx="5" fill="var(--amber-bg,#fff7ed)" stroke="#e5c08a" stroke-width="1"/>
+        <text x="534" y="329" font-weight="700" fill="#b45309">4 Brake</text>
+        <text x="606" y="329" font-weight="700" fill="#b45309">煞車 → 全部凍結</text>
+      </g>
+    </g>
+
+    <path d="M480,250 L506,250" stroke="var(--ink,#1d1d1f)" stroke-width="1.6" marker-end="url(#tt-a-k)"/>
+
+    <!-- 第三層:車速融合 -->
+    <g>
+      <rect x="762" y="30" width="234" height="318" rx="10" fill="#f7fbff" stroke="var(--blue,#0071e3)" stroke-width="1.7"/>
+      <text x="778" y="52" font-size="11.5" font-weight="800" fill="var(--blue,#0071e3)">車速估測器</text>
+      <text x="778" y="69" font-size="9.4" fill="var(--ink-2,#6e6e73)">依各輪滑差大小查表調權重</text>
+
+      <rect x="776" y="80" width="206" height="66" rx="7" fill="#eaf4ff"/>
+      <text x="786" y="99" font-size="9.4" class="m" fill="var(--blue,#0071e3)">V̂_x,k = K_f·r̂_f ω̂_f</text>
+      <text x="800" y="115" font-size="9.4" class="m" fill="var(--blue,#0071e3)">+ K_r·r̂_r ω̂_r</text>
+      <text x="800" y="131" font-size="9.4" class="m" fill="var(--blue,#0071e3)">+ (1−K_f−K_r)(V̂_x,k−1 + â_x T_s)</text>
+
+      <rect x="776" y="158" width="206" height="52" rx="7" fill="#fff" stroke="var(--line,#d2d2d7)" stroke-width="1.1"/>
+      <text x="786" y="176" font-size="9.4" font-weight="700" fill="var(--ink-2,#6e6e73)">滑差小 → 該輪輪速為主</text>
+      <text x="786" y="196" font-size="9.4" font-weight="700" fill="#b45309">緊急煞車滑差大 → 加速度積分為主</text>
+
+      <line x1="778" y1="228" x2="980" y2="228" stroke="#d8e8f8" stroke-width="1"/>
+      <text x="778" y="250" font-size="10" class="m" font-weight="700" fill="var(--blue,#0071e3)">→ V̂_x</text>
+      <text x="778" y="270" font-size="10" class="m" font-weight="700" fill="var(--blue,#0071e3)">→ λ̂ = (V̂_x − r ω̂_w)/V̂_x</text>
+      <text x="778" y="290" font-size="10" class="m" font-weight="700" fill="var(--blue,#0071e3)">→ α̂_w , â_x</text>
+      <text x="778" y="318" font-size="9.4" fill="var(--ink-3,#86868b)">這四個量就是第 03、04 章</text>
+      <text x="778" y="333" font-size="9.4" fill="var(--ink-3,#86868b)">兩個目標值唯一的原料</text>
+    </g>
+
+    <path d="M732,150 L756,110" stroke="var(--blue,#0071e3)" stroke-width="1.6" marker-end="url(#tt-a-b)"/>
+    <path d="M480,66 L756,66" stroke="var(--blue,#0071e3)" stroke-width="1.6" marker-end="url(#tt-a-b)"/>
+
+    <text x="24" y="382" font-size="10" fill="var(--ink-3,#86868b)">估測器取樣時間 10 ms(BikeSim 動態 0.5 ms)．論文表 4.1 目標車:BikeSim Scooter, Big (CVT)</text>
+  </svg>
+  </div>
+  <div class="tt-hint">← 左右捲動看完整圖 →</div>
+
+  <div class="tt-grid tt-rv">
+    <div class="tt-card tt-card--b">
+      <h4>為什麼 r_f·α_f = a_m − ε 是整條鏈的支點</h4>
+      <p>它把<b>三個量不到的東西</b>連成一條可解的線性關係:輪胎滾動半徑、加速規偏移量、車輛真實加速度。
+      改寫成 <span class="m">α_f = (1/r_f)·a_m − (ε/r_f)</span> 之後,
+      未知數 <span class="m">1/r_f</span> 與 <span class="m">ε/r_f</span> 恰好對量測 <span class="m">a_m</span> 呈線性,
+      卡爾曼濾波器就能直接遞迴估出來 —— <b>整段過程完全沒有用到正向力</b>。</p>
+    </div>
+    <div class="tt-card tt-card--a">
+      <h4>坡度會把偏移量再推一次</h4>
+      <p>加速規在斜坡上會多讀到一個重力分量。論文把偏移量拆成兩段:
+      <span class="m">ε_s</span> 於<b>靜止時</b>量到(此時量測值就是偏移量本身),
+      <span class="m">ε_a</span> 則在行駛中續估 <span class="m">r_f α_f = (a_m − ε_s) − ε_a</span>。
+      模擬中假設偏移量 <b>0.06 g</b>,約 1.8 秒收斂。</p>
+    </div>
+    <div class="tt-card">
+      <h4>凍結,是承認估測器有適用邊界</h4>
+      <p>緊急煞車時滑差過大,<span class="m">r_f α_f = a_m − ε</span> 的前提(輪速可代表車速)不再成立,
+      再更新只會把參數帶歪。因此進入 <b>Brake 階段就凍結</b>參數,沿用煞車前最後一次收斂值 ——
+      而 ABS 作動只有短短兩秒,凍結期間的參數漂移可以忽略。</p>
+    </div>
+    <div class="tt-card">
+      <h4>後輪半徑得等一個時機</h4>
+      <p>後輪是驅動輪,靜止、起步、煞車三個階段都估不了。只有在<b>滑行</b>(無驅動力也無煞車力)時,
+      前後輪速相等的條件才成立,才能由 <span class="m">r̂_r = r̂_f ω̂_f / ω̂_r</span> 得到後輪半徑。
+      估測器的設計因此不只是數學,而是<em>在對的車輛狀態問對的問題</em>。</p>
+    </div>
+  </div>
+
+
+  <!-- ==================== 03 λ_op ==================== -->
+  <div class="tt-sec" id="s3">
+    <span class="tt-sec-n">03</span>
+    <span class="tt-sec-t">目標值(一):最佳滑差 λ_op</span>
+    <span class="tt-sec-s">用減速度的極值,取代摩擦係數的絕對值</span>
+  </div>
+
+  <div class="tt-cap tt-rv">
+    既然量不到 μ,那就別求它的<b>絕對值</b>。車輛減速度 <span class="m" style="font-family:var(--mono)">a_x</span>
+    與路面能提供的摩擦力成正比,所以 <em>μ-λ 曲線的峰值位置,就是 a_x 絕對值的峰值位置</em>。
+    論文開一個時間窗格保留最近 n 筆減速度,取其中最大者當作「這條路面現在給得出的極限」,再經模糊推論映射到 λ_op。
+  </div>
+
+  <div class="tt-eq tt-rv">
+    Μ = [ −â_x,k , −â_x,k−1 , −â_x,k−2 , ⋯ , −â_x,k−n ]ᵀ<br>
+    <b>λ̂_op = Fuzzy( max(Μ) )</b><br>
+    <small>取窗格內最大減速度做為路面能力的指標,經模糊規則(Dry / Wet-Dry / Wet …)與重心法解模糊化得到最佳滑差目標值。</small>
+  </div>
+
+  <div class="tt-note tt-rv">
+    <b>觸發與重置。</b>簡報 p.37 給的條件是 <span style="font-family:var(--mono);font-size:11.5px">(λ_f &gt; 0.12 或 λ_r &gt; 0.12) 且 V_x &gt; 5</span> 時進入識別;
+    當 <span style="font-family:var(--mono);font-size:11.5px">V_x &lt; 5</span> 則回到初始值 <span style="font-family:var(--mono);font-size:11.5px">λ_op = λ_op,ini</span>。
+    低速時滑差計算受輪速雜訊影響過大,ABS 本來就會退出,這個重置是為了讓下一次煞車有乾淨的起點。
+  </div>
+
+
+  <!-- ==================== 04 TTL/TTS —— 核心 ==================== -->
+  <div class="tt-sec tt-sec--key" id="s4">
+    <span class="tt-sec-n">04</span>
+    <span class="tt-sec-t">目標值(二):TTL 與 TTS → α_op</span>
+    <span class="tt-sec-s">★ 論文命名的由來</span>
+  </div>
+
+  <div class="tt-cap tt-rv">
+    滑差目標值解決了「輪胎該滑多少」,但滑差在低速時受輪速雜訊影響嚴重,單靠它撐不住整段煞車。
+    混合控制需要第二個目標值:<b>輪角加速度目標值 α_op</b>。它從哪裡來?
+    論文的答案不是查表,而是<em>比較兩個時間</em>。
+  </div>
+
+  <div class="tt-eq tt-rv">
+    <b>TTL</b> &nbsp;車輪鎖死時間 &nbsp;=&nbsp; −ω̂_w,k / α̂_w,k &nbsp;&nbsp;(α̂_w,k &lt; 0) &nbsp;;&nbsp; ∞ &nbsp;(α̂_w,k &gt; 0)<br>
+    <b>TTS</b> &nbsp;車輛煞停時間 &nbsp;=&nbsp; −v̂_x,k / â_x,k &nbsp;&nbsp;(â_x,k &lt; 0) &nbsp;;&nbsp; ∞ &nbsp;(â_x,k &gt; 0)<br>
+    <small>依當下的輪減速度推算車輪還有多久鎖死;依當下的車輛減速度推算車輛還有多久停下。兩個都只是一次除法。</small>
+  </div>
+
+  <div class="tt-cap tt-rv">
+    這兩個時間一比,煞車力該加該減就定了 —— <b>而且完全不需要知道路面摩擦係數是多少</b>:
+  </div>
+
+  <div class="tt-scroll tt-rv">
+  <svg class="tt-svg" id="tt-ttl" viewBox="0 0 1020 400" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="TTL 與 TTS 關係互動圖。橫軸為時間,兩條線分別是車速與輪角速度依當前減速度外推到零的軌跡。車速歸零的時刻是 TTS,輪角速度歸零的時刻是 TTL。當 TTL 大於 TTS,車輪還有餘裕,應增壓;當 TTL 小於 TTS,車輪即將先鎖死,應洩壓;當兩者相等,車輪恰好在車輛煞停的同一時刻停止轉動,此時的輪角加速度即為最佳目標值。">
+    <title>TTL 與 TTS:最佳輪角加速度目標值的來源</title>
+    <desc>互動圖,拖動滑桿改變輪角加速度,觀察 TTL 相對 TTS 的位置與對應的增壓/洩壓判斷。</desc>
+
+    <defs>
+      <marker id="tt-a-b2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="var(--blue,#0071e3)"/>
+      </marker>
+      <marker id="tt-a-g2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="var(--ink-3,#86868b)"/>
+      </marker>
+    </defs>
+
+    <!-- 座標軸 -->
+    <line x1="80" y1="300" x2="700" y2="300" stroke="var(--ink,#1d1d1f)" stroke-width="1.4" marker-end="url(#tt-a-k)"/>
+    <line x1="80" y1="300" x2="80" y2="50" stroke="var(--ink,#1d1d1f)" stroke-width="1.4" marker-end="url(#tt-a-k)"/>
+    <text x="706" y="304" font-size="11" font-weight="700" fill="var(--ink-2,#6e6e73)">Time (s)</text>
+    <text x="80" y="40" font-size="11" font-weight="700" text-anchor="middle" fill="var(--ink-2,#6e6e73)">速度</text>
+
+    <!-- 格線 -->
+    <g stroke="#ececf0" stroke-width="1">
+      <line x1="80" y1="240" x2="700" y2="240"/>
+      <line x1="80" y1="180" x2="700" y2="180"/>
+      <line x1="80" y1="120" x2="700" y2="120"/>
+    </g>
+
+    <!-- 車速線:固定。實線,永遠在下層 -->
+    <line id="tt-vline" x1="80" y1="80" x2="480" y2="300" stroke="var(--ink,#1d1d1f)" stroke-width="3"/>
+    <text x="500" y="150" font-size="11" font-weight="700" class="m" fill="var(--ink,#1d1d1f)">V_x  (斜率 a_x)</text>
+    <path d="M496,146 L470,168" fill="none" stroke="var(--ink-3,#86868b)" stroke-width="1"/>
+
+    <!-- 輪速線:可變。★ 畫成虛線 —— 最佳點時兩條線完全重合,
+         虛線的空隙才讓底下那條黑線露得出來,否則看起來只有一條。 -->
+    <line id="tt-wline" x1="80" y1="80" x2="480" y2="300" stroke="var(--blue,#0071e3)" stroke-width="2.6"
+          stroke-dasharray="9 6" stroke-linecap="round"/>
+    <text id="tt-wlabel" x="150" y="240" font-size="11" font-weight="700" class="m" fill="var(--blue,#0071e3)">r·ω_w  (斜率 α_w)</text>
+
+    <!-- TTS 標記 -->
+    <g>
+      <line id="tt-ttsmark" x1="480" y1="300" x2="480" y2="318" stroke="var(--ink,#1d1d1f)" stroke-width="1.6"/>
+      <text id="tt-ttstext" x="480" y="336" font-size="11.5" font-weight="800" text-anchor="middle" class="m" fill="var(--ink,#1d1d1f)">TTS</text>
+    </g>
+    <!-- TTL 標記 -->
+    <g>
+      <line id="tt-ttlmark" x1="480" y1="300" x2="480" y2="318" stroke="var(--blue,#0071e3)" stroke-width="1.6"/>
+      <text id="tt-ttltext" x="480" y="360" font-size="11.5" font-weight="800" text-anchor="middle" class="m" fill="var(--blue,#0071e3)">TTL</text>
+    </g>
+    <!-- 差距區間 -->
+    <rect id="tt-gap" x="480" y="292" width="0" height="16" fill="var(--blue,#0071e3)" opacity=".16"/>
+
+    <!-- 判讀面板 -->
+    <g>
+      <rect id="tt-verdictbox" x="740" y="50" width="256" height="250" rx="14" fill="#f7fbff" stroke="var(--blue,#0071e3)" stroke-width="1.7"/>
+      <text x="762" y="78" font-size="12.5" font-weight="800" fill="var(--blue,#0071e3)">當下該怎麼做</text>
+
+      <text x="762" y="108" font-size="11" class="m" fill="var(--ink-2,#6e6e73)">TTL</text>
+      <text id="tt-cmp" x="806" y="108" font-size="15" font-weight="800" class="m" fill="var(--blue,#0071e3)">=</text>
+      <text x="836" y="108" font-size="11" class="m" fill="var(--ink-2,#6e6e73)">TTS</text>
+
+      <rect id="tt-actbox" x="762" y="124" width="212" height="46" rx="9" fill="var(--blue,#0071e3)"/>
+      <text id="tt-act" x="868" y="153" font-size="15" font-weight="800" text-anchor="middle" fill="#fff">最佳點</text>
+
+      <text id="tt-reason1" x="762" y="192" font-size="10.5" fill="var(--ink-2,#6e6e73)">車輪恰好在車輛煞停的同一時刻</text>
+      <text id="tt-reason2" x="762" y="209" font-size="10.5" fill="var(--ink-2,#6e6e73)">停止轉動 —— 全程用盡路面能力,</text>
+      <text id="tt-reason3" x="762" y="226" font-size="10.5" fill="var(--ink-2,#6e6e73)">又不會提前鎖死失去側向力。</text>
+
+      <line x1="762" y1="242" x2="974" y2="242" stroke="#d8e8f8" stroke-width="1"/>
+      <text x="762" y="262" font-size="10" fill="var(--ink-3,#86868b)">此刻的輪角加速度目標值</text>
+      <text id="tt-alpha" x="762" y="284" font-size="13" font-weight="800" class="m" fill="var(--blue,#0071e3)">α_op = ω_w · a_x / v_x</text>
+    </g>
+
+    <text x="80" y="384" font-size="10" fill="var(--ink-3,#86868b)">示意圖:兩條線是「依當下減速度外推」的軌跡,不是實際響應。橫軸交點即為各自的剩餘時間。</text>
+  </svg>
+  </div>
+  <div class="tt-hint">← 左右捲動看完整圖 →</div>
+
+  <div class="tt-slider tt-rv">
+    <label for="tt-rng">輪角加速度 α_w <span id="tt-rngval">−1.00 × a_x/r</span></label>
+    <input type="range" id="tt-rng" min="30" max="260" value="100" step="1"
+           aria-label="調整輪角加速度,觀察 TTL 相對 TTS 的變化">
+    <button class="rst" id="tt-rst" type="button">回到最佳點</button>
+  </div>
+
+  <div class="tt-live tt-rv">
+    <div><i>TTS 車輛煞停</i><b id="tt-lv-tts">2.00 s</b></div>
+    <div class="tt-live--v"><i>TTL 車輪鎖死</i><b id="tt-lv-ttl">2.00 s</b></div>
+    <div><i>TTL − TTS</i><b id="tt-lv-diff">0.00 s</b></div>
+    <div class="tt-live--v"><i>EHB 命令</i><b id="tt-lv-cmd">Hold</b></div>
+  </div>
+
+  <div class="tt-cap tt-rv">
+    <b>推導只有一行。</b>最佳的情況,就是車輪剛好在車輛停下的那一刻才停止轉動 —— 也就是 TTS = TTL:
+  </div>
+
+  <div class="tt-eq tt-rv">
+    −v̂_x,k / â_x,k &nbsp;=&nbsp; −ω̂_w,k / α̂_w,k<br>
+    <b>⟹&nbsp; α̂_op = ω̂_w,k · â_x,k / v̂_x,k</b><br>
+    <small>右邊三個量,第 02 章的估測鏈全都給得出來。<b>沒有摩擦係數,沒有正向力,沒有油壓感知器</b> ——
+    這就是「應用鎖死時間」這個題目真正的意思。</small>
+  </div>
+
+  <div class="tt-grid tt-rv">
+    <div class="tt-card">
+      <h4>TTL &gt; TTS → 增壓</h4>
+      <p>車輪還有餘裕,依現在的力道它會<b>晚於車輛煞停</b>才鎖死,代表煞車力沒用滿,
+      路面還能提供更多制動力 —— 應該讓分泵油壓上升。</p>
+    </div>
+    <div class="tt-card">
+      <h4>TTL &lt; TTS → 洩壓</h4>
+      <p>車輪即將<b>先於車輛煞停</b>鎖死。一旦鎖死,輪胎失去側向力,車輛也失去循跡能力 ——
+      必須立刻讓分泵油壓下降。</p>
+    </div>
+    <div class="tt-card tt-card--b">
+      <h4>TTL = TTS → 就是目標值</h4>
+      <p>兩者相等的那個輪角加速度,即為當下最佳目標值 <span class="m">α_op</span>。
+      它<b>每個取樣週期都重算一次</b>,所以路面一變、負載一轉移,目標值自己就跟著動 —— 這就是「適應性」的來源。</p>
+    </div>
+  </div>
+
+
+  <!-- ==================== 05 控制器 ==================== -->
+  <div class="tt-sec" id="s5">
+    <span class="tt-sec-n">05</span>
+    <span class="tt-sec-t">控制器:同時追兩個目標值的 MISO 模糊控制器</span>
+    <span class="tt-sec-s">滑差給準度,輪角加速度給穩定度</span>
+  </div>
+
+  <div class="tt-cap tt-rv">
+    兩個目標值都有了,剩下的問題是怎麼同時追。論文採<b>適應性混合控制</b>:
+    兩個誤差各自加權後送進同一個模糊控制器,輸出一個油壓變化量。
+    滑差控制保有貼近最佳點的能力,輪角加速度控制則<em>抑制超越量、降低低速時滑差雜訊的影響</em>。
+  </div>
+
+  <div class="tt-eq tt-rv">
+    se = g_s · ( λ̂_op − λ̂ ) &nbsp;&nbsp;<small>滑差誤差</small><br>
+    we = g_w · ( α̂_op − α̂_w ) &nbsp;&nbsp;<small>輪角加速度誤差</small><br>
+    <b>ΔP_WC = g_u · Σ<sub>i</sub> ω_i θ_i / Σ<sub>i</sub> ω_i</b> &nbsp;&nbsp;<small>重心法解模糊化,ω_i 為第 i 條規則的激發強度</small>
+  </div>
+
+  <div class="tt-fz tt-rv" role="group" aria-label="模糊規則表:7×7,前件部為滑差誤差 se 與輪角加速度誤差 we,後件部為 P 增壓、Z 保持、N 洩壓">
+    <table>
+      <caption style="caption-side:top;text-align:left;padding:0 0 10px;font-size:11.5px;color:var(--ink-3,#86868b);font-weight:600;font-family:var(--sans)">
+        模糊規則表(簡報 p.41 逐格照抄)．列 = 滑差誤差 se,欄 = 輪角加速度誤差 we
+      </caption>
+      <thead>
+        <tr><th class="cnr">se \ we</th><th>PB</th><th>PM</th><th>PS</th><th>ZO</th><th>NS</th><th>NM</th><th>NB</th></tr>
+      </thead>
+      <tbody>
+        <tr><th>PB</th><td class="Z">Z</td><td class="N">N</td><td class="N">N</td><td class="N">N</td><td class="N">N</td><td class="N">N</td><td class="N">N</td></tr>
+        <tr><th>PM</th><td class="P">P</td><td class="Z">Z</td><td class="N">N</td><td class="N">N</td><td class="N">N</td><td class="N">N</td><td class="N">N</td></tr>
+        <tr><th>PS</th><td class="P">P</td><td class="P">P</td><td class="Z">Z</td><td class="N">N</td><td class="N">N</td><td class="N">N</td><td class="N">N</td></tr>
+        <tr><th>ZO</th><td class="P">P</td><td class="P">P</td><td class="P">P</td><td class="Z">Z</td><td class="N">N</td><td class="N">N</td><td class="N">N</td></tr>
+        <tr><th>NS</th><td class="P">P</td><td class="P">P</td><td class="P">P</td><td class="N odd">N</td><td class="Z">Z</td><td class="N">N</td><td class="N">N</td></tr>
+        <tr><th>NM</th><td class="P">P</td><td class="P">P</td><td class="P">P</td><td class="P">P</td><td class="P">P</td><td class="Z">Z</td><td class="N">N</td></tr>
+        <tr><th>NB</th><td class="P">P</td><td class="P">P</td><td class="P">P</td><td class="P">P</td><td class="P">P</td><td class="P">P</td><td class="Z">Z</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tt-cap tt-rv">
+    規則表的結構就是一句話:<b>對角線保持,左下增壓,右上洩壓</b>。
+    兩個誤差同號且為正 → 目標值都高於現值 → 加壓;同號為負 → 減壓;
+    彼此矛盾時,由激發強度加權裁決。
+    <span style="color:#b45309;font-weight:700">圖中框起來的那一格(NS / ZO)不符合這個規律</span> —— 見頁尾註記三。
+  </div>
+
+
+  <!-- ==================== 06 模式切換 ==================== -->
+  <div class="tt-sec" id="s6">
+    <span class="tt-sec-n">06</span>
+    <span class="tt-sec-t">致動:把連續控制量塞進三態電磁閥</span>
+    <span class="tt-sec-s">而且要提前 7 ms 出手</span>
+  </div>
+
+  <div class="tt-cap tt-rv">
+    模糊控制器輸出的是<b>連續</b>的油壓變化量 ΔP_WC,可是電磁閥只有三種狀態。
+    更麻煩的是<b>它會遲到</b>:等滑差真的越界才下洩壓命令,油壓要 7 ms 後才開始降,那時滑差早就衝進 μ-λ 曲線的非線性區,車輪鎖死。
+  </div>
+
+  <div class="tt-scroll tt-rv">
+  <svg class="tt-svg" viewBox="0 0 1020 415" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="μ-λ 曲線與控制分區。曲線峰值出現在滑差約 0.12 處。滑差低於下門檻為增壓區,介於上下門檻之間為適應性混合控制區,高於上門檻進入非線性區必須洩壓。由於電磁閥有 7 毫秒作動延遲,策略以滑差到達上門檻所需時間 TTUB 與延遲時間比較,若 TTUB 小於延遲時間就提前洩壓。">
+    <title>μ-λ 曲線的控制分區與提前洩壓</title>
+    <desc>正規化 μ-λ 曲線,標出增壓區、混合控制區、非線性區,以及 TTUB 與電磁閥延遲的比較。</desc>
+
+    <!-- 座標軸 -->
+    <line x1="70" y1="300" x2="960" y2="300" stroke="var(--ink,#1d1d1f)" stroke-width="1.4"/>
+    <line x1="70" y1="300" x2="70" y2="40" stroke="var(--ink,#1d1d1f)" stroke-width="1.4"/>
+    <text x="515" y="330" font-size="11.5" font-weight="700" text-anchor="middle" fill="var(--ink-2,#6e6e73)">滑差 λ  (Slip Ratio)</text>
+    <text x="30" y="170" font-size="11.5" font-weight="700" text-anchor="middle" fill="var(--ink-2,#6e6e73)" transform="rotate(-90 30 170)">μ (正規化)</text>
+
+    <!-- x 刻度 -->
+    <g font-size="10" fill="var(--ink-3,#86868b)" class="m" text-anchor="middle">
+      <text x="70"  y="318">0</text>
+      <text x="158" y="318">0.1</text>
+      <text x="246" y="318">0.2</text>
+      <text x="422" y="318">0.4</text>
+      <text x="598" y="318">0.6</text>
+      <text x="774" y="318">0.8</text>
+      <text x="950" y="318">1.0</text>
+    </g>
+
+    <!-- 分區底色 -->
+    <rect x="70"  y="46" width="52"  height="254" fill="#eaf4ff" opacity=".7"/>
+    <rect x="122" y="46" width="80"  height="254" fill="#e6f6fa" opacity=".8"/>
+    <rect x="202" y="46" width="758" height="254" fill="#fff7ed" opacity=".75"/>
+
+    <!-- 分區線 -->
+    <line x1="122" y1="46" x2="122" y2="300" stroke="#0e7c9a" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <line x1="202" y1="46" x2="202" y2="300" stroke="#b45309" stroke-width="1.5" stroke-dasharray="5 4"/>
+
+    <!-- μ-λ 曲線:mu curve.csv 正規化資料逐點 -->
+    <path d="M70,300 L87.6,202.9 L105.2,129.1 L122.8,84.6 L131.6,71.2 L158,53.5 L166.8,52.7 L175.6,52.1 L193.2,62.3 L246,67.3 L598,126.7 L950,151.4"
+          fill="none" stroke="var(--ink,#1d1d1f)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+
+    <!-- 峰值:標註拉到右邊,避開 λ_LB / λ_UB 兩個門檻標籤 -->
+    <circle cx="175.6" cy="52.1" r="5" fill="var(--blue,#0071e3)" stroke="#fff" stroke-width="2"/>
+    <path d="M182,50 L226,44" fill="none" stroke="var(--blue,#0071e3)" stroke-width="1.2"/>
+    <text x="232" y="43" font-size="10.5" font-weight="800" class="m" fill="var(--blue,#0071e3)">λ_op ≈ 0.12</text>
+    <text x="232" y="58" font-size="9.5" fill="var(--ink-3,#86868b)">路面能給的最大制動力</text>
+
+    <!-- 分區標籤 -->
+    <text x="96"  y="286" font-size="10" font-weight="800" text-anchor="middle" fill="var(--blue,#0071e3)">增壓</text>
+    <text x="96"  y="274" font-size="9"  text-anchor="middle" fill="var(--blue,#0071e3)">λ &lt; λ_LB</text>
+    <text x="162" y="286" font-size="10" font-weight="800" text-anchor="middle" fill="#0e7c9a">混合控制區</text>
+    <text x="162" y="274" font-size="9"  text-anchor="middle" fill="#0e7c9a">λ_LB ~ λ_UB</text>
+    <text x="330" y="286" font-size="10.5" font-weight="800" fill="#b45309">非線性區 —— 進來就回不去,車輪鎖死、失去側向力</text>
+    <text x="330" y="272" font-size="9.5" fill="#b45309">λ &gt; λ_UB → 必須洩壓</text>
+
+    <!-- 門檻標籤 -->
+    <text x="122" y="36" font-size="10" font-weight="700" text-anchor="middle" class="m" fill="#0e7c9a">λ_LB</text>
+    <text x="202" y="36" font-size="10" font-weight="700" text-anchor="middle" class="m" fill="#b45309">λ_UB</text>
+
+    <!-- 提前洩壓說明 -->
+    <g>
+      <rect x="430" y="60" width="530" height="150" rx="14" fill="#fff" stroke="#b45309" stroke-width="1.6"/>
+      <text x="452" y="86" font-size="12.5" font-weight="800" fill="#b45309">問題:等越界才動,就來不及了</text>
+      <text x="452" y="108" font-size="10.5" fill="var(--ink-2,#6e6e73)">電磁閥從收到命令到分泵油壓真的開始下降,中間隔了 t_od = 7 ms。</text>
+      <text x="452" y="125" font-size="10.5" fill="var(--ink-2,#6e6e73)">這 7 ms 裡滑差還在往右跑 —— 越過 λ_UB 就進非線性區。</text>
+
+      <line x1="452" y1="138" x2="938" y2="138" stroke="#f0e0cc" stroke-width="1"/>
+      <text x="452" y="158" font-size="11.5" font-weight="800" fill="var(--blue,#0071e3)">解法:先算「還有多久會越界」,再跟延遲比大小</text>
+      <text x="452" y="180" font-size="10.5" class="m" fill="var(--ink,#1d1d1f)">TTUB = (ω_w − ω_UB)/(−α_w) = ((1−λ_UB)V_x − r·ω_w)/(r·α_w)</text>
+      <text x="452" y="199" font-size="10.5" class="m" font-weight="800" fill="var(--blue,#0071e3)">if  TTUB &lt; t_od (7 ms)  →  提前洩壓</text>
+    </g>
+
+    <text x="70" y="360" font-size="10.5" fill="var(--ink-2,#6e6e73)">
+      <tspan font-weight="700" fill="var(--ink,#1d1d1f)">同一招用了兩次。</tspan>
+      第 04 章比較「車輪鎖死」與「車輛煞停」兩個時間得到目標值;這裡比較「滑差越界」與「電磁閥延遲」兩個時間決定何時出手 ——
+    </text>
+    <text x="70" y="378" font-size="10.5" fill="var(--ink-2,#6e6e73)">都是把難量的物理量,換成好算的<tspan font-weight="700" fill="var(--blue,#0071e3)">剩餘時間</tspan>。</text>
+
+    <text x="70" y="402" font-size="9.5" fill="var(--ink-3,#86868b)">μ-λ 曲線形狀取自論文資料夾 mu curve.csv 正規化資料逐點繪製．兩條門檻線為相對位置示意,簡報未載明數值</text>
+  </svg>
+  </div>
+  <div class="tt-hint">← 左右捲動看完整圖 →</div>
+
+  <div class="tt-eq tt-rv">
+    <b>模式切換(混合控制區內,由模糊輸出量決定)</b><br>
+    mode = Apply &nbsp;&nbsp;&nbsp;if ΔP_wc &gt; TH_P<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Hold &nbsp;&nbsp;&nbsp;&nbsp;if TH_N &lt; ΔP_wc &lt; TH_P<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Release &nbsp;if ΔP_wc &lt; TH_N<br>
+    <small>外層再依滑差分區:λ &gt; λ_UB 直接 Release;λ_LB &lt; λ &lt; λ_UB 交給上式的適應性混合控制;λ &lt; λ_LB 直接 Apply。
+    門檻值由實驗分析取得,<b>簡報未載明數值</b> —— 見頁尾註記二。</small>
+  </div>
+
+
+  <!-- ==================== 07 結果 ==================== -->
+  <div class="tt-sec" id="s7">
+    <span class="tt-sec-n">07</span>
+    <span class="tt-sec-t">模擬結果</span>
+    <span class="tt-sec-s">BikeSim × MATLAB/Simulink,四種控制器同場比較</span>
+  </div>
+
+  <div class="tt-cap tt-rv">
+    比較對象有三個。<b>Optimal Control</b> 假設裝有油壓感知器、能精準給定分泵油壓並直接控在該路面的最佳滑差 ——
+    它是<em>成本上做不到、但物理上做得到的上限</em>。<b>Bang-Bang Control</b> 參考 BikeSim 內建的切換控制器,把滑差夾在一個區間內。
+    <b>w/o ABS</b> 則是煞車期間完全不介入,車輪直接鎖死。本論文提出的是 <b>Proposed</b>。
+  </div>
+
+  <div class="tt-ctl tt-rv" role="group" aria-label="切換模擬情境與指標">
+    <span class="lb">情境</span>
+    <span class="g">
+      <button type="button" data-scene="flat"  aria-pressed="true">平地</button>
+      <button type="button" data-scene="slope" aria-pressed="false">斜坡 (2.5%)</button>
+    </span>
+    <span class="lb" style="margin-left:8px">指標</span>
+    <span class="g">
+      <button type="button" data-metric="dist" aria-pressed="true">煞車距離</button>
+      <button type="button" data-metric="time" aria-pressed="false">煞車時間</button>
+    </span>
+    <span class="g" style="margin-left:8px">
+      <button type="button" id="tt-tblbtn" aria-pressed="false">數值表</button>
+    </span>
+  </div>
+
+  <div class="tt-scroll tt-rv" style="margin-top:12px">
+  <svg class="tt-svg" id="tt-res" viewBox="0 0 1020 400" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-labelledby="tt-res-t" aria-describedby="tt-res-d">
+    <title id="tt-res-t">不同控制器在高中低摩擦係數路面的煞車表現</title>
+    <desc id="tt-res-d">分組長條圖,三組摩擦係數各有四個控制器。完整數值可切換「數值表」檢視。</desc>
+    <g id="tt-res-g"></g>
+  </svg>
+  </div>
+  <div class="tt-hint">← 左右捲動看完整圖 →</div>
+
+  <div class="tt-tbl tt-rv" id="tt-tblwrap" hidden>
+    <table id="tt-restbl">
+      <caption>完整數值(簡報內嵌圖表逐筆照抄)</caption>
+      <thead><tr><th>路面</th><th>Optimal</th><th>Proposed</th><th>Bang-Bang</th><th>w/o ABS</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="tt-live tt-rv" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+    <div class="tt-live--v"><i>比 Bang-Bang 縮短</i><b id="tt-kpi1">—</b></div>
+    <div><i>距 Optimal 上限</i><b id="tt-kpi2">—</b></div>
+    <div><i>比無 ABS 縮短</i><b id="tt-kpi3">—</b></div>
+  </div>
+
+  <div class="tt-cap tt-rv" id="tt-rescap">
+    在所有六種組合(平地 / 斜坡 × 高 / 中 / 低摩擦係數)裡,Proposed 都<b>穩定落在 Optimal 與 Bang-Bang 之間,且明顯靠近 Optimal</b>。
+  </div>
+
+  <div class="tt-grid tt-rv">
+    <div class="tt-card">
+      <h4>低摩擦路面差距最明顯</h4>
+      <p>μ = 0.4 的平地上,Bang-Bang 的煞車距離 52 m,與完全不控制的 63 m 相比改善有限。
+      原因是低摩擦路面的 μ-λ 曲線<b>穩定區更窄</b>,靠固定區間切換的方式很難待在裡面。
+      Proposed 為 44 m —— 因為它追的是<em>當下重算出來的目標值</em>,而不是預設的區間。</p>
+    </div>
+    <div class="tt-card">
+      <h4>中摩擦路面初期會慢一拍</h4>
+      <p>論文誠實記下了這點:μ 中等時,模擬 14 ~ 14.8 秒的滑差收斂較慢,
+      因為負載轉移明顯、且分泵油壓無法線性控制。14.8 秒後,由於控制器同時看滑差與輪角加速度,
+      仍能收斂回目標值附近。</p>
+    </div>
+    <div class="tt-card tt-card--a">
+      <h4>斜坡才是估測器的考題</h4>
+      <p>坡度讓加速規多讀一個重力分量。若不處理,估出來的車速會偏,滑差跟著偏,控制器等於在追一個錯的目標。
+      斜坡情境的意義不在控制器變難,而在<b>驗證 ε_s / ε_a 兩段式偏移量估測真的有用</b>。</p>
+    </div>
+    <div class="tt-card tt-card--b">
+      <h4>怎麼讀「距 Optimal 還有一段」</h4>
+      <p>Optimal 假設油壓可連續給定,現實的電磁閥模組做不到 —— 這段差距<b>不是控制律的失分,是致動器的物理極限</b>。
+      論文因此把未來工作指向對電磁閥採 PWM 控制,讓 EHB 步進增降壓、分泵油壓更平穩。</p>
+    </div>
+  </div>
+
+  <div class="tt-note tt-rv">
+    <b>模擬設定。</b>目標車 BikeSim <span style="font-family:var(--mono);font-size:11.5px">Scooter, Big (CVT)</span>:車身質量 165 kg、駕駛者 70 kg、
+    前輪半徑 0.294 m、後輪半徑 0.236 m、軸距 1.576 m、重心高 0.35 m、重心距前軸 0.6 m。
+    取樣時間:BikeSim 動態 0.5 ms,估測器與控制器 10 ms。
+    量測條件刻意做壞:輪速考慮碟盤孔洞間距不同造成的 <b>0.5% 齒訊週期誤差</b>,輪胎半徑預設值<b>高於真值 5%</b>(模擬負載壓縮),
+    加速規偏移量假設 <b>0.06 g</b>。情境:3 s 起步 → 11 s 達 70 km/h → 滑行 2 s → 約 14 s 緊急煞車,ABS 作動 14 ~ 16 s。
+  </div>
+
+
+  <!-- ==================== 08 HIL ==================== -->
+  <div class="tt-sec" id="s8">
+    <span class="tt-sec-n">08</span>
+    <span class="tt-sec-t">硬體在迴路驗證平台</span>
+    <span class="tt-sec-s">把模擬裡的 EHB 換成真的那一顆</span>
+  </div>
+
+  <div class="tt-cap tt-rv">
+    模擬再細,液壓模組終究是模型。HIL 平台把車輛動態留在電腦裡,<b>但讓油壓真的流過實體 EHB 模組</b> ——
+    電磁閥的延遲、孔口的非線性、蓄壓器的回充,全部由硬體自己表現,不再由參數決定。
+  </div>
+
+  <div class="tt-scroll tt-rv">
+  <svg class="tt-svg" viewBox="0 0 1020 330" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="硬體在迴路平台架構。主機端執行 BikeSim 車輛動態與人機介面,經 TCP/IP 連到即時目標機 Micro-box,目標機執行估測器與控制器並輸出增壓持壓洩壓命令,經 TLP250 光耦合驅動電路驅動實體 EHB 模組的進出油閥與馬達,分泵與總泵上的油壓感知器把實際油壓回授給目標機,再送回主機更新車輛動態。">
+    <title>HIL 平台:訊號與油壓的兩條迴路</title>
+    <desc>Host PC 與 Target PC 經 TCP/IP 相連,目標機驅動實體 EHB,油壓感知器閉迴路回授。</desc>
+
+    <defs>
+      <marker id="tt-a-b3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="var(--blue,#0071e3)"/>
+      </marker>
+      <marker id="tt-a-t3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="#0e7c9a"/>
+      </marker>
+    </defs>
+
+    <!-- Host -->
+    <rect x="30" y="60" width="188" height="110" rx="12" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.6"/>
+    <text x="124" y="86" font-size="12" font-weight="800" text-anchor="middle" fill="var(--ink,#1d1d1f)">Host PC</text>
+    <text x="124" y="108" font-size="10" text-anchor="middle" fill="var(--ink-2,#6e6e73)">BikeSim 車輛動態</text>
+    <text x="124" y="126" font-size="10" text-anchor="middle" fill="var(--ink-2,#6e6e73)">情境設定 · 資料記錄</text>
+    <text x="124" y="150" font-size="9.5" text-anchor="middle" class="m" fill="var(--ink-3,#86868b)">非即時</text>
+
+    <path d="M218,115 L288,115" stroke="var(--ink,#1d1d1f)" stroke-width="2" marker-end="url(#tt-a-k)"/>
+    <path d="M288,132 L218,132" stroke="var(--ink,#1d1d1f)" stroke-width="2" marker-end="url(#tt-a-k)"/>
+    <text x="253" y="108" font-size="9.5" text-anchor="middle" class="m" font-weight="700" fill="var(--ink-2,#6e6e73)">TCP/IP</text>
+
+    <!-- Target -->
+    <rect x="288" y="46" width="210" height="138" rx="12" fill="#f7fbff" stroke="var(--blue,#0071e3)" stroke-width="1.8"/>
+    <text x="393" y="72" font-size="12" font-weight="800" text-anchor="middle" fill="var(--blue,#0071e3)">Target PC · Micro-box</text>
+    <text x="393" y="93" font-size="10" text-anchor="middle" fill="var(--ink-2,#6e6e73)">估測鏈(第 02 章)</text>
+    <text x="393" y="110" font-size="10" text-anchor="middle" fill="var(--ink-2,#6e6e73)">λ_op / α_op(第 03、04 章)</text>
+    <text x="393" y="127" font-size="10" text-anchor="middle" fill="var(--ink-2,#6e6e73)">模糊控制器(第 05 章)</text>
+    <text x="393" y="144" font-size="10" text-anchor="middle" fill="var(--ink-2,#6e6e73)">模式切換策略(第 06 章)</text>
+    <text x="393" y="167" font-size="9.5" text-anchor="middle" class="m" font-weight="700" fill="var(--blue,#0071e3)">即時執行 · 10 ms</text>
+
+    <path d="M498,100 L568,100" stroke="var(--blue,#0071e3)" stroke-width="2" marker-end="url(#tt-a-b3)"/>
+    <text x="533" y="93" font-size="9" text-anchor="middle" class="m" fill="var(--blue,#0071e3)">mode</text>
+
+    <!-- Driver -->
+    <rect x="568" y="60" width="150" height="88" rx="10" fill="#fff" stroke="#0e7c9a" stroke-width="1.5"/>
+    <text x="643" y="84" font-size="11" font-weight="800" text-anchor="middle" fill="#0e7c9a">驅動電路</text>
+    <text x="643" y="103" font-size="9.5" text-anchor="middle" class="m" fill="var(--ink-2,#6e6e73)">TLP250 光耦合</text>
+    <text x="643" y="120" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">電磁閥 + 馬達</text>
+    <text x="643" y="137" font-size="9.5" text-anchor="middle" class="m" fill="var(--ink-3,#86868b)">12 V</text>
+
+    <path d="M718,104 L788,104" stroke="#0e7c9a" stroke-width="2" marker-end="url(#tt-a-t3)"/>
+
+    <!-- EHB -->
+    <rect x="788" y="46" width="200" height="138" rx="12" fill="#e6f6fa" stroke="#0e7c9a" stroke-width="1.8"/>
+    <text x="888" y="72" font-size="12" font-weight="800" text-anchor="middle" fill="#0e7c9a">實體 EHB 模組</text>
+    <text x="888" y="94" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">進 / 出油閥(前後輪)</text>
+    <text x="888" y="111" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">馬達 · 蓄壓器 · 液壓迴路</text>
+    <text x="888" y="128" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">總泵(左右) · 分泵(前後)</text>
+    <rect x="806" y="140" width="164" height="30" rx="7" fill="#fff" stroke="#0e7c9a" stroke-width="1.2"/>
+    <text x="888" y="159" font-size="9.5" text-anchor="middle" font-weight="700" fill="#0e7c9a">油壓感知器 P_MC / P_WC</text>
+
+    <!-- 回授 -->
+    <path d="M888,184 L888,222 L393,222 L393,188" fill="none" stroke="#0e7c9a" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#tt-a-t3)"/>
+    <text x="640" y="240" font-size="10" text-anchor="middle" font-weight="700" fill="#0e7c9a">實測分泵油壓回授 —— 這一段在純模擬裡是模型算出來的,在這裡是真的量到的</text>
+
+    <!-- 兩條迴路的說明 -->
+    <rect x="30" y="258" width="958" height="52" rx="12" fill="#f7fbff" stroke="var(--blue,#0071e3)" stroke-width="1.3"/>
+    <text x="52" y="279" font-size="11" font-weight="800" fill="var(--blue,#0071e3)">HIL 到底驗證了什麼:</text>
+    <!-- 註:這一行原本寫成 控制律在<b>真實延遲</b>下…… —— SVG <text> 裡的 <b>
+         是未知元素,瀏覽器不會排它,「真實延遲」四個字整個消失。改用 <tspan>。 -->
+    <text x="196" y="279" font-size="10.5" fill="var(--ink-2,#6e6e73)">控制律在<tspan font-weight="700" fill="var(--ink,#1d1d1f)">真實延遲</tspan>下還成不成立。模擬裡的 t_od 是擬合出來的參數,台架上它是電磁閥的物理性質 ——</text>
+    <text x="52" y="298" font-size="10.5" fill="var(--ink-2,#6e6e73)">第 06 章那套「提前 7 ms 出手」的策略,只有在這裡才算真的被考過。</text>
+  </svg>
+  </div>
+  <div class="tt-hint">← 左右捲動看完整圖 →</div>
+
+
+  <!-- ============================================================
+       圖 8-2 訊號鏈剖面:一個數位命令怎麼變成分泵油壓
+       ------------------------------------------------------------
+       上面那張架構圖把「驅動電路」畫成一個方塊。這張把那個方塊拆開 ——
+       台架真正要動手做的就是這一段:隔離、灌電流、推閥芯。
+       ★ 只用頁面既有的三個事實:TLP250 光耦合、12 V、t_od = 7 ms。
+         各段各佔多少 ms 簡報未載明,圖上明講不拆,不得補值。
+       ============================================================ -->
+  <div class="tt-cap tt-rv" style="margin-top:26px">
+    <b>把「驅動電路」那一格拆開。</b>上面那張圖裡它只是一個方塊,但台架要動手做的就是這一段:
+    控制器送出的是一個<b>開關命令</b>,電磁閥要的是<b>十幾安培等級的線圈電流</b> —— 中間必須有人把兩者接起來,
+    而且<em>不能讓它們共地</em>。閥在切換瞬間是感性負載,突波若打回數位側,即時運算就會跟著出錯。
+  </div>
+
+  <div class="tt-scroll tt-rv">
+  <svg class="tt-svg" viewBox="0 0 1020 356" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="訊號鏈剖面圖。即時目標機的數位輸出送出開關命令,經 TLP250 光耦合完成電氣隔離與閘極驅動,再由功率開關級把 12 伏特電源灌入電磁閥線圈,線圈電流產生電磁力推動閥芯位移,改變孔口開度而使分泵油壓變化。圖左為訊號側與控制器地,圖右為動力側與 12 伏特電磁閥地,兩者以光耦合為界。分泵油壓再經油壓感知器類比回授回到目標機。整條鏈由下命令到油壓開始變化合計 7 毫秒。">
+    <title>訊號鏈剖面:命令 → 隔離 → 電流 → 閥芯 → 油壓</title>
+    <desc>五段串接的方塊,標出電氣隔離界線與 t_od = 7 ms 的落點。</desc>
+
+    <defs>
+      <marker id="tt-a-k4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="var(--ink,#1d1d1f)"/>
+      </marker>
+      <marker id="tt-a-t4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="#0e7c9a"/>
+      </marker>
+    </defs>
+
+    <!-- 電氣隔離界線:穿過光耦合那一格的正中間 -->
+    <line x1="307" y1="40" x2="307" y2="200" stroke="#b45309" stroke-width="1.6" stroke-dasharray="6 5"/>
+    <text x="297" y="34" font-size="10" font-weight="700" text-anchor="end" fill="#b45309">訊號側 · 控制器地</text>
+    <text x="317" y="34" font-size="10" font-weight="700" fill="#b45309">動力側 · 12 V 電磁閥地</text>
+
+    <!-- 01 Micro-box DO -->
+    <rect x="24" y="86" width="160" height="104" rx="12" fill="#f7fbff" stroke="var(--blue,#0071e3)" stroke-width="1.8"/>
+    <text x="104" y="112" font-size="11.5" font-weight="800" text-anchor="middle" fill="var(--blue,#0071e3)">Micro-box 數位輸出</text>
+    <text x="104" y="133" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">mode 換成 4 顆閥的</text>
+    <text x="104" y="149" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">開 / 關組合</text>
+    <text x="104" y="172" font-size="9.5" text-anchor="middle" class="m" font-weight="700" fill="var(--blue,#0071e3)">每 10 ms 重下一次</text>
+
+    <path d="M184,138 L221,138" stroke="var(--ink,#1d1d1f)" stroke-width="2" marker-end="url(#tt-a-k4)"/>
+    <text x="202" y="130" font-size="8.5" text-anchor="middle" class="m" fill="var(--ink-3,#86868b)">命令</text>
+
+    <!-- 02 TLP250 -->
+    <rect x="227" y="86" width="160" height="104" rx="12" fill="#e6f6fa" stroke="#0e7c9a" stroke-width="1.8"/>
+    <text x="307" y="112" font-size="11.5" font-weight="800" text-anchor="middle" fill="#0e7c9a">TLP250 光耦合</text>
+    <text x="307" y="133" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">電訊號 → 光 → 電訊號</text>
+    <text x="307" y="149" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">兩側沒有共同的地</text>
+    <text x="307" y="172" font-size="9.5" text-anchor="middle" font-weight="700" fill="#0e7c9a">隔離就發生在這一格</text>
+
+    <path d="M387,138 L424,138" stroke="#0e7c9a" stroke-width="2" marker-end="url(#tt-a-t4)"/>
+    <text x="405" y="130" font-size="8.5" text-anchor="middle" class="m" fill="var(--ink-3,#86868b)">驅動</text>
+
+    <!-- 03 功率級 -->
+    <rect x="430" y="86" width="160" height="104" rx="12" fill="#fff" stroke="#0e7c9a" stroke-width="1.6"/>
+    <text x="510" y="112" font-size="11.5" font-weight="800" text-anchor="middle" fill="#0e7c9a">功率開關級</text>
+    <text x="510" y="133" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">把 12 V 灌進線圈</text>
+    <text x="510" y="149" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">承擔閥與泵馬達的電流</text>
+    <text x="510" y="172" font-size="9" text-anchor="middle" fill="#b45309">開關元件型號簡報未載明</text>
+
+    <path d="M590,138 L627,138" stroke="#0e7c9a" stroke-width="2" marker-end="url(#tt-a-t4)"/>
+    <text x="608" y="130" font-size="8.5" text-anchor="middle" class="m" fill="var(--ink-3,#86868b)">電流</text>
+
+    <!-- 04 電磁閥 -->
+    <rect x="633" y="86" width="160" height="104" rx="12" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.6"/>
+    <text x="713" y="112" font-size="11.5" font-weight="800" text-anchor="middle" fill="var(--ink,#1d1d1f)">電磁閥</text>
+    <text x="713" y="133" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">線圈電流 → 電磁力</text>
+    <text x="713" y="149" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">→ 閥芯位移</text>
+    <text x="713" y="172" font-size="9.5" text-anchor="middle" fill="var(--ink-3,#86868b)">電 → 機械,這裡開始有慣量</text>
+
+    <path d="M793,138 L830,138" stroke="#0e7c9a" stroke-width="2" marker-end="url(#tt-a-t4)"/>
+    <text x="811" y="130" font-size="8.5" text-anchor="middle" class="m" fill="var(--ink-3,#86868b)">行程</text>
+
+    <!-- 05 孔口 → 分泵 -->
+    <rect x="836" y="86" width="160" height="104" rx="12" fill="#e6f6fa" stroke="#0e7c9a" stroke-width="1.8"/>
+    <text x="916" y="112" font-size="11.5" font-weight="800" text-anchor="middle" fill="#0e7c9a">孔口 → 分泵</text>
+    <text x="916" y="133" font-size="9.5" text-anchor="middle" fill="var(--ink-2,#6e6e73)">開口面積 A → 流量 Q</text>
+    <text x="916" y="152" font-size="10.5" text-anchor="middle" class="m" font-weight="700" fill="var(--ink,#1d1d1f)">→ P_WC</text>
+    <text x="916" y="172" font-size="9.5" text-anchor="middle" fill="var(--ink-3,#86868b)">方程見第 01 章</text>
+
+    <!-- 油壓回授 -->
+    <path d="M916,190 L916,222 L104,222 L104,190" fill="none" stroke="#0e7c9a" stroke-width="1.8"
+          stroke-dasharray="6 4" marker-end="url(#tt-a-t4)"/>
+    <text x="510" y="240" font-size="10" text-anchor="middle" font-weight="700" fill="#0e7c9a">油壓感知器類比回授 P_MC / P_WC —— 台架上唯一「真的量到」的物理量</text>
+
+    <!-- 延遲落點 -->
+    <rect x="24" y="262" width="972" height="76" rx="13" fill="var(--amber-bg,#fff7ed)" stroke="#b45309" stroke-width="1.4"/>
+    <text x="46" y="286" font-size="11.5" font-weight="800" fill="#b45309">t_od = 7 ms 是整條鏈的合計,不是某一顆零件的規格</text>
+    <text x="46" y="307" font-size="10.5" fill="var(--ink-2,#6e6e73)">前三格是電,快;後兩格要推動有質量的閥芯、再把油擠過孔口,慢 —— 但<tspan font-weight="700" fill="#b45309">各段各佔多少,簡報未載明</tspan>,這裡不拆。</text>
+    <text x="46" y="326" font-size="10.5" fill="var(--ink-2,#6e6e73)">能確定的是:量到 7 ms 這件事本身,就得先有這條鏈與末端的油壓感知器 —— 這是台架存在的理由。</text>
+  </svg>
+  </div>
+  <div class="tt-hint">← 左右捲動看完整圖 →</div>
+
+
+  <!-- ============================================================
+       圖 8-3 台架 I/O 盤點
+       ------------------------------------------------------------
+       這張圖的用途是把台架的「邊界」講清楚:哪些訊號是真的接線量到的,
+       哪些還是 BikeSim 算出來餵進來的。論文未來工作第三條要補的就是後者。
+       ★ 閥 4 顆由「進 / 出油閥(前後輪)」推得,圖上標明是推得,不是載明值。
+       ============================================================ -->
+  <div class="tt-cap tt-rv" style="margin-top:26px">
+    <b>台架到底接了哪些線。</b>HIL 的重點不在「有沒有硬體」,而在<em>硬體與模型的界線畫在哪裡</em> ——
+    界線右邊是真的會漏、會遲到、會發熱的東西,左邊還是數字。
+  </div>
+
+  <div class="tt-scroll tt-rv">
+  <svg class="tt-svg" viewBox="0 0 1020 394" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="硬體在迴路平台的輸入輸出盤點。左上為來自 BikeSim 的模擬訊號,包含前輪輪速、後輪輪速與縱向加速度,這三者在硬體在迴路平台中仍由模型產生,不是實體感知器。左下為實體類比輸入,包含總泵油壓與分泵油壓兩個油壓感知器。中央為即時目標機 Micro-box,執行估測器、目標值計算、模糊控制器與模式切換,週期 10 毫秒。右側為數位輸出,包含前輪進油閥、前輪出油閥、後輪進油閥、後輪出油閥與泵馬達,共五路,經驅動電路接到實體電液壓煞車模組。">
+    <title>HIL 台架 I/O:哪些是真的,哪些還在模型裡</title>
+    <desc>左側輸入分成模擬訊號與實體類比輸入兩組,右側為五路數位輸出。</desc>
+
+    <defs>
+      <marker id="tt-a-a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="#b45309"/>
+      </marker>
+      <marker id="tt-a-t5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,1 L10,5 L0,9 z" fill="#0e7c9a"/>
+      </marker>
+    </defs>
+
+    <!-- 左上:模擬訊號 -->
+    <rect x="24" y="42" width="272" height="126" rx="13" fill="var(--amber-bg,#fff7ed)" stroke="#b45309" stroke-width="1.6" stroke-dasharray="7 4"/>
+    <text x="42" y="66" font-size="11" font-weight="800" fill="#b45309">來自 BikeSim · 仍是模型</text>
+    <text x="42" y="90" font-size="10" class="m" fill="var(--ink,#1d1d1f)">ω_f</text>
+    <text x="96" y="90" font-size="10" fill="var(--ink-2,#6e6e73)">前輪輪速</text>
+    <text x="42" y="112" font-size="10" class="m" fill="var(--ink,#1d1d1f)">ω_r</text>
+    <text x="96" y="112" font-size="10" fill="var(--ink-2,#6e6e73)">後輪輪速</text>
+    <text x="42" y="134" font-size="10" class="m" fill="var(--ink,#1d1d1f)">a_m</text>
+    <text x="96" y="134" font-size="10" fill="var(--ink-2,#6e6e73)">縱向加速度</text>
+    <text x="42" y="156" font-size="9" fill="#b45309">實體輪速計與加速規 —— 論文列為未來工作</text>
+
+    <path d="M296,105 L376,105" stroke="#b45309" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#tt-a-a4)"/>
+
+    <!-- 左下:實體類比輸入 -->
+    <rect x="24" y="196" width="272" height="104" rx="13" fill="#e6f6fa" stroke="#0e7c9a" stroke-width="1.6"/>
+    <text x="42" y="220" font-size="11" font-weight="800" fill="#0e7c9a">實體油壓感知器 · 類比輸入</text>
+    <text x="42" y="244" font-size="10" class="m" fill="var(--ink,#1d1d1f)">P_MC</text>
+    <text x="106" y="244" font-size="10" fill="var(--ink-2,#6e6e73)">總泵油壓</text>
+    <text x="42" y="266" font-size="10" class="m" fill="var(--ink,#1d1d1f)">P_WC</text>
+    <text x="106" y="266" font-size="10" fill="var(--ink-2,#6e6e73)">分泵油壓</text>
+    <text x="42" y="288" font-size="9" fill="#0e7c9a">這兩路是真的接線量到的</text>
+
+    <path d="M296,248 L376,248 L376,206" fill="none" stroke="#0e7c9a" stroke-width="2" marker-end="url(#tt-a-t5)"/>
+
+    <!-- 中央:Micro-box -->
+    <rect x="382" y="42" width="256" height="258" rx="14" fill="#f7fbff" stroke="var(--blue,#0071e3)" stroke-width="2"/>
+    <text x="510" y="70" font-size="12.5" font-weight="800" text-anchor="middle" fill="var(--blue,#0071e3)">Target PC · Micro-box</text>
+    <line x1="404" y1="84" x2="616" y2="84" stroke="#cfe4fb" stroke-width="1"/>
+    <text x="510" y="108" font-size="10" text-anchor="middle" fill="var(--ink-2,#6e6e73)">估測鏈 → r̂、ε̂、V_x、λ、α_w</text>
+    <text x="510" y="130" font-size="10" text-anchor="middle" fill="var(--ink-2,#6e6e73)">目標值 λ_op、α_op</text>
+    <text x="510" y="152" font-size="10" text-anchor="middle" fill="var(--ink-2,#6e6e73)">MISO 模糊控制器 → ΔP_WC</text>
+    <text x="510" y="174" font-size="10" text-anchor="middle" fill="var(--ink-2,#6e6e73)">模式切換 + TTUB 提前洩壓</text>
+    <line x1="404" y1="192" x2="616" y2="192" stroke="#cfe4fb" stroke-width="1"/>
+    <text x="510" y="216" font-size="10.5" text-anchor="middle" class="m" font-weight="800" fill="var(--blue,#0071e3)">全部要在 10 ms 內跑完</text>
+    <text x="510" y="240" font-size="9.5" text-anchor="middle" fill="var(--ink-3,#86868b)">一個連續量 ΔP_WC 進來</text>
+    <text x="510" y="257" font-size="9.5" text-anchor="middle" fill="var(--ink-3,#86868b)">五路開關量出去</text>
+    <text x="510" y="282" font-size="9.5" text-anchor="middle" class="m" fill="var(--ink-3,#86868b)">TCP/IP ↔ Host PC</text>
+
+    <path d="M638,171 L718,171" stroke="#0e7c9a" stroke-width="2" marker-end="url(#tt-a-t5)"/>
+
+    <!-- 右:數位輸出 -->
+    <rect x="724" y="42" width="272" height="258" rx="13" fill="#fff" stroke="#0e7c9a" stroke-width="1.6"/>
+    <text x="742" y="66" font-size="11" font-weight="800" fill="#0e7c9a">數位輸出 → 驅動電路 → EHB</text>
+    <line x1="742" y1="78" x2="978" y2="78" stroke="#d6eef4" stroke-width="1"/>
+
+    <text x="742" y="100" font-size="9.5" font-weight="700" fill="var(--ink-3,#86868b)">前輪</text>
+    <rect x="742" y="108" width="110" height="30" rx="7" fill="#e6f6fa" stroke="#0e7c9a" stroke-width="1.2"/>
+    <text x="797" y="127" font-size="9.5" text-anchor="middle" fill="#0e7c9a">進油閥 Inlet</text>
+    <rect x="862" y="108" width="110" height="30" rx="7" fill="#e6f6fa" stroke="#0e7c9a" stroke-width="1.2"/>
+    <text x="917" y="127" font-size="9.5" text-anchor="middle" fill="#0e7c9a">出油閥 Outlet</text>
+
+    <text x="742" y="164" font-size="9.5" font-weight="700" fill="var(--ink-3,#86868b)">後輪</text>
+    <rect x="742" y="172" width="110" height="30" rx="7" fill="#e6f6fa" stroke="#0e7c9a" stroke-width="1.2"/>
+    <text x="797" y="191" font-size="9.5" text-anchor="middle" fill="#0e7c9a">進油閥 Inlet</text>
+    <rect x="862" y="172" width="110" height="30" rx="7" fill="#e6f6fa" stroke="#0e7c9a" stroke-width="1.2"/>
+    <text x="917" y="191" font-size="9.5" text-anchor="middle" fill="#0e7c9a">出油閥 Outlet</text>
+
+    <rect x="742" y="222" width="230" height="30" rx="7" fill="#fff" stroke="var(--ink,#1d1d1f)" stroke-width="1.3"/>
+    <text x="857" y="241" font-size="9.5" text-anchor="middle" fill="var(--ink,#1d1d1f)">泵馬達 · 蓄壓器回充</text>
+
+    <text x="742" y="274" font-size="9.5" font-weight="700" fill="var(--ink,#1d1d1f)">合計 5 路開關輸出</text>
+    <text x="742" y="290" font-size="9" fill="#b45309">閥數 4 由「進 / 出油閥(前後輪)」推得,簡報未逐顆編號</text>
+
+    <!-- 底部:界線說明 -->
+    <rect x="24" y="318" width="972" height="60" rx="13" fill="#f7fbff" stroke="var(--blue,#0071e3)" stroke-width="1.3"/>
+    <text x="46" y="342" font-size="11.5" font-weight="800" fill="var(--blue,#0071e3)">界線畫在哪裡:</text>
+    <text x="168" y="342" font-size="10.5" fill="var(--ink-2,#6e6e73)">油壓那一段是實體的 —— 閥的延遲、孔口的非線性、蓄壓器的回充,全部由硬體自己表現;</text>
+    <text x="46" y="362" font-size="10.5" fill="var(--ink-2,#6e6e73)">輪速與加速度還是 BikeSim 給的。所以這座台架驗的是<tspan font-weight="700" fill="var(--blue,#0071e3)">致動端</tspan>,不是感測端 —— 感測端由第 07 章的模擬負責。</text>
+  </svg>
+  </div>
+  <div class="tt-hint">← 左右捲動看完整圖 →</div>
+
+
+  <!-- ============================================================
+       圖 8-4 時間預算
+       ------------------------------------------------------------
+       把兩個已載明的數值(控制週期 10 ms、電磁閥延遲 t_od = 7 ms)
+       放在同一條時間軸上比大小。這張圖是第 06 章那套策略的硬體理由:
+       延遲吃掉將近一整個控制週期,所以不能等越界才動。
+       ★ 沒有新數值,只有 7 與 10 的相對關係。
+       ============================================================ -->
+  <div class="tt-cap tt-rv" style="margin-top:26px">
+    <b>硬體給了多少時間。</b>控制器每 <code>10 ms</code> 決策一次,電磁閥收到命令後 <code>7 ms</code> 油壓才開始動 ——
+    把這兩個數擺在同一條軸上,第 06 章那套「提前出手」的策略就不必再解釋了。
+  </div>
+
+  <div class="tt-scroll tt-rv">
+  <svg class="tt-svg" viewBox="0 0 1020 330" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="時間預算比較圖。橫軸為零到二十毫秒。第一列是估測器與控制器的取樣週期,每十毫秒一格,圖上顯示兩格。第二列是電磁閥作動延遲七毫秒,起點與第一個控制週期同時開始,結束點落在第一個週期尚未結束之前但已超過其七成。第三列是 BikeSim 車輛動態的計算步長零點五毫秒,以密集細格表示。結論為延遲佔一個控制週期的七成,這一週期下的洩壓命令,油壓要到下一週期才開始降。">
+    <title>時間預算:10 ms 的控制週期裡,有 7 ms 在等閥</title>
+    <desc>控制週期、電磁閥延遲、模擬步長三列並排於同一時間軸。</desc>
+
+    <!-- 縱向格線:每 5 ms -->
+    <g stroke="#ececf0" stroke-width="1">
+      <line x1="200" y1="46" x2="200" y2="232"/>
+      <line x1="395" y1="46" x2="395" y2="232"/>
+      <line x1="590" y1="46" x2="590" y2="232"/>
+      <line x1="785" y1="46" x2="785" y2="232"/>
+      <line x1="980" y1="46" x2="980" y2="232"/>
+    </g>
+
+    <!-- 列一:控制週期 10 ms -->
+    <text x="24" y="76" font-size="11" font-weight="800" fill="var(--blue,#0071e3)">估測器 + 控制器</text>
+    <text x="24" y="93" font-size="9.5" fill="var(--ink-3,#86868b)">每一格重算一次全部</text>
+    <rect x="200" y="58" width="390" height="38" rx="7" fill="#eaf4ff" stroke="var(--blue,#0071e3)" stroke-width="1.6"/>
+    <text x="395" y="82" font-size="11" text-anchor="middle" class="m" font-weight="800" fill="var(--blue,#0071e3)">10 ms</text>
+    <rect x="590" y="58" width="390" height="38" rx="7" fill="#f7fbff" stroke="var(--blue,#0071e3)" stroke-width="1.6" stroke-dasharray="6 4"/>
+    <text x="785" y="82" font-size="11" text-anchor="middle" class="m" font-weight="700" fill="#7fb4e8">下一個 10 ms</text>
+
+    <!-- 列二:電磁閥延遲 7 ms -->
+    <text x="24" y="140" font-size="11" font-weight="800" fill="#b45309">電磁閥作動延遲</text>
+    <text x="24" y="157" font-size="9.5" fill="var(--ink-3,#86868b)">命令下去到油壓真的動</text>
+    <rect x="200" y="122" width="273" height="38" rx="7" fill="var(--amber-bg,#fff7ed)" stroke="#b45309" stroke-width="1.6"/>
+    <text x="336" y="146" font-size="11" text-anchor="middle" class="m" font-weight="800" fill="#b45309">t_od = 7 ms</text>
+    <path d="M473,141 L570,141" stroke="#b45309" stroke-width="1.4" stroke-dasharray="4 3"/>
+    <text x="576" y="145" font-size="9.5" font-weight="700" fill="#b45309">油壓從這裡才開始降</text>
+
+    <!-- 列三:BikeSim 0.5 ms -->
+    <text x="24" y="204" font-size="11" font-weight="800" fill="var(--ink-2,#6e6e73)">BikeSim 車輛動態</text>
+    <text x="24" y="221" font-size="9.5" fill="var(--ink-3,#86868b)">模擬側的計算步長</text>
+    <rect x="200" y="186" width="780" height="38" rx="7" fill="#f6f6f7" stroke="var(--ink-3,#86868b)" stroke-width="1.2"/>
+    <g stroke="#c9c9ce" stroke-width="1">
+      <line x1="219.5" y1="190" x2="219.5" y2="220"/><line x1="239" y1="190" x2="239" y2="220"/>
+      <line x1="258.5" y1="190" x2="258.5" y2="220"/><line x1="278" y1="190" x2="278" y2="220"/>
+      <line x1="297.5" y1="190" x2="297.5" y2="220"/><line x1="317" y1="190" x2="317" y2="220"/>
+      <line x1="336.5" y1="190" x2="336.5" y2="220"/><line x1="356" y1="190" x2="356" y2="220"/>
+      <line x1="375.5" y1="190" x2="375.5" y2="220"/><line x1="395" y1="190" x2="395" y2="220"/>
+      <line x1="414.5" y1="190" x2="414.5" y2="220"/><line x1="434" y1="190" x2="434" y2="220"/>
+      <line x1="453.5" y1="190" x2="453.5" y2="220"/><line x1="473" y1="190" x2="473" y2="220"/>
+      <line x1="492.5" y1="190" x2="492.5" y2="220"/><line x1="512" y1="190" x2="512" y2="220"/>
+      <line x1="531.5" y1="190" x2="531.5" y2="220"/><line x1="551" y1="190" x2="551" y2="220"/>
+      <line x1="570.5" y1="190" x2="570.5" y2="220"/><line x1="590" y1="190" x2="590" y2="220"/>
+      <line x1="609.5" y1="190" x2="609.5" y2="220"/><line x1="629" y1="190" x2="629" y2="220"/>
+      <line x1="648.5" y1="190" x2="648.5" y2="220"/><line x1="668" y1="190" x2="668" y2="220"/>
+      <line x1="687.5" y1="190" x2="687.5" y2="220"/><line x1="707" y1="190" x2="707" y2="220"/>
+      <line x1="726.5" y1="190" x2="726.5" y2="220"/><line x1="746" y1="190" x2="746" y2="220"/>
+      <line x1="765.5" y1="190" x2="765.5" y2="220"/><line x1="785" y1="190" x2="785" y2="220"/>
+      <line x1="804.5" y1="190" x2="804.5" y2="220"/><line x1="824" y1="190" x2="824" y2="220"/>
+      <line x1="843.5" y1="190" x2="843.5" y2="220"/><line x1="863" y1="190" x2="863" y2="220"/>
+      <line x1="882.5" y1="190" x2="882.5" y2="220"/><line x1="902" y1="190" x2="902" y2="220"/>
+      <line x1="921.5" y1="190" x2="921.5" y2="220"/><line x1="941" y1="190" x2="941" y2="220"/>
+      <line x1="960.5" y1="190" x2="960.5" y2="220"/>
+    </g>
+    <text x="590" y="210" font-size="10.5" text-anchor="middle" class="m" font-weight="700" fill="var(--ink-2,#6e6e73)">0.5 ms · 一格</text>
+
+    <!-- 時間軸 -->
+    <line x1="200" y1="240" x2="980" y2="240" stroke="var(--ink,#1d1d1f)" stroke-width="1.4"/>
+    <g font-size="10" class="m" fill="var(--ink-3,#86868b)" text-anchor="middle">
+      <text x="200" y="256">0</text>
+      <text x="395" y="256">5</text>
+      <text x="590" y="256">10</text>
+      <text x="785" y="256">15</text>
+      <text x="980" y="256">20 ms</text>
+    </g>
+
+    <!-- 結論 -->
+    <rect x="24" y="270" width="956" height="46" rx="12" fill="#f7fbff" stroke="var(--blue,#0071e3)" stroke-width="1.3"/>
+    <text x="46" y="292" font-size="11" font-weight="800" fill="var(--blue,#0071e3)">延遲吃掉七成的控制週期。</text>
+    <text x="240" y="292" font-size="10.5" fill="var(--ink-2,#6e6e73)">這一週期算出「該洩壓」並下命令,油壓要等到<tspan font-weight="700" fill="var(--ink,#1d1d1f)">下一個週期才開始降</tspan> ——</text>
+    <text x="46" y="310" font-size="10.5" fill="var(--ink-2,#6e6e73)">中間滑差一路往非線性區跑。第 06 章的 TTUB 提前洩壓,補的就是這段時間差。</text>
+  </svg>
+  </div>
+  <div class="tt-hint">← 左右捲動看完整圖 →</div>
+
+  <div class="tt-note tt-rv">
+    <b>驗證進度(以口試當下為準)。</b>簡報 p.79 載明「目前正進行 HIL 控制器的驗證,未來將持續完成本文提出的控制架構在不同路面的驗證」。
+    因此本頁第 07 章的完整統計來自<b>模擬</b>;HIL 平台已建置並完成電液壓模組的參數識別與模型驗證,
+    <b>不同路面的完整 HIL 統計在口試時尚未完成</b> —— 不在這裡代它宣稱結果。
+  </div>
+
+
+  <!-- ==================== 09 結論 ==================== -->
+  <div class="tt-sec" id="s9">
+    <span class="tt-sec-n">09</span>
+    <span class="tt-sec-t">結論與未來展望</span>
+    <span class="tt-sec-s"></span>
+  </div>
+
+  <div class="tt-grid tt-rv">
+    <div class="tt-card tt-card--b">
+      <h4>估測器</h4>
+      <p>適應性參數估測器能有效估出<b>輪胎滾動半徑</b>與<b>加速規量測偏移量</b>,
+      使車速估測在 ABS 作動期間貼近真值 —— 而滑差回授的準確度,直接決定滑差控制的成敗。</p>
+    </div>
+    <div class="tt-card tt-card--b">
+      <h4>控制器</h4>
+      <p>適應性混合輪角加速度-滑差控制,保有滑差控制的特性,同時<b>不易受滑差雜訊影響</b>,強健性較高。
+      兩個目標值都是逐週期重算,路面與負載一變就跟著動。</p>
+    </div>
+    <div class="tt-card tt-card--b">
+      <h4>效果</h4>
+      <p>模擬與 HIL 平台測試中,在不同路面下與 Bang-Bang 控制器及無 ABS 相比,
+      本控制策略<b>皆能產生較大的減速度</b>,煞車距離縮短 9 – 18%。</p>
+    </div>
+  </div>
+
+  <div class="tt-cap tt-rv" style="margin-top:18px">
+    <b>論文自己列的三個未來方向</b> —— 值得注意的是,它們都指向同一件事:<em>把還在模型裡的東西換成真的</em>。
+  </div>
+
+  <div class="tt-grid tt-rv">
+    <div class="tt-card tt-card--a">
+      <h4>一 · 液壓模型還不夠真</h4>
+      <p>簡易油壓模型可能不夠貼近實際,未來可針對液壓模組的建立做更進一步的探討。</p>
+    </div>
+    <div class="tt-card tt-card--a">
+      <h4>二 · 底層電磁閥改 PWM</h4>
+      <p>若上層混合控制器無法有效控制滑差,將嘗試對底層電磁閥採 PWM 控制,
+      透過 EHB 步進增壓與降壓讓分泵油壓更平穩 —— 這正是第 07 章「距 Optimal 那一段」的正面回應。</p>
+    </div>
+    <div class="tt-card tt-card--a">
+      <h4>三 · 實車實驗</h4>
+      <p>以實際感知器的量測訊號,驗證本文提出的估測器與控制器。</p>
+    </div>
+  </div>
+
+
+  <!-- ==================== 註記 ==================== -->
+  <div class="tt-foot">
+    <h3>資料出處與註記</h3>
+    <p style="margin-bottom:12px">
+      本頁全部內容取自
+      <code>應用鎖死時間於機車防鎖死煞車系統之控制-論文架構V7.pptx</code>(95 頁)與論文本文
+      <code>應用鎖死時間於機車防鎖死煞車系統之控制V2.docx</code>。
+      所有數值均為逐筆照抄:肇事統計取自簡報 p.3 內嵌圖表;模擬統計取自 p.56(平地)與 p.65-66(斜坡)內嵌圖表;
+      車輛參數取自論文表 4.1;μ-λ 曲線形狀取自論文資料夾 <code>mu curve.csv</code> 的正規化資料逐點繪製。
+      <b>簡報未載明的數值,本頁一律留白,不補值。</b>
+    </p>
+    <ol>
+      <li>
+        <b>中摩擦係數路面到底是 0.5 還是 0.6。</b>
+        論文本文第四章寫「高、中、低摩擦係數路面 (μ=0.85、μ=0.5 及 μ=0.4)」,
+        但簡報 p.56 / p.65-66 內嵌圖表的類別軸標的是 <code>μ=0.6</code>。
+        本頁第 07 章的圖表與數值表<b>依簡報的 0.6 呈現</b>(因為數值本身就是從那份圖表逐筆取出的),
+        此處僅指出兩份文件不一致,不代為判定何者為準。
+      </li>
+      <li>
+        <b>四個門檻值簡報未載明。</b>
+        混合控制區的滑差上下門檻 <code>λ_UB</code> / <code>λ_LB</code>,以及模式切換的
+        <code>TH_P</code> / <code>TH_N</code>,論文說明「其滑差門檻值的奠定可透過實驗分析取得」,
+        但未給出實際數值。本頁第 06 章的 μ-λ 分區圖因此把兩條門檻畫成<b>相對位置示意</b>,
+        不標數字;圖上唯一標了數字的 <code>λ_op ≈ 0.12</code> 是 <code>mu curve.csv</code> 曲線的實際峰值位置。
+        另外,模式切換三條件在簡報中以堆疊矩陣呈現,門檻對應關係排版上有歧義,
+        本頁採唯一自洽的讀法(<code>TH_N &lt; 0 &lt; TH_P</code>,依論文「TH_P 為增壓門檻、TH_N 為洩壓門檻」的定義)。
+      </li>
+      <li>
+        <b>模糊規則表有一格不符規律。</b>
+        第 05 章的規則表逐格照抄自簡報 p.41。其中 <code>se = NS</code> 列、<code>we = ZO</code> 欄那一格為
+        <code>N</code>,而依表中其餘各格的對角線規律該處應為 <code>P</code>。
+        本頁<b>保留原表並把該格框起來</b>,而不是逕自「修正」—— 這是原始資料的狀態,不是本頁的判讀。
+      </li>
+      <li>
+        <b>輪角加速度卡爾曼濾波器的矩陣寫法。</b>
+        簡報 p.28 以矩陣形式給出 <code>F_w</code>,其排版經 XML 解析後列序有歧義。
+        本頁第 02 章改以等價且無歧義的遞迴式呈現(<code>α_{k+1}=α_k</code>、<code>ω_{k+1}=ω_k+T·α_k</code>),
+        與簡報同時給出的 <code>H_w = [0 1]</code>、<code>x_w = [α_w, ω_w]ᵀ</code> 一致。
+      </li>
+      <li>
+        <b>HIL 統計尚未完成。</b>見第 08 章末的說明:口試當下 HIL 僅完成平台建置與 EHB 模型驗證,
+        不同路面的完整控制統計仍在進行中。第 07 章的所有數字都是模擬結果。
+      </li>
+    </ol>
+
+    <div class="lnk">
+      <b>同一條技術線上的其他頁:</b>
+      <a href="05_abs_chain.html">ABS 估測與控制鏈</a> ·
+      <a href="06_road_id.html">路面識別:繞開正向力</a> ·
+      <a href="09_vse_chain.html">車速估測訊號鏈</a> ·
+      <a href="03_ehb_pressure.html">EHB 油壓控制</a> ·
+      <a href="04_vmodel.html">V 模型開發流程</a>
+      <div style="margin-top:8px;color:var(--ink-3,#86868b)">
+        上面幾頁是後來在中科院委學案裡把這套方法重做一次的成果;這一頁是它們的源頭。
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="tt-tip" id="tt-tip" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   1) 進場:一次性,不做捲動視差
+   ============================================================ */
+(function(){
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {rootMargin:'0px 0px -8% 0px', threshold:.08});
+  document.querySelectorAll('.tt-rv').forEach(function(el){ io.observe(el); });
+})();
+
+/* ============================================================
+   2) 章節快捷:捲到哪一章就亮哪一顆
+   ============================================================ */
+(function(){
+  var links = [].slice.call(document.querySelectorAll('.tt-toc a'));
+  var secs  = links.map(function(a){ return document.querySelector(a.getAttribute('href')); });
+  function sync(){
+    var y = window.scrollY + 120, hit = 0;
+    secs.forEach(function(s,i){ if(s && s.offsetTop <= y) hit = i; });
+    links.forEach(function(a,i){ a.classList.toggle('hot', i === hit); });
+  }
+  window.addEventListener('scroll', sync, {passive:true});
+  sync();
+})();
+
+/* ============================================================
+   3) TTL / TTS 互動
+   ------------------------------------------------------------
+   兩條線都是「依當下減速度外推到零」的直線,所以交點就是剩餘時間。
+   車速線固定(TTS = 2.0 s),只讓輪角加速度動 —— 因為論文要問的正是
+   「在 a_x 給定的此刻,α_w 該是多少」。
+   滑桿值 = α_w 相對於「最佳斜率」的倍率 ×100:
+     100 → TTL = TTS(最佳)   >100 → 輪減速度更大 → 更早鎖死 → TTL < TTS
+   ============================================================ */
+(function(){
+  var X0=80, Y0=80, YB=300, XT=480;      // 車速線:起點(80,80) → 觸底(480,300)
+  var TTS = 2.0;                          // 車速線對應的煞停時間(s)
+  var rng   = document.getElementById('tt-rng'),
+      rval  = document.getElementById('tt-rngval'),
+      rst   = document.getElementById('tt-rst'),
+      wline = document.getElementById('tt-wline'),
+      wlab  = document.getElementById('tt-wlabel'),
+      tlM   = document.getElementById('tt-ttlmark'),
+      tlT   = document.getElementById('tt-ttltext'),
+      tsM   = document.getElementById('tt-ttsmark'),
+      tsT   = document.getElementById('tt-ttstext'),
+      gap   = document.getElementById('tt-gap'),
+      cmp   = document.getElementById('tt-cmp'),
+      actB  = document.getElementById('tt-actbox'),
+      act   = document.getElementById('tt-act'),
+      vbox  = document.getElementById('tt-verdictbox'),
+      alpha = document.getElementById('tt-alpha'),
+      r1=document.getElementById('tt-reason1'), r2=document.getElementById('tt-reason2'), r3=document.getElementById('tt-reason3'),
+      lvT=document.getElementById('tt-lv-tts'), lvL=document.getElementById('tt-lv-ttl'),
+      lvD=document.getElementById('tt-lv-diff'), lvC=document.getElementById('tt-lv-cmd');
+  if(!rng) return;
+
+  var BLUE='#0071e3', AMBER='#b45309', INK='#1d1d1f';
+
+  function draw(){
+    var k = +rng.value / 100;             // α_w 相對最佳斜率的倍率
+    var ttl = TTS / k;                    // 斜率越陡 → 越早歸零
+    var xEnd = X0 + (XT - X0) / k;        // 輪速線觸底的 x
+
+    // 線只畫到觸底為止;若超出畫布右緣就截斷在邊界上
+    var xClip = Math.min(xEnd, 700);
+    var yClip = Y0 + (YB - Y0) * (xClip - X0) / (xEnd - X0);
+    wline.setAttribute('x2', xClip.toFixed(1));
+    wline.setAttribute('y2', yClip.toFixed(1));
+
+    // 標籤跟著線走:固定在線上約 62% 處,再往下讓開,免得壓到線本身
+    var tl = 0.62, lx = X0 + (xClip - X0) * tl, ly = Y0 + (yClip - Y0) * tl;
+    wlab.setAttribute('x', Math.min(lx, 560).toFixed(1));
+    wlab.setAttribute('y', Math.min(ly + 24, 292).toFixed(1));
+
+    var showX = Math.min(xEnd, 700);
+    tlM.setAttribute('x1', showX.toFixed(1)); tlM.setAttribute('x2', showX.toFixed(1));
+    tlT.setAttribute('x', showX.toFixed(1));
+    tlT.textContent = 'TTL ' + ttl.toFixed(2) + 's' + (xEnd > 700 ? ' →' : '');
+    tsT.textContent = 'TTS ' + TTS.toFixed(2) + 's';
+
+    // 兩者差距:在時間軸上塗一段,直接看到「誰先到」
+    var lo = Math.min(XT, showX), hi = Math.max(XT, showX);
+    gap.setAttribute('x', lo.toFixed(1));
+    gap.setAttribute('width', (hi - lo).toFixed(1));
+
+    var d = ttl - TTS, mode, color, why;
+    if(Math.abs(d) < 0.045){
+      mode='最佳點'; color=BLUE;
+      why=['車輪恰好在車輛煞停的同一時刻','停止轉動 —— 全程用盡路面能力,','又不會提前鎖死失去側向力。'];
+      cmp.textContent='='; alpha.textContent='α_op = ω_w · a_x / v_x';
+    } else if(d > 0){
+      mode='增壓 Apply'; color=INK;
+      why=['車輪會晚於車輛煞停才鎖死,','代表煞車力還沒用滿 ——','路面還能提供更多制動力。'];
+      cmp.textContent='>'; alpha.textContent='α_w 還不夠陡 → 加壓';
+    } else {
+      mode='洩壓 Release'; color=AMBER;
+      why=['車輪將先於車輛煞停鎖死。','一旦鎖死就失去側向力,','必須立刻降低分泵油壓。'];
+      cmp.textContent='<'; alpha.textContent='α_w 過陡 → 洩壓';
+    }
+    wline.setAttribute('stroke', color);
+    wlab.setAttribute('fill', color);
+    tlM.setAttribute('stroke', color); tlT.setAttribute('fill', color);
+    gap.setAttribute('fill', color);
+    actB.setAttribute('fill', color);
+    vbox.setAttribute('stroke', color);
+    cmp.setAttribute('fill', color);
+    alpha.setAttribute('fill', color);
+    act.textContent = mode;
+    r1.textContent=why[0]; r2.textContent=why[1]; r3.textContent=why[2];
+
+    rval.textContent = '−' + k.toFixed(2) + ' × a_x/r';
+    lvT.textContent = TTS.toFixed(2) + ' s';
+    lvL.textContent = ttl.toFixed(2) + ' s';
+    lvD.textContent = (d >= 0 ? '+' : '') + d.toFixed(2) + ' s';
+    lvC.textContent = mode.split(' ')[0];
+    lvC.style.color = color;
+    lvL.style.color = color;
+  }
+  rng.addEventListener('input', draw);
+  rst.addEventListener('click', function(){ rng.value = 100; draw(); });
+  draw();
+})();
+
+/* ============================================================
+   4) 模擬結果:分組長條圖
+   ------------------------------------------------------------
+   數值全部來自簡報內嵌圖表(chart2/3 平地、chart4/5 斜坡)。
+   序列色:Proposed 品牌藍(主角)、Bang-Bang 琥珀、Optimal 綠(理論上限)、
+   w/o ABS 中性灰 + 斜線紋(它不是一個「控制器」,是不作為的基準線,
+   所以刻意不給它彩度,並以紋理做第二重編碼)。
+   四色已通過色盲區辨檢核(藍/琥珀/綠三彩色最差對 ΔE 8.5 deutan)。
+   ============================================================ */
+(function(){
+  var DATA = {
+    flat: {
+      dist: {unit:'m',   label:'ABS 作動期間之煞車距離',
+             rows:{'μ=0.85':[19.23,21.75,24.33,26.22],'μ=0.6':[26.5,29,35,42],'μ=0.4':[40,44,52,63]}},
+      time: {unit:'s',   label:'ABS 作動期間之煞車時間',
+             rows:{'μ=0.85':[2.25,2.34,2.67,3],'μ=0.6':[3.1,3.27,4,4.8],'μ=0.4':[4.7,5,6.2,7.2]}}
+    },
+    slope:{
+      dist: {unit:'m',   label:'斜坡情境之煞停距離',
+             rows:{'μ=0.85':[26,29,32,40],'μ=0.6':[36,40,49,60],'μ=0.4':[56,65,73,92]}},
+      time: {unit:'s',   label:'斜坡情境之煞車時間',
+             rows:{'μ=0.85':[2.59,2.74,2.94,4],'μ=0.6':[3.75,4,4.87,6],'μ=0.4':[5.7,6.7,7.7,9]}}
+    }
+  };
+  // 序列順序固定,永遠不隨篩選改變 —— 顏色跟著實體走,不跟著名次走
+  var SER = [
+    {name:'Optimal Control', color:'#0a8a5c', note:'需油壓感知器,成本上做不到'},
+    {name:'Proposed',        color:'#0071e3', note:'本論文'},
+    {name:'Bang-Bang',       color:'#b45309', note:'BikeSim 內建切換控制器'},
+    {name:'w/o ABS',         color:'#9a9aa0', note:'煞車期間不介入',       tex:true}
+  ];
+
+  var scene='flat', metric='dist';
+  var g   = document.getElementById('tt-res-g'),
+      tip = document.getElementById('tt-tip'),
+      tblW= document.getElementById('tt-tblwrap'),
+      tbl = document.querySelector('#tt-restbl tbody'),
+      cap = document.getElementById('tt-rescap'),
+      k1=document.getElementById('tt-kpi1'), k2=document.getElementById('tt-kpi2'), k3=document.getElementById('tt-kpi3');
+  if(!g) return;
+
+  var NS='http://www.w3.org/2000/svg';
+  function el(n,a){ var e=document.createElementNS(NS,n); for(var k in a) e.setAttribute(k,a[k]); return e; }
+
+  function render(){
+    var d = DATA[scene][metric];
+    var cats = Object.keys(d.rows);
+    var max  = 0;
+    cats.forEach(function(c){ d.rows[c].forEach(function(v){ if(v>max) max=v; }); });
+    max = max * 1.16;
+
+    while(g.firstChild) g.removeChild(g.firstChild);
+
+    // 紋理:給 w/o ABS 用的第二重編碼(色盲 / 黑白列印也分得出來)
+    var defs = el('defs',{});
+    var pat = el('pattern',{id:'tt-hatch',width:'6',height:'6',patternUnits:'userSpaceOnUse',patternTransform:'rotate(45)'});
+    pat.appendChild(el('rect',{width:'6',height:'6',fill:'#f0f0f2'}));
+    pat.appendChild(el('line',{x1:'0',y1:'0',x2:'0',y2:'6',stroke:'#9a9aa0','stroke-width':'2.4'}));
+    defs.appendChild(pat); g.appendChild(defs);
+
+    // 標題
+    var t1 = el('text',{x:24,y:30,'font-size':13,'font-weight':800,fill:'var(--ink,#1d1d1f)'});
+    t1.textContent = d.label + '（' + (scene==='flat' ? '平地' : '斜坡 2.5% 坡度') + '）';
+    g.appendChild(t1);
+    var t2 = el('text',{x:24,y:49,'font-size':11,fill:'var(--ink-3,#86868b)'});
+    t2.textContent = '單位:' + (d.unit==='m' ? '公尺 (m)' : '秒 (s)') + '．越短越好．數值取自簡報內嵌圖表逐筆照抄';
+    g.appendChild(t2);
+
+    var X0=92, XW=740, YT=78, YB=302;
+
+    // y 軸格線
+    var steps=4;
+    for(var i=0;i<=steps;i++){
+      var v = max*i/steps, y = YB - (YB-YT)*(i/steps);
+      g.appendChild(el('line',{x1:X0,y1:y,x2:X0+XW,y2:y,stroke:(i===0?'var(--ink,#1d1d1f)':'#ececf0'),'stroke-width':(i===0?1.4:1)}));
+      var ty = el('text',{x:X0-10,y:y+4,'font-size':10,'text-anchor':'end',fill:'var(--ink-3,#86868b)','font-family':'var(--mono,monospace)'});
+      ty.textContent = v.toFixed(v<10?1:0);
+      g.appendChild(ty);
+    }
+
+    var gw = XW/cats.length;
+    cats.forEach(function(c, ci){
+      var gx = X0 + gw*ci;
+      // 分組標籤
+      var tc = el('text',{x:gx+gw/2,y:YB+24,'font-size':11.5,'font-weight':700,'text-anchor':'middle',
+                          fill:'var(--ink,#1d1d1f)','font-family':'var(--mono,monospace)'});
+      tc.textContent = c;
+      g.appendChild(tc);
+
+      var bw = 40, gapb = 2, tot = SER.length*bw + (SER.length-1)*gapb;
+      var bx0 = gx + (gw - tot)/2;
+
+      d.rows[c].forEach(function(v, si){
+        var s  = SER[si];
+        var h  = (YB-YT) * (v/max);
+        var bx = bx0 + si*(bw+gapb);
+        var by = YB - h;
+        var r  = el('rect',{x:bx,y:by,width:bw,height:h,rx:4,
+                            fill:(s.tex?'url(#tt-hatch)':s.color),
+                            stroke:(s.tex?'#9a9aa0':'none'),'stroke-width':(s.tex?1:0)});
+        r.style.cursor='pointer';
+        // 只有 rx 會讓底端也圓角,補一塊把底端壓回基線
+        var fix = el('rect',{x:bx,y:YB-6,width:bw,height:6,
+                             fill:(s.tex?'url(#tt-hatch)':s.color),
+                             stroke:(s.tex?'#9a9aa0':'none'),'stroke-width':(s.tex?1:0)});
+        g.appendChild(r); g.appendChild(fix);
+
+        // 直接標值:12 根長條,值本身就是這張圖要傳達的內容
+        var tv = el('text',{x:bx+bw/2,y:by-7,'font-size':10,'text-anchor':'middle','font-weight':700,
+                            fill:'var(--ink-2,#6e6e73)','font-family':'var(--mono,monospace)'});
+        tv.textContent = v;
+        g.appendChild(tv);
+
+        (function(sr, vv, cc){
+          function show(ev){
+            tip.innerHTML = '<b>'+sr.name+'</b><br>'+cc+'　'+vv+' '+d.unit+'<br><span style="opacity:.7">'+sr.note+'</span>';
+            tip.classList.add('on');
+            tip.style.left = Math.min(ev.clientX+14, window.innerWidth-244)+'px';
+            tip.style.top  = Math.max(ev.clientY-64, 8)+'px';
+          }
+          r.addEventListener('mouseenter', show);
+          r.addEventListener('mousemove',  show);
+          r.addEventListener('mouseleave', function(){ tip.classList.remove('on'); });
+        })(s, v, c);
+      });
+    });
+
+    // 圖例:四個序列一定要有,識別不能只靠顏色
+    var lx = 862, ly = 90;
+    SER.forEach(function(s, i){
+      var y = ly + i*32;
+      if(s.tex){
+        g.appendChild(el('rect',{x:lx,y:y-9,width:14,height:14,rx:3,fill:'url(#tt-hatch)',stroke:'#9a9aa0','stroke-width':1}));
+      } else {
+        g.appendChild(el('rect',{x:lx,y:y-9,width:14,height:14,rx:3,fill:s.color}));
+      }
+      var tn = el('text',{x:lx+21,y:y+2,'font-size':10.5,'font-weight':700,fill:'var(--ink,#1d1d1f)'});
+      tn.textContent = s.name;
+      g.appendChild(tn);
+      var tnn = el('text',{x:lx+21,y:y+15,'font-size':8.8,fill:'var(--ink-3,#86868b)'});
+      tnn.textContent = s.note;
+      g.appendChild(tnn);
+    });
+
+    // 表格
+    while(tbl.firstChild) tbl.removeChild(tbl.firstChild);
+    cats.forEach(function(c){
+      var tr=document.createElement('tr');
+      var th=document.createElement('td'); th.textContent=c; tr.appendChild(th);
+      d.rows[c].forEach(function(v,si){
+        var td=document.createElement('td');
+        td.textContent = v + ' ' + d.unit;
+        if(si===1) td.className='hi';
+        tr.appendChild(td);
+      });
+      tbl.appendChild(tr);
+    });
+
+    // KPI:用中摩擦係數那一組當代表,並在說明文標明
+    var mid = d.rows[cats[1]];
+    var vsBB  = (mid[2]-mid[1])/mid[2]*100;
+    var vsOpt = (mid[1]-mid[0])/mid[0]*100;
+    var vsNo  = (mid[3]-mid[1])/mid[3]*100;
+    k1.textContent = '−' + vsBB.toFixed(1) + '%';
+    k2.textContent = '+' + vsOpt.toFixed(1) + '%';
+    k3.textContent = '−' + vsNo.toFixed(1) + '%';
+
+    cap.innerHTML = '在所有六種組合(平地 / 斜坡 × 高 / 中 / 低摩擦係數)裡,Proposed 都<b>穩定落在 Optimal 與 Bang-Bang 之間,'
+      + '且明顯靠近 Optimal</b>。上方三個數字取自目前這張圖的<b>中摩擦係數（' + cats[1] + '）</b>那一組:'
+      + 'Proposed 的' + (metric==='dist'?'煞車距離':'煞車時間') + '比 Bang-Bang 短 <b>' + vsBB.toFixed(1) + '%</b>,'
+      + '距離理論上限 Optimal 還差 <b>' + vsOpt.toFixed(1) + '%</b>,'
+      + '比完全不作動短 <b>' + vsNo.toFixed(1) + '%</b>。';
+  }
+
+  document.querySelectorAll('[data-scene]').forEach(function(b){
+    b.addEventListener('click', function(){
+      scene = b.dataset.scene;
+      document.querySelectorAll('[data-scene]').forEach(function(x){ x.setAttribute('aria-pressed', String(x===b)); });
+      render();
+    });
+  });
+  document.querySelectorAll('[data-metric]').forEach(function(b){
+    b.addEventListener('click', function(){
+      metric = b.dataset.metric;
+      document.querySelectorAll('[data-metric]').forEach(function(x){ x.setAttribute('aria-pressed', String(x===b)); });
+      render();
+    });
+  });
+  var tb = document.getElementById('tt-tblbtn');
+  tb.addEventListener('click', function(){
+    var on = tblW.hasAttribute('hidden');
+    if(on) tblW.removeAttribute('hidden'); else tblW.setAttribute('hidden','');
+    tb.setAttribute('aria-pressed', String(on));
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>

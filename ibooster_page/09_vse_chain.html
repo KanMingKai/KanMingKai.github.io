@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>車速估測 — 從方波到 V_x 的整條訊號鏈</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/nav.css">
+<style>
+/* ============================================================
+   車速估測 — 訊號鏈
+   中科院 107 年度委學案(分項二)／《車速估測系統》期末報告
+   ------------------------------------------------------------
+   class 一律 .vs- 前綴;顏色一律 var(--token, #fallback)。
+   與 05_abs_chain.html(.ab-)、06_road_id.html 同一套版式,
+   但兩頁講的層級不同:那一頁是「估測器之後怎麼控制」,
+   這一頁是「估測器之前,訊號怎麼進來」。
+
+   ★ 這一頁只回答三件事,順序就是訊號自己走的順序:
+       模擬 —— 真車還沒好之前,輸入從哪裡來
+       擷取 —— 霍爾方波怎麼變成瞬時輪角速度
+       整合 —— 輪速與加速規怎麼在同一條 CAN 上會合、怎麼融合成 V_x
+
+   ★ 視覺層級:
+       主線  ink 粗線 + 白底方塊     訊號源 → 擷取 → 匯流 → 估測
+       青    #0e7c9a                 電子訊號與擷取路徑
+       藍    --blue                  本案自己做的關鍵環節
+       琥珀  #b45309                 台架替身、參數凍結、未載明
+
+   ★★ 數值出處(未載明者一律標示,不得補值):
+       eCAP 設定    ── 生成碼 WhlSpd_ert_rtw/MW_c28xx_cap.c 逐位元照抄
+         GPIO5=CAP1(上拉,GPAMUX1=3)、CAP_APWM=0 捕捉模式、
+         CONT_ONESHT=0 one-shot、STOP_WRAP=1(停在第 2 個事件)、
+         PRESCALE=0(不分頻)、CAP1POL=0 上升沿 + CTRRST1=1(計數歸零)、
+         CAP2POL=1 下降沿 + CTRRST2=0
+       CPU 90 MHz   ── MW_target_hardware_resources.h
+                       MW_CLOCKING_CPUCLOCKRATEMHZ 90 → 1 count = 11.1 ns
+       eCAN         ── 生成碼 WhlSpd.c:mailbox 1、ID 87、8 bytes、
+                       little-endian、signal0 16-bit factor 0.01(startBit 0)、
+                       signal1 32-bit factor 0.01(startBit 16)
+       台架合成器   ── 生成碼 WhlSpd.c / WhlSpd_data.c:
+                       離散積分器 gain 0.0628318563 = 2π/100、
+                       重置門檻 6.2203536 = 2π − 2π/100、
+                       sin(6.2203536 − φ) → (sin+1)×50 → 0–100
+       50 齒        ── 期末報告與 Gain5 = 50.0F
+       0.08 s 平均  ── 前 8 筆 × 10 ms 取樣
+       r_f 0.2294 m / r_r 0.2364 m、四階段門檻 ── Stateflow 截圖
+       v_cutoff 5 km/h、MPU6050 經 Arduino I²C ── 期末報告《硬體電路整合》
+     ★ 台架那支方波「用什麼儀器產生」報告沒有寫,本頁只畫成
+       「可調頻方波源」,不指定型號 —— 見頁尾註記。
+   ============================================================ */
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:var(--sans,-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif);
+  background:var(--bg,#fff);color:var(--ink,#1d1d1f);line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+.vs{max-width:1180px;margin:0 auto;padding:28px 22px 40px}
+.vs-head,.vs-legend,.vs-scroll,.vs-cap,.vs-foot,.vs-eq,.vs-sec{max-width:1020px;margin-left:auto;margin-right:auto}
+
+.vs-head{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:14px}
+.vs-h1{font-size:clamp(22px,3vw,30px);font-weight:900;letter-spacing:-.02em}
+.vs-sub{font-size:clamp(12.5px,1.5vw,15px);color:var(--ink-2,#6e6e73);font-weight:600;
+  padding-left:18px;border-left:1.5px solid var(--line,#d2d2d7)}
+
+.vs-legend{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:12px;font-size:11.5px;color:var(--ink-2,#6e6e73)}
+.vs-lg{display:flex;align-items:center;gap:7px;font-weight:600}
+.vs-lg i{width:16px;height:3px;border-radius:2px;display:inline-block}
+.vs-lg--m i{background:var(--ink,#1d1d1f)}
+.vs-lg--t i{background:#0e7c9a}
+.vs-lg--b i{background:var(--blue,#0071e3)}
+.vs-lg--a i{background:#b45309}
+
+/* 章節分隔:只用一行小標,不用整塊底色 —— 三段是同一條訊號鏈的三截 */
+.vs-sec{margin:30px auto 10px;display:flex;align-items:baseline;gap:12px}
+.vs-sec-n{font-family:var(--mono,monospace);font-size:11px;font-weight:700;letter-spacing:.14em;
+  color:#fff;background:var(--ink,#1d1d1f);border-radius:5px;padding:3px 8px}
+.vs-sec-t{font-size:16px;font-weight:800;letter-spacing:-.01em}
+.vs-sec-s{font-size:12px;color:var(--ink-3,#86868b);font-weight:600}
+
+/* 圖:SVG 有自己的最小寬度,窄螢幕橫向捲動而不是把圖縮到讀不到 */
+.vs-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line,#d2d2d7);
+  border-radius:16px;background:#fcfcfd;padding:6px}
+.vs-scroll::-webkit-scrollbar{height:6px}
+.vs-scroll::-webkit-scrollbar-thumb{background:var(--line,#d2d2d7);border-radius:3px}
+.vs-svg{width:100%;min-width:900px;height:auto;display:block}
+.vs-svg text{font-family:var(--sans,-apple-system,"Noto Sans TC",sans-serif)}
+.vs-svg .m{font-family:var(--mono,ui-monospace,monospace)}
+.vs-hint{display:none;text-align:center;font-size:11px;color:var(--ink-3,#86868b);
+  margin-top:8px;font-family:var(--mono,monospace)}
+@media(max-width:920px){ .vs-hint{display:block} }
+
+.vs-cap{margin-top:12px;font-size:12px;color:var(--ink-2,#6e6e73);line-height:1.8}
+.vs-cap b{color:var(--ink,#1d1d1f)}
+.vs-cap code{font-family:var(--mono,monospace);font-size:11.5px;background:#eceef1;
+  padding:1px 5px;border-radius:4px;color:#0f5c74}
+
+/* 方程式:與 #model 那頁同一種樣式 —— 左邊一條藍線,等寬字,可橫捲 */
+.vs-eq{border-left:3px solid var(--blue,#0071e3);background:#f7fbff;border-radius:0 10px 10px 0;
+  padding:12px 16px;font-family:var(--mono,monospace);font-size:12.5px;line-height:2;
+  color:var(--ink,#1d1d1f);overflow-x:auto;white-space:nowrap;margin-top:14px}
+.vs-eq small{color:var(--ink-3,#86868b);font-family:var(--sans,sans-serif);font-size:11.5px}
+
+.vs-foot{margin-top:26px;font-size:12px;color:var(--ink-3,#86868b);line-height:1.75}
+.vs-foot b{color:var(--ink,#1d1d1f)}
+.vs-foot code{font-family:var(--mono,monospace);font-size:11px;color:var(--ink-2,#6e6e73)}
+.vs-warn{margin-top:14px;border:1px dashed #e5c08a;background:#fffdf7;border-radius:12px;
+  padding:12px 15px;color:var(--ink-2,#6e6e73)}
+.vs-warn b{color:#b45309}
+.vs-src{margin-top:14px;padding-top:12px;border-top:1px solid var(--line,#d2d2d7);font-size:11.5px;line-height:1.8}
+.vs-src code{background:none;padding:0}
+
+/* 動畫的即時讀數:數字用等寬字,才不會每一格寬度都在跳 */
+.vs-live{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.vs-live > div{border:1px solid var(--line,#d2d2d7);border-radius:12px;background:#fff;padding:10px 12px}
+.vs-live i{display:block;font-style:normal;font-family:var(--mono,monospace);font-size:9.5px;
+  letter-spacing:.09em;color:var(--ink-3,#86868b);margin-bottom:4px}
+.vs-live b{font-family:var(--mono,monospace);font-size:16px;font-weight:700;color:var(--ink,#1d1d1f)}
+.vs-live b span{font-size:11px;font-weight:600;color:var(--ink-3,#86868b);margin-left:3px}
+.vs-live--bad b{color:#b45309}
+@media(max-width:720px){ .vs-live{grid-template-columns:repeat(2,minmax(0,1fr))} }
+</style>
+</head>
+<body>
+
+<nav class="pnav">
+  <div class="in">
+    <a href="../home/index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
+    <div class="tabs">
+      <a class="tab-l" href="../home/index.html">履歷</a>
+      <a class="tab-l" href="../lfs_page/lfs01.html">感知融合經驗</a>
+      <a class="tab-l" href="../trj_page/01_trj_page.html">軌跡規劃經驗</a>
+      <a class="tab-l" href="../dash_page/01_dash_page.html">AMR系統整合</a>
+      <span class="tab-l cur">底層控制經驗(研究所)</span>
+    </div>
+  </div>
+</nav>
+
+<div class="vs">
+
+  <div class="vs-head">
+    <div class="vs-h1">量不到車速，那就從一列方波開始算</div>
+    <div class="vs-sub">機車沒有絕對車速感知器 —— 這一頁是訊號自己走的順序：台架怎麼先造一個輸入、方波怎麼變成輪角速度、輪速與加速規怎麼在同一條 CAN 上會合</div>
+  </div>
+
+  <div class="vs-legend">
+    <span class="vs-lg vs-lg--m"><i></i>主線：訊號源 → 擷取 → 匯流 → 估測</span>
+    <span class="vs-lg vs-lg--t"><i></i>電子訊號與擷取路徑</span>
+    <span class="vs-lg vs-lg--b"><i></i>本案自己做的關鍵環節</span>
+    <span class="vs-lg vs-lg--a"><i></i>台架替身 / 參數凍結 / 未載明</span>
+  </div>
+
+  <!-- ===================== 圖 1:整體架構 ===================== -->
+  <div class="vs-scroll">
+  <svg class="vs-svg" id="vs-arch" viewBox="0 0 1020 600" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="車速估測訊號鏈架構圖。左側為訊號源，分成真車的霍爾式輪速感知器方波與台架上的合成車速輪廓，以及 MPU6050 三軸加速規；中間為擷取，輪速方波進 F28069 的 eCAP 模組量脈寬，加速規經 Arduino 的 I²C 讀取；右側為匯流與記錄，兩路訊號都打包上同一條 CAN 匯流排，由 VBox 連同 GPS 絕對車速一起記錄；下方為車速估測器，依序是輪角加速度卡爾曼濾波器、四階段適應性參數估測器與依滑差查表的加權融合，輸出估測車速。">
+    <title>車速估測訊號鏈</title>
+    <desc>訊號源（真車霍爾方波 / 台架合成輪廓 / MPU6050）→ 擷取（F28069 eCAP 量脈寬 / Arduino I²C）→ 匯流與記錄（CAN ID 87 / VBox + GPS 真值）→ 估測器（輪角加速度 KF → 四階段參數估測 → 依滑差加權融合）→ 車速 V_x。</desc>
+
+    <defs>
+      <marker id="vsA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,1 L9,5 L0,9 z" fill="#33383f"/>
+      </marker>
+      <marker id="vsAt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,1 L9,5 L0,9 z" fill="#0e7c9a"/>
+      </marker>
+      <marker id="vsAb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,1 L9,5 L0,9 z" fill="#0071e3"/>
+      </marker>
+    </defs>
+
+    <!-- 欄標 -->
+    <g class="m" font-size="10.5" font-weight="700" letter-spacing="1.4" fill="#86868b">
+      <text x="30" y="30">01 · SIGNAL SOURCE</text>
+      <text x="330" y="30">02 · CAPTURE</text>
+      <text x="672" y="30">03 · BUS &amp; LOG</text>
+      <text x="30" y="392">04 · ESTIMATOR</text>
+    </g>
+    <g stroke="#e3e5e8" stroke-width="1">
+      <line x1="30" y1="40" x2="990" y2="40"/>
+      <line x1="30" y1="402" x2="990" y2="402"/>
+    </g>
+
+    <!-- ---------- 訊號源 ---------- -->
+    <!-- 真車 -->
+    <rect x="30" y="60" width="252" height="86" rx="11" fill="#fff" stroke="#33383f" stroke-width="1.6"/>
+    <text x="46" y="84" font-size="13" font-weight="800" fill="#1d1d1f">霍爾式輪速感知器 ×2</text>
+    <text x="46" y="103" font-size="10.5" fill="#6e6e73">前輪（非驅動）· 後輪（驅動）</text>
+    <text x="46" y="121" font-size="10.5" fill="#6e6e73">50 齒齒環 → 每轉 50 個方波</text>
+    <text x="46" y="138" class="m" font-size="10" fill="#0e7c9a">方波 · 上升／下降沿</text>
+
+    <!-- 台架替身 -->
+    <rect x="30" y="162" width="252" height="92" rx="11" fill="#fffdf7" stroke="#b45309"
+          stroke-width="1.6" stroke-dasharray="6 4"/>
+    <text x="46" y="186" font-size="13" font-weight="800" fill="#b45309">台架替身：合成車速輪廓</text>
+    <text x="46" y="205" font-size="10.5" fill="#6e6e73">真車還沒好之前，輸入得先有人扮</text>
+    <text x="46" y="223" class="m" font-size="9.5" fill="#6e6e73">積分器 2π/100 → sin → ×50 +bias</text>
+    <text x="46" y="240" class="m" font-size="9.5" fill="#6e6e73">0–100 · 週期 100 個取樣</text>
+
+    <!-- 加速規 -->
+    <rect x="30" y="272" width="252" height="80" rx="11" fill="#fff" stroke="#33383f" stroke-width="1.6"/>
+    <text x="46" y="296" font-size="13" font-weight="800" fill="#1d1d1f">MPU6050 三軸加速規</text>
+    <text x="46" y="315" font-size="10.5" fill="#6e6e73">低成本、低解析度 —— 刻意選的</text>
+    <text x="46" y="333" font-size="10.5" fill="#6e6e73">量到的是含偏移量的 <tspan class="m" fill="#0e7c9a">a_m</tspan></text>
+
+    <!-- ---------- 擷取 ---------- -->
+    <rect x="330" y="60" width="292" height="194" rx="11" fill="#f4fbfd" stroke="#0e7c9a" stroke-width="1.8"/>
+    <text x="348" y="84" font-size="13" font-weight="800" fill="#0b6379">F28069 · eCAP 模組</text>
+    <text x="348" y="103" class="m" font-size="10" fill="#0b6379">GPIO5 → CAP1（上拉）</text>
+    <line x1="348" y1="113" x2="604" y2="113" stroke="#bfdde6" stroke-width="1"/>
+    <text x="348" y="130" font-size="11" font-weight="700" fill="#1d1d1f">量寬度，不是數個數</text>
+    <text x="348" y="148" font-size="10.5" fill="#6e6e73">上升沿：計數器歸零　下降沿：latch</text>
+    <text x="348" y="166" font-size="10.5" fill="#6e6e73">CAP2 = 高電位脈寬的計數值</text>
+    <text x="348" y="187" class="m" font-size="9.5" fill="#86868b">one-shot · STOP_WRAP=1 · PRESCALE=0</text>
+    <text x="348" y="203" class="m" font-size="9.5" fill="#86868b">90 MHz → 1 count = 11.1 ns</text>
+    <rect x="348" y="215" width="256" height="28" rx="7" fill="#e4f0f5"/>
+    <text x="360" y="234" font-size="10.5" fill="#0b6379">再取 <tspan font-weight="700">0.08 s</tspan>（前 8 筆）時間窗平均，壓掉 50 齒的量化跳動</text>
+
+    <rect x="330" y="272" width="292" height="80" rx="11" fill="#f4fbfd" stroke="#0e7c9a" stroke-width="1.8"/>
+    <text x="348" y="296" font-size="13" font-weight="800" fill="#0b6379">Arduino · I²C</text>
+    <text x="348" y="315" font-size="10.5" fill="#6e6e73">讀 MPU6050，再經 CAN Shield 上匯流排</text>
+    <text x="348" y="333" font-size="10.5" fill="#6e6e73">加速規不進 DSP —— 兩顆各做各的擷取</text>
+
+    <!-- ---------- 匯流與記錄 ---------- -->
+    <rect x="672" y="60" width="318" height="110" rx="11" fill="#fff" stroke="#33383f" stroke-width="1.6"/>
+    <text x="690" y="84" font-size="13" font-weight="800" fill="#1d1d1f">CAN 匯流排</text>
+    <text x="690" y="103" class="m" font-size="10" fill="#6e6e73">eCAN mailbox 1 · ID 87 · 8 bytes</text>
+    <text x="690" y="121" class="m" font-size="10" fill="#6e6e73">little-endian · factor 0.01</text>
+    <text x="690" y="140" font-size="10.5" fill="#6e6e73">輪速與加速度在這裡才第一次見面</text>
+    <text x="690" y="158" font-size="10.5" fill="#6e6e73">同一條線、同一個時間基準</text>
+
+    <rect x="672" y="192" width="318" height="96" rx="11" fill="#f6f7f9" stroke="#9aa2ad"
+          stroke-width="1.6" stroke-dasharray="5 4"/>
+    <text x="690" y="216" font-size="13" font-weight="800" fill="#5b6169">VBox（驗證設備）</text>
+    <text x="690" y="235" font-size="10.5" fill="#6e6e73">GPS 絕對車速 = Ground Truth</text>
+    <text x="690" y="253" font-size="10.5" fill="#6e6e73">連同 CAN 上的輪速、加速度一起記錄</text>
+    <text x="690" y="273" font-size="10.5" fill="#b45309">量產車不會有這一台 —— 只在驗證時綁上車</text>
+
+    <rect x="672" y="306" width="318" height="46" rx="11" fill="#fff" stroke="#c3c9d1" stroke-width="1.4"/>
+    <text x="690" y="326" font-size="11" font-weight="700" fill="#1d1d1f">離線調參</text>
+    <text x="690" y="343" class="m" font-size="9.5" fill="#6e6e73">VBox → timeseries → 估測器 → min J = Σe²</text>
+
+    <!-- ---------- 連線 ---------- -->
+    <g fill="none" stroke="#0e7c9a" stroke-width="2.2" marker-end="url(#vsAt)">
+      <path d="M282,103 H330"/>
+      <path d="M282,208 H306 V113 H330"/>
+      <path d="M282,312 H330"/>
+    </g>
+    <g fill="none" stroke="#33383f" stroke-width="2.2" marker-end="url(#vsA)">
+      <path d="M622,157 H672"/>
+      <path d="M622,312 H648 V115 H672"/>
+      <path d="M831,170 V192"/>
+      <path d="M831,288 V306"/>
+    </g>
+    <text x="292" y="97" class="m" font-size="9" fill="#0e7c9a">方波</text>
+    <text x="292" y="306" class="m" font-size="9" fill="#0e7c9a">I²C</text>
+    <text x="632" y="151" class="m" font-size="9" fill="#6e6e73">ω_w</text>
+    <text x="628" y="306" class="m" font-size="9" fill="#6e6e73">a_m</text>
+
+    <!-- 下行到估測器 -->
+    <path d="M831,352 V376 H120 V420" fill="none" stroke="#33383f" stroke-width="2.2" marker-end="url(#vsA)"/>
+
+    <!-- ---------- 估測器 ---------- -->
+    <rect x="30" y="420" width="960" height="152" rx="13" fill="#f7fbff" stroke="#0071e3" stroke-width="1.8"/>
+    <text x="48" y="446" font-size="13" font-weight="800" fill="#0059b3">車速估測器 Vehicle Speed Estimator</text>
+
+    <rect x="48" y="460" width="252" height="96" rx="10" fill="#fff" stroke="#9fc6ea" stroke-width="1.4"/>
+    <text x="62" y="482" font-size="12" font-weight="800" fill="#1d1d1f">① 輪角加速度估測</text>
+    <text x="62" y="501" font-size="10.5" fill="#6e6e73">運動學卡爾曼濾波器</text>
+    <text x="62" y="519" class="m" font-size="10" fill="#0059b3">F = [1 T ; 0 1]　H = [0 1]</text>
+    <text x="62" y="538" font-size="10.5" fill="#6e6e73">順便濾掉方波量化造成的跳動</text>
+
+    <rect x="322" y="460" width="330" height="96" rx="10" fill="#fff" stroke="#9fc6ea" stroke-width="1.4"/>
+    <text x="336" y="482" font-size="12" font-weight="800" fill="#1d1d1f">② 適應性參數估測（四階段）</text>
+    <text x="336" y="501" font-size="10.5" fill="#6e6e73">前輪半徑 <tspan class="m">r_f</tspan>、後輪半徑 <tspan class="m">r_r</tspan>、加速規偏移 <tspan class="m">ε</tspan></text>
+    <text x="336" y="519" font-size="10.5" fill="#6e6e73">每個階段只估「這個階段估得準」的那一項</text>
+    <text x="336" y="538" font-size="10.5" fill="#b45309">煞車階段 FREEZE —— 前提不成立就不要更新</text>
+
+    <rect x="674" y="460" width="200" height="96" rx="10" fill="#fff" stroke="#9fc6ea" stroke-width="1.4"/>
+    <text x="688" y="482" font-size="12" font-weight="800" fill="#1d1d1f">③ 依滑差加權融合</text>
+    <text x="688" y="501" font-size="10.5" fill="#6e6e73">滑差小 → 該輪輪速吃重</text>
+    <text x="688" y="519" font-size="10.5" fill="#6e6e73">兩輪都滑 → 權重讓給</text>
+    <text x="688" y="537" font-size="10.5" fill="#6e6e73">加速度積分</text>
+
+    <g fill="none" stroke="#0071e3" stroke-width="2.2" marker-end="url(#vsAb)">
+      <path d="M300,508 H322"/>
+      <path d="M652,508 H674"/>
+      <path d="M874,508 H930"/>
+    </g>
+    <text x="938" y="503" class="m" font-size="13" font-weight="800" fill="#0059b3">V_x</text>
+    <text x="938" y="519" font-size="9.5" fill="#6e6e73">送去算滑差</text>
+  </svg>
+  </div>
+  <div class="vs-hint">← 左右滑動可看完整架構 →</div>
+
+  <p class="vs-cap">
+    <b>整條鏈只有一個目的：把量得到的東西換成量不到的那一個。</b>
+    量得到的是<b>輪速方波</b>與<b>含偏移量的加速度</b>，量不到的是<b>絕對車速</b>。
+    兩路訊號的擷取是分開的 —— 輪速走 <code>F28069</code> 的 eCAP，加速規走 <code>Arduino</code> 的 I²C ——
+    <b>在 CAN 匯流排上才第一次會合</b>，也因此兩者從那一刻起共用同一個時間基準。
+    VBox 是驗證設備不是量產配置：它提供 GPS 絕對車速當真值，讓估測器的輸出有東西可以對。
+  </p>
+
+  <!-- ===================== 圖 2:擷取原理(動畫) ===================== -->
+  <div class="vs-sec">
+    <span class="vs-sec-n">02</span>
+    <span class="vs-sec-t">擷取：為什麼是量寬度，不是數個數</span>
+    <span class="vs-sec-s">同一段 10 ms 取樣窗，車速掉下來的時候兩種量法會分岔</span>
+  </div>
+
+  <div class="vs-scroll">
+  <svg class="vs-svg" id="vs-cap" viewBox="0 0 1020 430" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="eCAP 擷取原理動畫。左側是轉動中的齒環與霍爾感知器，右側上半是霍爾輸出的方波在一段 10 毫秒取樣窗內的樣子，下半是 eCAP 計數器：計數器在每個上升沿歸零、在下降沿把當下的計數值鎖進 CAP2 暫存器，這個值就是高電位脈寬。車速由高降到低時，方波在窗內的個數變少到數不出來，但單一方波的寬度仍然量得到。">
+    <title>eCAP 擷取原理</title>
+    <desc>齒環轉動產生方波；eCAP 在上升沿歸零計數器、在下降沿鎖存 CAP2，得到高電位脈寬；車速降低時窗內方波數不足，但脈寬仍可解析。</desc>
+
+    <!-- 齒環 -->
+    <text x="30" y="30" class="m" font-size="10.5" font-weight="700" letter-spacing="1.4" fill="#86868b">TONE RING</text>
+    <circle cx="118" cy="150" r="74" fill="#fff" stroke="#c3c9d1" stroke-width="1.4"/>
+    <g id="vs-ring"></g>
+    <circle cx="118" cy="150" r="26" fill="#f2f3f5" stroke="#9aa2ad" stroke-width="1.4"/>
+    <text x="118" y="155" text-anchor="middle" font-size="11" font-weight="700" fill="#6e6e73">輪</text>
+    <!-- 霍爾感知器 -->
+    <rect x="196" y="136" width="34" height="28" rx="5" fill="#e4f0f5" stroke="#0e7c9a" stroke-width="1.6"/>
+    <text x="213" y="155" text-anchor="middle" class="m" font-size="9" font-weight="700" fill="#0b6379">H</text>
+    <text x="118" y="248" text-anchor="middle" font-size="10.5" fill="#6e6e73">圖上畫 16 齒，實際 50 齒</text>
+    <text x="118" y="265" text-anchor="middle" font-size="10.5" fill="#6e6e73">每轉 50 個方波</text>
+
+    <!-- 取樣窗 -->
+    <text x="262" y="30" class="m" font-size="10.5" font-weight="700" letter-spacing="1.4" fill="#86868b">HALL OUTPUT · 10 ms 取樣窗</text>
+    <rect x="262" y="46" width="720" height="132" rx="9" fill="#fff" stroke="#e3e5e8"/>
+    <g stroke="#eef0f3" stroke-width="1">
+      <line x1="334" y1="46" x2="334" y2="178"/><line x1="406" y1="46" x2="406" y2="178"/>
+      <line x1="478" y1="46" x2="478" y2="178"/><line x1="550" y1="46" x2="550" y2="178"/>
+      <line x1="622" y1="46" x2="622" y2="178"/><line x1="694" y1="46" x2="694" y2="178"/>
+      <line x1="766" y1="46" x2="766" y2="178"/><line x1="838" y1="46" x2="838" y2="178"/>
+      <line x1="910" y1="46" x2="910" y2="178"/>
+    </g>
+    <path id="vs-wave" fill="none" stroke="#0e7c9a" stroke-width="2.4" stroke-linejoin="round"/>
+    <g id="vs-edges"></g>
+    <text x="266" y="196" class="m" font-size="9" fill="#86868b">0 ms</text>
+    <text x="960" y="196" class="m" font-size="9" fill="#86868b">10 ms</text>
+
+    <!-- eCAP 計數器 -->
+    <text x="262" y="236" class="m" font-size="10.5" font-weight="700" letter-spacing="1.4" fill="#86868b">eCAP COUNTER · 90 MHz</text>
+    <rect x="262" y="252" width="720" height="118" rx="9" fill="#fff" stroke="#e3e5e8"/>
+    <path id="vs-ramp" fill="none" stroke="#0071e3" stroke-width="2.2" stroke-linejoin="round"/>
+    <g id="vs-latch"></g>
+    <text x="272" y="268" font-size="10" fill="#6e6e73">上升沿 <tspan class="m" fill="#0071e3">CTRRST1=1</tspan> 歸零　·　下降沿 <tspan class="m" fill="#b3123a">CAP2</tspan> 鎖存 = 高電位脈寬</text>
+    <text x="272" y="388" font-size="10.5" fill="#6e6e73">
+      <tspan font-weight="700">量寬度（Frequency Measurement）</tspan>：一個方波就夠，全速域都解得出來
+    </text>
+    <text x="272" y="406" font-size="10.5" fill="#b45309">
+      <tspan font-weight="700">數個數（Period Measurement）</tspan>：低速時窗內根本湊不到一個方波
+    </text>
+  </svg>
+  </div>
+  <div class="vs-hint">← 左右滑動可看完整圖 →</div>
+
+  <div class="vs-live">
+    <div><i>VEHICLE SPEED</i><b id="vs-v">—<span>km/h</span></b></div>
+    <div><i>PULSE WIDTH · CAP2</i><b id="vs-cap2">—<span>counts</span></b></div>
+    <div><i>= HIGH TIME</i><b id="vs-us">—<span>µs</span></b></div>
+    <div id="vs-cntbox"><i>PULSES IN 10 ms WINDOW</i><b id="vs-cnt">—<span>個</span></b></div>
+  </div>
+
+  <p class="vs-cap">
+    <b>兩種量法的分岔點在低速。</b>
+    <code>Period Measurement</code> 是數「單位時間內有幾個方波」——
+    車速一低，一個取樣區間裡的方波太少，解析度直接歸零（上面右下角那格會變成 0）。
+    <code>Frequency Measurement</code> 反過來：<b>只量一個方波的寬度</b>，寬度越小代表輪速越高，
+    低速時方波變寬反而量得更準。本案採用後者，所以 eCAP 設成
+    <code>上升沿歸零 + 下降沿鎖存</code>：<code>CAP1POL=0 / CTRRST1=1</code> 讓計數器在每個上升沿重新開始，
+    <code>CAP2POL=1 / CTRRST2=0</code> 在下降沿把當下的計數值鎖進 <code>CAP2</code>，那個值就是高電位脈寬。
+    <code>PRESCALE=0</code> 是不分頻（每一個邊沿都算），<code>STOP_WRAP=1</code> 是抓滿兩個事件就停、下一個取樣週期再重新 arm。
+    <b>解析度不夠就先平均</b>：50 齒的量化讓輪速上下跳，所以進估測器之前先取 <code>0.08 s</code>（前 8 筆）的時間窗平均。
+  </p>
+
+  <!-- ===================== 圖 3:參數估測狀態機 ===================== -->
+  <div class="vs-sec">
+    <span class="vs-sec-n">03</span>
+    <span class="vs-sec-t">整合：輪速與加速規互相補對方的洞</span>
+    <span class="vs-sec-s">每個階段只估這個階段估得準的那一項，煞車時全部凍結</span>
+  </div>
+
+  <div class="vs-scroll">
+  <svg class="vs-svg" id="vs-fsm" viewBox="0 0 1020 330" xmlns="http://www.w3.org/2000/svg" role="img"
+       aria-label="適應性參數估測器的四階段狀態機。靜止階段只估加速規量測偏移量；車速大於 5 公里每小時進入起步階段，估前輪滾動半徑；一秒後進入一般行駛階段，兩個參數一起微調；煞車燈亮且車速大於 5 時進入凍結階段，兩個參數都不更新，煞車燈熄滅後回到一般行駛。右側為後輪半徑：等前輪半徑收斂且車輛進入滑行狀態時，用前後輪速比推算後輪半徑。">
+    <title>四階段參數估測狀態機</title>
+    <desc>Static 只估 ε → Acc 估 r_f → Normal 兩者微調 → Brake 凍結；後輪半徑在滑行狀態由 r_r = r_f·ω_f/ω_r 推得。</desc>
+
+    <text x="30" y="26" class="m" font-size="10.5" font-weight="700" letter-spacing="1.4" fill="#86868b">FRONT · r_f 與 ε</text>
+    <text x="700" y="26" class="m" font-size="10.5" font-weight="700" letter-spacing="1.4" fill="#86868b">REAR · r_r</text>
+    <line x1="676" y1="14" x2="676" y2="316" stroke="#e3e5e8" stroke-width="1" stroke-dasharray="5 4"/>
+
+    <!-- 四個狀態。
+         ★ 欄距 76px 是被轉移條件的字寬決定的,不是隨便留的 ——
+           [BrkLgh==1 && V_x>5] 這種條件寫成等寬字就要 60px 以上,
+           欄距若照方塊排版習慣抓 38px,標籤會直接壓在下一個狀態上。 -->
+    <g>
+      <rect x="24" y="52" width="132" height="82" rx="11" fill="#fff" stroke="#33383f" stroke-width="1.6"/>
+      <text x="38" y="74" font-size="12" font-weight="800" fill="#1d1d1f">靜止 Static</text>
+      <text x="38" y="93" class="m" font-size="9.5" fill="#86868b">mode = 0</text>
+      <text x="38" y="111" font-size="10.5" fill="#6e6e73">只估 <tspan class="m" fill="#0059b3">ε</tspan></text>
+      <text x="38" y="127" font-size="10" fill="#86868b">輪不轉，估不了半徑</text>
+    </g>
+    <g>
+      <rect x="232" y="52" width="132" height="82" rx="11" fill="#fff" stroke="#33383f" stroke-width="1.6"/>
+      <text x="246" y="74" font-size="12" font-weight="800" fill="#1d1d1f">起步 Acc</text>
+      <text x="246" y="93" class="m" font-size="9.5" fill="#86868b">mode = 1</text>
+      <text x="246" y="111" font-size="10.5" fill="#6e6e73">估前輪 <tspan class="m" fill="#0059b3">r_f</tspan></text>
+      <text x="246" y="127" class="m" font-size="9" fill="#86868b">初始 0.2294 m（線下量的）</text>
+    </g>
+    <g>
+      <rect x="440" y="52" width="150" height="82" rx="11" fill="#fff" stroke="#33383f" stroke-width="1.6"/>
+      <text x="454" y="74" font-size="12" font-weight="800" fill="#1d1d1f">一般行駛 Normal</text>
+      <text x="454" y="93" class="m" font-size="9.5" fill="#86868b">mode = 2</text>
+      <text x="454" y="111" font-size="10.5" fill="#6e6e73">兩者一起微調</text>
+      <text x="454" y="127" font-size="10" fill="#86868b">負載轉移、坡度變化</text>
+    </g>
+    <g>
+      <rect x="232" y="200" width="358" height="78" rx="11" fill="#fffdf7" stroke="#b45309" stroke-width="1.8"/>
+      <text x="248" y="222" font-size="12" font-weight="800" fill="#b45309">煞車 FREEZE</text>
+      <text x="248" y="240" class="m" font-size="9.5" fill="#b45309">mode = 3</text>
+      <text x="248" y="257" font-size="10.5" fill="#6e6e73">兩個參數都不更新，改用先前收斂值配加速度積分往前推</text>
+      <text x="248" y="272" font-size="10" fill="#b45309">卡爾曼的前提是無滑差，而 ABS 作動時滑差最大 —— 前提不成立</text>
+    </g>
+
+    <!-- 轉移 -->
+    <g fill="none" stroke="#33383f" stroke-width="1.8" marker-end="url(#vsA)">
+      <path d="M156,80 H232"/>
+      <path d="M364,80 H440"/>
+      <path d="M540,134 V200"/>
+      <path d="M440,200 V134"/>
+      <path d="M90,52 V30 H620 V93 H590"/>
+    </g>
+    <text x="162" y="74" class="m" font-size="9" fill="#0059b3">[V_x &gt; 5]</text>
+    <text x="370" y="74" class="m" font-size="9" fill="#0059b3">after(1,sec)</text>
+    <text x="548" y="172" class="m" font-size="9" fill="#b45309">[BrkLgh==1 &amp;&amp; V_x&gt;5]</text>
+    <text x="434" y="172" text-anchor="end" class="m" font-size="9" fill="#0059b3">[BrkLgh==0]</text>
+    <text x="330" y="24" class="m" font-size="9" fill="#6e6e73">[V_x &lt; 5] 回到靜止重估 ε</text>
+
+    <text x="24" y="176" font-size="10.5" fill="#6e6e73">前輪是估測器的地基：</text>
+    <text x="24" y="193" font-size="10.5" fill="#6e6e73">半徑與偏移量都從它換算</text>
+
+    <!-- 後輪 -->
+    <rect x="706" y="52" width="284" height="82" rx="11" fill="#fff" stroke="#33383f" stroke-width="1.6"/>
+    <text x="722" y="74" font-size="12" font-weight="800" fill="#1d1d1f">等前輪先收斂</text>
+    <text x="722" y="93" class="m" font-size="9.5" fill="#86868b">[mode == 2]</text>
+    <text x="722" y="112" font-size="10.5" fill="#6e6e73">後輪是驅動輪，靜止／起步／煞車都估不了</text>
+    <text x="722" y="128" font-size="10" fill="#86868b">初始值 <tspan class="m">r_r = 0.2364 m</tspan></text>
+
+    <rect x="706" y="166" width="284" height="112" rx="11" fill="#f7fbff" stroke="#0071e3" stroke-width="1.8"/>
+    <text x="722" y="188" font-size="12" font-weight="800" fill="#0059b3">滑行時補回來</text>
+    <text x="722" y="207" class="m" font-size="9.5" fill="#0059b3">after(5,tick)[V_x&gt;10 &amp;&amp; a_x&lt;0.15 &amp;&amp; BrkLgh==0]</text>
+    <text x="722" y="228" font-size="10.5" fill="#6e6e73">滑行時前後輪沒有驅動力也沒有煞車力，</text>
+    <text x="722" y="244" font-size="10.5" fill="#6e6e73">兩輪同速 —— 這是唯一能看見後輪半徑的時機</text>
+    <rect x="722" y="252" width="252" height="20" rx="5" fill="#e8f2fe"/>
+    <text x="734" y="266" class="m" font-size="11" font-weight="700" fill="#0059b3">r_r = r_f · ω_f / ω_r</text>
+
+    <path d="M848,134 V166" fill="none" stroke="#0071e3" stroke-width="1.8" marker-end="url(#vsAb)"/>
+
+    <text x="30" y="306" font-size="10.5" fill="#6e6e73">
+      <tspan font-weight="700" fill="#1d1d1f">整套估測器的地基只有一句話</tspan>：前輪是非驅動輪，靜止／起步／滑行三種狀態下可以假設它與地面之間沒有滑差 ——
+      所以滾動半徑與加速規偏移量都從前輪換算，再回過頭修正後輪。
+    </text>
+  </svg>
+  </div>
+  <div class="vs-hint">← 左右滑動可看完整圖 →</div>
+
+  <div class="vs-eq">
+    ε = a<small>m</small> − a<small>x</small>　　<small>加速規量到的 − 車輛真實的 = 偏移量；車輛靜止時 a_x = 0，所以量到的就是 ε 本身，這是唯一能單獨看見它的時機</small><br>
+    α<small>f</small> = ( a<small>m</small> − ε ) / r<small>f</small>　　<small>無滑差時輪角加速度與車輛加速度同源 —— 這條式子把「半徑」與「偏移量」綁進同一個卡爾曼濾波器</small><br>
+    V<small>x,k</small> = K<small>f</small>·r<small>f</small>ω<small>f</small> + K<small>r</small>·r<small>r</small>ω<small>r</small> + (1 − K<small>f</small> − K<small>r</small>)·( V<small>x,k−1</small> + a<small>x</small>·T )
+    　　<small>權重由各輪當下的滑差查表決定，不是選一個訊號</small>
+  </div>
+
+  <p class="vs-cap">
+    <b>輪速與加速規互相補的是對方最弱的地方。</b>
+    輪速在滑差小的時候最接近車速，但一滑就整個失真；
+    加速度積分不怕滑差，但會累積漂移、而且它自己還帶著一個裝歪造成的偏移量。
+    所以車速估測器<b>兩者都用</b>，權重由滑差查表決定：滑差小的那一輪權重升高、成為主要資訊；
+    兩輪滑差都大時，權重讓給加速度積分。
+    文獻多半只看單輪滑差，本案改成<b>前後輪各自查表</b>，避免單輪的量化跳動直接寫進車速。
+  </p>
+
+  <div class="vs-foot">
+    <b>這一頁沒有涵蓋的。</b>
+    路面識別與最佳滑差目標值、MISO 模糊控制器、三態電磁閥命令、縱向力干擾估測器
+    —— 那些是估測器之後的事，在
+    <a href="05_abs_chain.html" style="color:var(--blue,#0071e3)">機車 ABS 估測與控制鏈</a> 與
+    <a href="06_road_id.html" style="color:var(--blue,#0071e3)">路面識別與最佳滑差目標值</a> 兩頁。
+    卡爾曼增益的 Riccati 求解、權重查表的實際曲線形狀原本也不在本頁範圍 ——
+    這兩項現在有自己的一頁：<a href="11_vse_kalman.html" style="color:var(--blue,#0071e3)">參數估測器：三階段交棒、卡爾曼換元與權重查表</a>。
+
+    <div class="vs-warn">
+      <b>★ 一處待你補：台架那支方波是誰產生的。</b>
+      專案資料裡找得到的是 DSP 內部那組「積分器 → sin → ×50」的合成車速輪廓（<code>WhlSpd.slx</code> 生成碼），
+      它與 eCAP 讀取、CAN 打包在同一個模型裡跑；但<b>餵進 GPIO5 的那支可調頻方波是用什麼產生的，報告與程式碼裡都沒有寫</b>
+      —— 訊號產生器？另一塊板子的 PWM？所以圖 1 只畫成「台架替身」，不指定型號。
+      你補一句，我就把它畫實。
+    </div>
+
+    <b>哪些是照抄的、哪些是示意。</b>
+    eCAP 的每一個位元設定（<code>GPIO5=CAP1</code>、<code>CAP_APWM=0</code>、<code>CONT_ONESHT=0</code>、
+    <code>STOP_WRAP=1</code>、<code>PRESCALE=0</code>、<code>CAP1POL=0/CTRRST1=1</code>、<code>CAP2POL=1/CTRRST2=0</code>）、
+    CPU 90 MHz、eCAN <code>mailbox 1 / ID 87 / 8 bytes / factor 0.01</code>、
+    合成器的 <code>2π/100</code> 與 <code>×50</code>、狀態機的四個 mode 與門檻值、
+    <code>r_f = 0.2294 m</code>／<code>r_r = 0.2364 m</code> —— 都是從生成碼與 Stateflow 逐項抄下來的。
+    <b>圖 2 的齒環畫 16 齒而實際是 50 齒</b>，齒形與感知器外觀為看得懂而調整過；
+    動畫裡的車速由 60 掃到 5 km/h 是<b>為了讓兩種量法的分岔看得見而設計的掃描</b>，不是某一次實驗的紀錄
+    —— 但脈寬、計數值與窗內方波數三個數字，都是照 50 齒與 90 MHz 當場算的，不是畫上去的。
+
+    <div class="vs-src">
+      資料來源：中科院 107 年度委學案（分項二）。
+      <code>中科院_車速 路面摩擦係數/中科院期末報告.docx</code>《車速估測系統》（兩種擷取方式、三階段參數估測、硬體電路整合、實車三情境）、
+      <code>WhlSpd_ert_rtw/MW_c28xx_cap.c</code> 與 <code>WhlSpd.c</code> / <code>WhlSpd_data.c</code>（eCAP 與 eCAN 設定、合成器參數）、
+      <code>MW_target_hardware_resources.h</code>（CPU 90 MHz、I²C）、
+      參數估測 Stateflow 截圖（四階段門檻與初始半徑）、
+      <code>NumTest4.slx</code>（離線估測器模型）。
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   eCAP 擷取原理 —— 時間軸只有一個變數 t ∈ [0,1),
+   齒環角度、方波、計數器鋸齒全是 t 的純函數,沒有累積狀態。
+
+   ★ 這張圖唯一要講的事:同一段固定長度的取樣窗(10 ms,就是本案的
+     取樣週期),車速掉下來的時候窗內的方波數會少到數不出來,
+     但「一個方波的寬度」永遠量得到 —— 這就是報告裡選
+     Frequency Measurement 而不是 Period Measurement 的理由。
+   ★ 數字不是畫上去的:
+       f_tooth = ω · 50 / 2π        50 齒 → 每轉 50 個方波
+       T       = 1 / f_tooth        一個方波的週期
+       CAP2    = (T/2) · 90 MHz     高電位脈寬的計數值(50% 責任週期)
+     所以讀數欄那四個數是照著當下車速當場算的。
+   ★ 責任週期假設 50%:霍爾感知器讀等寬齒環時大致如此,
+     報告沒有給實際佔空比 —— 這是本圖唯一一個假設值。
+   ============================================================ */
+(function () {
+  var svg = document.getElementById('vs-cap');
+  if (!svg) return;
+
+  var NS = 'http://www.w3.org/2000/svg';
+  function mk(tag, a) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in a) e.setAttribute(k, a[k]);
+    return e;
+  }
+
+  /* ---- 常數:全部有出處 ---- */
+  var TEETH_REAL = 50;        /* 實際齒數(報告 / Gain5 = 50.0F) */
+  var TEETH_DRAW = 16;        /* 圖上畫的齒數 —— 50 齒在這個尺寸下糊成一圈 */
+  var R_TIRE     = 0.2294;    /* 前輪滾動半徑初始值 m(Stateflow) */
+  var CLK        = 90e6;      /* CPU 90 MHz(MW_CLOCKING_CPUCLOCKRATEMHZ) */
+  var WIN        = 0.010;     /* 取樣窗 10 ms —— 就是本案的取樣週期 */
+  var DUTY       = 0.5;       /* 責任週期假設值,見上方註解 */
+
+  var X0 = 262, X1 = 982;                 /* 取樣窗左右邊界 */
+  var WY_HI = 66, WY_LO = 160;            /* 方波高低電位的 y */
+  var RY_TOP = 268, RY_BOT = 356;         /* 計數器鋸齒的 y */
+  var PERIOD = 14000;                     /* 一圈掃描 14 秒 */
+
+  /* ---- 齒環:畫一次就好,轉動只改 transform ---- */
+  var ring = document.getElementById('vs-ring');
+  for (var i = 0; i < TEETH_DRAW; i++) {
+    var a = (i / TEETH_DRAW) * Math.PI * 2;
+    var r1 = 56, r2 = 72;
+    ring.appendChild(mk('line', {
+      x1: (118 + r1 * Math.cos(a)).toFixed(1), y1: (150 + r1 * Math.sin(a)).toFixed(1),
+      x2: (118 + r2 * Math.cos(a)).toFixed(1), y2: (150 + r2 * Math.sin(a)).toFixed(1),
+      stroke: '#0e7c9a', 'stroke-width': 6, 'stroke-linecap': 'butt'
+    }));
+  }
+
+  var wave  = document.getElementById('vs-wave');
+  var ramp  = document.getElementById('vs-ramp');
+  var edges = document.getElementById('vs-edges');
+  var latch = document.getElementById('vs-latch');
+  var elV   = document.getElementById('vs-v');
+  var elC2  = document.getElementById('vs-cap2');
+  var elUs  = document.getElementById('vs-us');
+  var elCnt = document.getElementById('vs-cnt');
+  var boxCnt= document.getElementById('vs-cntbox');
+
+  /* 車速掃描:60 → 5 → 60 km/h。用三角波而不是隨機,
+     這樣兩種量法的分岔會固定在同一個時刻出現,看得出因果。 */
+  function speed(t) {
+    var u = t < 0.5 ? t * 2 : (1 - t) * 2;
+    return 5 + (60 - 5) * u;
+  }
+
+  function render(t) {
+    var v   = speed(t);                       /* km/h */
+    var w   = (v / 3.6) / R_TIRE;             /* rad/s */
+    var f   = w * TEETH_REAL / (2 * Math.PI); /* 方波頻率 Hz */
+    var T   = 1 / f;                          /* 一個方波的週期 s */
+    var hi  = T * DUTY;                       /* 高電位時間 s */
+    var cap2 = hi * CLK;                      /* CAP2 計數值 */
+
+    /* 齒環轉動:角度是 t 的函數,不累積 —— 只是視覺,不參與計算 */
+    ring.setAttribute('transform',
+      'rotate(' + ((t * 2600) % 360).toFixed(1) + ' 118 150)');
+
+    /* 相位偏移:讓波形往左捲。同樣用 t 直接算,不累積 */
+    var off = (t * PERIOD / 1000 * 0.35) % T;
+
+    /* ---- 方波與計數器鋸齒 ----
+       ★ 一律從「窗口起點當下的電位」開始畫,不要從固定的低電位起筆 ——
+         車速低的時候一個方波比整個窗還寬,窗口起點常常落在高電位中間,
+         從低電位起筆會在起點與第一個下降沿之間連出一條斜線(不是方波)。 */
+    var pxPerSec = (X1 - X0) / WIN;
+    var rpts = [];
+    var edgeMarks = [], latchMarks = [], pulses = 0;
+    var X = function (tau) { return X0 + tau * pxPerSec; };
+
+    /* 相位:phase(τ) = (τ + off) mod T,phase < hi 時為高電位 */
+    var ph0 = off % T;
+    var isHi = ph0 < hi;
+    var y = isHi ? WY_HI : WY_LO;
+    var wpts = ['M' + X0 + ',' + y];
+    /* 窗口起點之後的第一個邊沿 */
+    var tE = isHi ? (hi - ph0) : (T - ph0);
+    var guard = 0;
+    while (tE < WIN && guard++ < 400) {
+      var x = X(tE);
+      wpts.push('L' + x.toFixed(1) + ',' + y);   /* 水平走到邊沿 */
+      isHi = !isHi;
+      y = isHi ? WY_HI : WY_LO;
+      wpts.push('L' + x.toFixed(1) + ',' + y);   /* 垂直翻轉 */
+      (isHi ? edgeMarks : latchMarks).push(x);
+      tE += isHi ? hi : (T - hi);
+    }
+    wpts.push('L' + X1 + ',' + y);
+    wave.setAttribute('d', wpts.join(' '));
+
+    /* 計數器:每個上升沿歸零,一路爬到下一個上升沿。
+       上升沿時刻 = (T − off) mod T + k·T;k 從 −1 起,才畫得出
+       窗口起點左邊那一段沒畫完的斜坡。 */
+    var firstRise = (T - ph0) % T;
+    for (var k = -1; ; k++) {
+      var r = firstRise + k * T;
+      if (r >= WIN) break;
+      if (guard++ > 400) break;
+      var a0 = Math.max(r, 0), a1 = Math.min(r + T, WIN);
+      if (a1 > a0) {
+        var f0 = (a0 - r) / T, f1 = (a1 - r) / T;
+        rpts.push('M' + X(a0).toFixed(1) + ',' + (RY_BOT - f0 * (RY_BOT - RY_TOP)).toFixed(1) +
+                  'L' + X(a1).toFixed(1) + ',' + (RY_BOT - f1 * (RY_BOT - RY_TOP)).toFixed(1));
+        /* 歸零的那一豎:只有上升沿真的落在窗內才畫 */
+        if (r >= 0) rpts.push('M' + X(r).toFixed(1) + ',' + RY_BOT + 'L' + X(r).toFixed(1) + ',' + RY_TOP);
+      }
+      /* 完整落在窗內的方波才算數 —— Period Measurement 數的就是這個 */
+      if (r >= 0 && r + T <= WIN) pulses++;
+    }
+    ramp.setAttribute('d', rpts.join(' ') || 'M' + X0 + ',' + RY_BOT + 'L' + X1 + ',' + RY_BOT);
+
+    /* 邊沿標記:上升沿(歸零)青色虛線、下降沿(鎖存)紅點 */
+    while (edges.firstChild) edges.removeChild(edges.firstChild);
+    while (latch.firstChild) latch.removeChild(latch.firstChild);
+    edgeMarks.slice(0, 24).forEach(function (x) {
+      if (x < X0 || x > X1) return;
+      edges.appendChild(mk('line', { x1: x.toFixed(1), y1: WY_HI - 8, x2: x.toFixed(1), y2: RY_BOT,
+        stroke: '#0071e3', 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: .45 }));
+    });
+    latchMarks.slice(0, 24).forEach(function (x) {
+      if (x < X0 || x > X1) return;
+      var frac = hi / T;
+      latch.appendChild(mk('circle', { cx: x.toFixed(1),
+        cy: (RY_BOT - frac * (RY_BOT - RY_TOP)).toFixed(1), r: 3.6, fill: '#e11d48' }));
+    });
+
+    /* ---- 讀數 ---- */
+    elV.innerHTML  = v.toFixed(1) + '<span>km/h</span>';
+    elC2.innerHTML = Math.round(cap2).toLocaleString('en-US') + '<span>counts</span>';
+    elUs.innerHTML = (hi * 1e6).toFixed(0) + '<span>µs</span>';
+    elCnt.innerHTML = pulses + '<span>個</span>';
+    /* 窗內不足兩個方波就標成警示 —— 那正是 Period Measurement 失效的門檻 */
+    boxCnt.className = pulses < 2 ? 'vs-live--bad' : '';
+  }
+
+  var t = 0, playing = true, last = 0;
+  function frame(now) {
+    if (playing) { if (last) t = (t + (now - last) / PERIOD) % 1; last = now; render(t); }
+    requestAnimationFrame(frame);
+  }
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    playing = false;
+    render(0.46);   /* 停在低速那一側 —— 兩種量法的差別最明顯的地方 */
+  } else {
+    render(0);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>
