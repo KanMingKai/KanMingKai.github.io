@@ -363,43 +363,29 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     <p class="co-scope">主導工廠 AMR 的<b>評估與規劃架構</b>,跨 3 組協作,從系統規格、運動規劃到 Sim-to-Real 驗證;目標 2026 年 <b>20 台</b>上線。<code>Python</code> · <code>ROS 2 / Nav2</code> · <code>Isaac Sim</code>。</p>
 
     <div class="xp" id="xp-transfer">
-      <div class="xp-m"><div class="big sm">規格先行</div><div class="unit">車用 V 型開發流程</div><a class="xp-brief" href="../process_page/01_process.html#transfer">看流程怎麼搬過來<span class="ic" aria-hidden="true">→</span></a></div>
+      <div class="xp-m"><div class="big sm">規格先行</div><div class="unit">車用 V 型開發流程</div><a class="xp-brief" href="../process_page/01_process.html#transfer">看流程怎麼搬過來<span class="ic" aria-hidden="true">&rarr;</span></a></div>
       <div class="xp-c">
-        <h4>自研全域導航規劃模組 · 以車用 V 型流程開發</h4>
-        <p class="xp-sum">用<span class="hl">系統設計規格</span>驅動演算法開發,並把 <span class="hl">Simulink 模型化設計</span>的分層方法移植到 Python 物件導向</p>
+        <h4>車規級 V 型開發流程與 ROS 2 系統架構設計</h4>
+        <p class="xp-sum">以<span class="hl">系統設計規格</span>凍結介面合約、反過來驅動演算法開發,並把 <span class="hl">Simulink 模型化設計</span>的分層方法移植到 Python 物件導向</p>
         <div class="xp-detail">
         <ul>
-          <li>依車用 <b>V 型開發流程</b>:先以系統設計規格定義模組行為與輸入輸出,再實作、再回頭對規格驗證;取代原本靠補丁堆疊、模組間<span class="out">循環相依</span>的程式碼</li>
-          <li>將 <b>Simulink 模型化設計</b>的子系統分層概念移植至 <code>Python</code> 物件導向:<code>MapGraph</code> / <code>MissionManager</code> / <code>RouteFSM</code> / <code>NodeGraphPlanner</code> 各自對應單一職責的類別,使<span class="out">架構圖與程式碼一一對應</span>、可逐層審查</li>
-          <li>針對廠區路網拓撲與站點任務語意自研全域規劃,而非直接沿用 <code>Nav2</code> 原生規劃器;於非結構化工廠環境中可<b>避障、繞路</b>,不受限於預設固定路線</li>
+          <li>編寫 <code>ROS 2</code> 系統設計規格(SDS),定義感知 / 定位 / 導航 / 控制之間的 <b>topic / service / action</b> 命名規則、資料型態、QoS 設定與節點生命週期——介面在寫程式之前就先當成合約凍結</li>
+          <li>以 <b>Mermaid</b> 維護 topic / node 架構圖並納入版控:介面一改,架構圖就得跟著改,並在 <b>Merge Request</b> 裡一起審——<span class="out">架構即代碼</span>,文件不會落後於程式,也長不出幽靈介面</li>
+          <li>依 <b>V 型流程</b>先用規格定義模組行為與輸入輸出,再實作、再回頭對規格驗證;同時把 <b>Simulink 模型化設計</b>的子系統分層概念移植到 <code>Python</code> 物件導向——<code>MapGraph</code> / <code>MissionManager</code> / <code>RouteFSM</code> / <code>NodeGraphPlanner</code> 各自對應單一職責的類別,取代原本靠補丁堆疊、模組間<span class="out">循環相依</span>的程式碼</li>
+          <li>以這份規格驅動<b>自研全域導航規劃模組</b>,而非直接沿用 <code>Nav2</code> 原生規劃器:針對廠區路網拓撲與站點任務語意設計,於非結構化工廠環境中可<b>避障、繞路</b>,不受限於預設固定路線</li>
         </ul>
         </div>
       </div>
     </div>
 
     <div class="xp">
-      <div class="xp-m"><div class="big sm">3 台</div><div class="unit">實機部署運行</div></div>
-      <div class="xp-c">
-        <h4>Sim-to-Real · 整套導航堆疊部署上實機</h4>
-        <p class="xp-sum">將於模擬完成驗證的<span class="hl">整套導航堆疊部署至實機</span>,目前 <span class="hl">3 台</span>於廠區運行,並逐項定位模擬與實機的行為落差</p>
-        <div class="xp-detail">
-        <ul>
-          <li>把在 Isaac Sim 完成壓力測試的整套導航堆疊部署到實體機器人,形成<span class="out">模擬驗證 → 實機部署 → 落差回饋</span>的閉環</li>
-          <li>識別出關鍵的 sim-to-real 落差:<b>RS485 通訊不具即時性</b>——模擬中速度命令即時生效,實機上命令經序列匯流排下發存在延遲與週期抖動,<span class="out">相同命令下實機實際行走距離大於模擬</span>,須從控制時序與命令下發端修正</li>
-          <li>另處理定位漂移與輪速響應差異,使模擬結果對實機具備參考價值,而非只是模擬裡好看</li>
-        </ul>
-        </div>
-      </div>
-    </div>
-
-    <div class="xp">
-      <div class="xp-m"><div class="big">40→~100<span style="font-size:12px">%</span></div><div class="unit">場景成功率</div></div>
+      <div class="xp-m"><div class="big">40&rarr;~100<span style="font-size:12px">%</span></div><div class="unit">場景成功率</div></div>
       <div class="xp-c">
         <h4>Isaac Sim 無人值守導航壓力測試框架</h4>
         <p class="xp-sum">把<span class="hl">偶發、難重現的導航失效</span>變成可重跑、可統計的資料;每晚自動跑 <span class="hl">300 個場景</span>,場景成功率自 <span class="hl">40% 提升至 ~100%</span></p>
         <div class="xp-detail">
         <ul>
-          <li>導航卡住多為偶發且難以重現,改以<b>自 SLAM 地圖自動採樣可通行目標</b>的方式量產測試場景,單批 300 個站點與任意座標任務,並可固定隨機種子重跑同一批做前後比較</li>
+          <li>導航卡住多為偶發且難以重現,改以<b>自 SLAM 地圖自動採樣可通行目標</b>的方式量產測試場景,單批 300 組站點與任意座標任務;隨機種子可固定,同一批能重跑做前後比較</li>
           <li>讓測試<b>整夜無人值守</b>:系統自行判定任務完成、卡住或逾時,卡住先嘗試退避脫困,仍失敗則遠端重啟模擬器與整個導航堆疊後自動重試,不需工程師守在旁邊</li>
           <li>每批結束<b>自動分類失敗原因並產出成功率報表</b>,使導航品質從「工程師的印象」變成<span class="out">可追蹤的趨勢</span>;同一批 300 場景基準下,場景成功率自 40% 提升至 ~100%</li>
         </ul>
@@ -408,30 +394,30 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     </div>
 
     <div class="xp">
-      <div class="xp-m"><div class="big sm">L1–L3</div><div class="unit">分層自動化驗證</div></div>
+      <div class="xp-m"><div class="big sm">L1&ndash;L3</div><div class="unit">分層自動化驗證</div></div>
       <div class="xp-c">
-        <h4>GitLab CI/CD 分層驗證管線 · Runner 佈在 Jetson 目標硬體</h4>
-        <p class="xp-sum">把車用的 <span class="hl">L1–L3 分層驗證</span>導入 ROS 2 開發流程,CI 直接在 <span class="hl">ARM 目標硬體</span>上執行</p>
+        <h4>GitLab CI/CD 分層驗證管線 &middot; Runner 佈在 Jetson 目標硬體</h4>
+        <p class="xp-sum">把車用的 <span class="hl">MIL / SIL / HIL 分層邏輯</span>導入 ROS 2 開發流程,CI 直接在 <span class="hl">ARM 目標硬體</span>上跑</p>
         <div class="xp-detail">
         <ul>
-          <li>測試分級為 <b>L1 單元測試</b>(pytest / gtest)、<b>L2 子系統整合</b>(如定位 + 控制閉環)、<b>L3 端到端場景測試</b>,對應車用 MIL / SIL / HIL 的分層邏輯</li>
-          <li>於公司自架 GitLab 建置 <b>Project Runner</b> 並佈署於 <b>Jetson</b> 裝置,使 CI 在<span class="out">實際 ARM 目標硬體</span>上執行,而非僅在 x86 開發機驗證</li>
-          <li>管線自動觸發回歸測試並產出測試報告,讓團隊從「能動就好」轉為<span class="out">可論證的穩定</span></li>
+          <li>測試分級為 <b>L1 單元測試</b>(pytest / gtest)、<b>L2 子系統閉環</b>(如定位 + 控制)、<b>L3 端到端場景驗證</b>,對應車用 MIL / SIL / HIL 的分層邏輯</li>
+          <li>於公司自架 GitLab 建置 <b>Project Runner</b> 並佈署於 <b>Jetson</b> 裝置,讓 L1&ndash;L3 直接在<span class="out">實際 ARM 目標硬體</span>上執行,消弭 x86 開發機與實車的架構差異——不再有「開發機上跑得動、上車就當機」</li>
+          <li>管線<b>自動觸發回歸測試</b>並產出測試報告,讓團隊從「能動就好」轉為<span class="out">可論證的穩定</span></li>
         </ul>
         </div>
       </div>
     </div>
 
     <div class="xp">
-      <div class="xp-m"><div class="big sm">架構即代碼</div><div class="unit">介面合約版控</div></div>
+      <div class="xp-m"><div class="big sm">3 台</div><div class="unit">實機部署運行</div></div>
       <div class="xp-c">
-        <h4>ROS 2 系統設計規格與架構圖版本控管</h4>
-        <p class="xp-sum">以 <span class="hl">SDS</span> 凍結模組介面合約,<span class="hl">Mermaid 架構圖</span>納入版控與 Merge Request 審查</p>
+        <h4>Sim-to-Real 實機部署與底層控制調優</h4>
+        <p class="xp-sum">把在模擬中驗證完成的<span class="hl">整套導航堆疊部署至實機</span>,目前 <span class="hl">3 台</span>於廠區運行,並逐項定位模擬與實機的行為落差</p>
         <div class="xp-detail">
         <ul>
-          <li>編寫 <code>ROS 2</code> 系統設計規格(SDS),定義感知 / 定位 / 導航 / 控制之間的 <b>topic / service / action</b> 命名規則、資料型態、QoS 設定與節點生命週期</li>
-          <li>以 <b>Mermaid</b> 維護 topic / node 架構圖並納入版本控管:介面變更須同步更新架構圖並於 Merge Request 中審查,<span class="out">避免文件過時與幽靈介面</span></li>
-          <li>主導介面設計審查、帶團隊做演算法審查;此為將量產 ADAS 的<span class="out">工程紀律移植至機器人團隊</span>的一環</li>
+          <li>把通過 Isaac Sim 壓力測試的整套導航堆疊部署到實體機器人,形成<span class="out">模擬驗證 &rarr; 實機部署 &rarr; 落差回饋</span>的閉環</li>
+          <li>找出關鍵的 sim-to-real 落差:<b>RS485 序列通訊不具即時性</b>——模擬中速度命令即時生效,實機上命令經序列匯流排下發存在延遲與週期抖動,<span class="out">相同命令下實機實際行走距離大於模擬</span>,須從控制時序與命令下發端修正</li>
+          <li>另處理定位漂移與輪速響應差異,使模擬結果對實機<b>具備參考價值</b>,而不是只在模擬裡好看</li>
         </ul>
         </div>
       </div>
