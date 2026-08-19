@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sim-to-Real 架構 — 可觀測 · 可驗證 · 可歸因</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tokens.css">
+<style>
+/* ============================================================
+   Sim-to-Real 架構 — 可觀測 · 可驗證 · 可歸因
+   ------------------------------------------------------------
+   ★ 沿用 01_CmdBufferGap.html 與 01_PipelineInterfaceFlow.html 的三條規則:
+     (1) class 一律 .str- 前綴,將來併進 AMR 章節頁不撞名;
+     (2) 顏色一律 var(--token,#fallback),併進去自動吃主頁 token;
+     (3) 一個顏色只給一個角色:
+           藍 = 模擬 / 可觀測性       綠 = 實機 / 通過
+           琥珀 = 落差與待修          灰 = 既有基礎設施
+
+   ★ 版面主張:上面那張圖是「架構」,下面三段是「各支柱的內容」。
+     三段的編號 ①②③ 與圖上的編號同一組 —— 圖與段落互為索引,
+     所以圖不必把細節塞進去,段落也不必重畫一次流程。
+
+   ★ 深色只出現在 IVI 那一塊。那是「螢幕裡的東西」,
+     其餘都是頁面 —— 深淺的分界等於「畫面 vs 說明」,不是裝飾。
+   ============================================================ */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans,-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif);
+  background:var(--bg,#fff);color:var(--ink,#1d1d1f);line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+.str{max-width:1080px;margin:0 auto;padding:28px 22px 40px}
+
+/* ---------- 標題 ---------- */
+.str-head{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;margin-bottom:6px}
+.str-h1{font-size:clamp(21px,2.9vw,30px);font-weight:900;letter-spacing:-.02em}
+.str-sub{font-size:clamp(12px,1.5vw,14px);color:var(--ink-2,#6e6e73);font-weight:600;
+         padding-left:18px;border-left:1.5px solid var(--line,#d2d2d7)}
+.str-lead{font-size:13.5px;color:var(--ink-2,#6e6e73);max-width:700px;margin:13px 0 22px;line-height:1.85}
+.str-lead b{color:var(--ink,#1d1d1f);font-weight:700}
+
+/* ---------- 舞台(架構圖) ---------- */
+.str-stage{border:1px solid var(--line,#d2d2d7);border-radius:18px;background:var(--bg,#fff);
+           box-shadow:var(--shadow,0 4px 20px rgba(0,0,0,.06));overflow:hidden}
+.str-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.str-scroll::-webkit-scrollbar{height:5px}
+.str-scroll::-webkit-scrollbar-thumb{background:var(--line,#d2d2d7);border-radius:3px}
+.str-svg{display:block;width:100%;min-width:700px;height:auto}
+.str-svg text{font-family:var(--sans,"Noto Sans TC",sans-serif)}
+
+.str-box{fill:#fff;stroke:var(--line,#d2d2d7);stroke-width:1.3}
+.str-box--sim {fill:#f5f9ff;stroke:#a9cdf5;stroke-width:1.6}
+.str-box--real{fill:#f1faf5;stroke:#8fcfb2;stroke-width:1.6}
+.str-box--gate{fill:#fff;stroke:var(--ink,#1d1d1f);stroke-width:1.8}
+.str-box--diag{fill:#fffaf3;stroke:#e6c9a0;stroke-width:1.6}
+.str-tb{font-size:12.5px;font-weight:700;fill:var(--ink,#1d1d1f)}
+.str-ts{font-size:9.5px;fill:var(--ink-3,#86868b)}
+.str-tm{font-family:var(--mono,monospace);font-size:9px;fill:var(--ink-3,#86868b);letter-spacing:.04em}
+.str-num{font-size:11px;font-weight:900;fill:#fff}
+.str-ln{fill:none;stroke:#c7ccd1;stroke-width:1.8;stroke-linecap:round;stroke-dasharray:5 4;
+        marker-end:url(#strArr);animation:strFlow 1.1s linear infinite}
+.str-ln--back{stroke:var(--amber,#b45309);marker-end:url(#strArrAmber);opacity:.75}
+@keyframes strFlow{to{stroke-dashoffset:-9}}
+@media(prefers-reduced-motion:reduce){.str-ln{animation:none}}
+
+/* ---------- 段落骨架 ---------- */
+.str-sec{margin-top:clamp(34px,5vw,52px)}
+.str-sech{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}
+.str-badge{flex:0 0 auto;width:25px;height:25px;border-radius:8px;display:grid;place-items:center;
+           font-size:12.5px;font-weight:900;color:#fff;background:var(--ink,#1d1d1f);margin-top:2px}
+.str-sech h2{font-size:clamp(16px,2.1vw,20px);font-weight:700;letter-spacing:-.01em;line-height:1.4}
+.str-sech p{font-size:12.5px;color:var(--ink-2,#6e6e73);margin-top:5px;line-height:1.8;max-width:720px}
+.str-sech b{color:var(--ink,#1d1d1f);font-weight:700}
+
+/* ---------- ① IVI:唯一的深色區,因為它是螢幕 ---------- */
+.str-ivi{background:#14161a;border-radius:16px;padding:14px;display:grid;gap:10px;
+         grid-template-columns:168px 1fr 232px;border:1px solid #262a31}
+.str-p{background:#1c1f25;border:1px solid #2b3038;border-radius:10px;padding:10px}
+.str-p h4{font-family:var(--mono,monospace);font-size:9px;font-weight:700;letter-spacing:.1em;
+          color:#7d8794;text-transform:uppercase;margin-bottom:8px}
+.str-kv{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:7px}
+.str-kv .k{font-size:10px;color:#7d8794}
+.str-kv .v{font-family:var(--mono,monospace);font-size:12px;font-weight:700;color:#e8eaed}
+.str-kv .v.ok{color:#4ade80}
+.str-kv .v.hi{color:#60a5fa}
+.str-cams{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.str-cam{aspect-ratio:4/3;border-radius:8px;border:1px solid #2b3038;
+         background:linear-gradient(160deg,#232830 0%,#1a1e24 60%,#20252c 100%);
+         display:flex;align-items:flex-end;padding:6px;position:relative}
+.str-cam span{font-family:var(--mono,monospace);font-size:8.5px;color:#98a2b0;letter-spacing:.04em}
+.str-cam::before{content:"";position:absolute;top:8px;left:8px;width:9px;height:9px;border-radius:2px;
+                 border:1.4px solid #3d4652}
+.str-cam--main{grid-column:1/-1;aspect-ratio:16/6}
+.str-reason{display:flex;flex-direction:column;gap:7px}
+.str-verdict{font-size:15px;font-weight:900;color:#60a5fa;letter-spacing:.02em}
+.str-chk{display:flex;gap:7px;align-items:flex-start;font-size:10px;color:#c3cad4;line-height:1.5}
+.str-chk i{flex:0 0 auto;width:12px;height:12px;border-radius:3px;background:#14361f;border:1px solid #2f7d4f;
+           color:#4ade80;font-size:8px;font-style:normal;display:grid;place-items:center;margin-top:1px}
+.str-chk b{display:block;color:#e8eaed;font-weight:600;font-size:10px}
+.str-chk span{color:#7d8794;font-size:9px}
+.str-conf{margin-top:auto;padding-top:9px;border-top:1px solid #2b3038;
+          display:flex;justify-content:space-between;align-items:baseline}
+.str-conf .k{font-size:9.5px;color:#7d8794;font-family:var(--mono,monospace);letter-spacing:.06em}
+.str-conf .v{font-family:var(--mono,monospace);font-size:15px;font-weight:700;color:#4ade80}
+.str-scrhint{font-family:var(--mono,monospace);font-size:10px;color:var(--ink-3,#86868b);
+             text-align:center;margin-top:9px}
+
+/* 四張效益卡 */
+.str-chips{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-top:13px}
+.str-chip{border:1px solid var(--line,#d2d2d7);border-radius:13px;padding:12px 13px;background:var(--bg,#fff)}
+.str-chip h5{font-size:13px;font-weight:700;margin-bottom:5px}
+.str-chip p{font-size:11.5px;color:var(--ink-2,#6e6e73);line-height:1.7}
+
+/* ---------- ② 驗證階梯 ---------- */
+.str-ladder{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px}
+.str-rung{border:1px solid var(--line,#d2d2d7);border-radius:14px;padding:14px;background:var(--bg,#fff);
+          position:relative}
+.str-rung--1{border-color:#a9cdf5;background:#f8fbff}
+.str-rung--2{border-color:#bcd9c9;background:#f9fdfb}
+.str-rung--3{border-color:#8fcfb2;background:#f1faf5}
+.str-rung .step{font-family:var(--mono,monospace);font-size:9.5px;font-weight:700;letter-spacing:.1em;
+                color:var(--ink-3,#86868b);margin-bottom:6px}
+.str-rung h5{font-size:14.5px;font-weight:700;margin-bottom:3px}
+.str-rung .cond{font-family:var(--mono,monospace);font-size:11px;font-weight:700;color:var(--blue,#0071e3);
+                margin-bottom:9px}
+.str-rung ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+.str-rung li{font-size:11.5px;color:var(--ink-2,#6e6e73);padding-left:13px;position:relative;line-height:1.65}
+.str-rung li::before{content:"";position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%;
+                     background:var(--line,#d2d2d7)}
+.str-princ{margin-top:12px;border:1px solid var(--line,#d2d2d7);border-radius:14px;padding:14px 16px;
+           background:var(--bg-alt,#f5f5f7)}
+.str-princ h5{font-size:12.5px;font-weight:700;margin-bottom:9px}
+.str-princ ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px 20px}
+.str-princ li{font-size:11.5px;color:var(--ink-2,#6e6e73);padding-left:19px;position:relative;line-height:1.7}
+.str-princ li::before{content:"✓";position:absolute;left:0;top:0;color:#0a8a5c;font-weight:700;font-size:11px}
+.str-princ b{color:var(--ink,#1d1d1f);font-weight:700}
+
+/* ---------- ③ 落差解析 ---------- */
+.str-diag{display:grid;grid-template-columns:340px 1fr;gap:14px;align-items:start}
+.str-tf{border:1px solid var(--line,#d2d2d7);border-radius:14px;padding:14px;background:var(--bg,#fff)}
+.str-tf h5{font-size:12.5px;font-weight:700;margin-bottom:2px}
+.str-tf .cap{font-size:11px;color:var(--ink-2,#6e6e73);line-height:1.7;margin-top:9px}
+.str-tf .cap b{color:var(--ink,#1d1d1f)}
+.str-tfsvg{display:block;width:100%;height:auto;margin-top:6px}
+.str-tfsvg text{font-family:var(--mono,monospace);font-size:9px;fill:var(--ink,#1d1d1f)}
+.str-tfnode{fill:#fff;stroke:#c7ccd1;stroke-width:1.2}
+.str-tfnode--root{fill:#eef4ff;stroke:var(--blue,#0071e3);stroke-width:1.5}
+
+.str-tblwrap{overflow-x:auto;border:1px solid var(--line,#d2d2d7);border-radius:14px;background:var(--bg,#fff)}
+.str-tbl{width:100%;border-collapse:collapse;font-size:11.5px;min-width:600px}
+.str-tbl th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--ink-3,#86868b);
+            padding:10px 11px;border-bottom:1px solid var(--line,#d2d2d7);white-space:nowrap;
+            background:var(--bg-alt,#f5f5f7)}
+.str-tbl td{padding:9px 11px;border-bottom:1px solid #ededf0;color:var(--ink-2,#6e6e73);line-height:1.6;
+            vertical-align:top}
+.str-tbl tr:last-child td{border-bottom:0}
+.str-tbl td:first-child{color:var(--ink,#1d1d1f);font-weight:700;white-space:nowrap}
+.str-tbl td.fix{color:var(--ink,#1d1d1f);font-weight:600}
+.str-tbl td b{color:var(--ink,#1d1d1f);font-weight:700}
+.str-grp td{background:#fafafc;padding:8px 11px;border-bottom:1px solid var(--line,#d2d2d7)}
+.str-gtag{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono,monospace);font-size:10px;
+          font-weight:700;letter-spacing:.08em}
+.str-gtag i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.str-gtag--tf  i{background:var(--blue,#0071e3)}
+.str-gtag--dds i{background:#0a8a5c}
+.str-gtag--act i{background:var(--amber,#b45309)}
+.str-gtag em{font-style:normal;color:var(--ink-3,#86868b);font-weight:600;letter-spacing:0;
+             font-family:var(--sans);font-size:10.5px}
+.str-new{display:inline-block;margin-left:7px;padding:1px 6px;border-radius:980px;font-size:9px;
+         font-weight:700;background:#ecfdf5;color:#0a8a5c;border:1px solid #a7e0c4;letter-spacing:.04em}
+.str-tbl a{color:var(--blue,#0071e3);text-decoration:none;font-weight:700;border-bottom:1px solid #bcd9f5}
+.str-tbl a:hover{border-bottom-color:var(--blue,#0071e3)}
+
+.str-out{display:grid;grid-template-columns:1fr 300px;gap:14px;margin-top:14px;align-items:start}
+.str-do{border:1px solid var(--line,#d2d2d7);border-radius:14px;padding:14px 16px;background:var(--bg,#fff)}
+.str-do h5{font-size:12.5px;font-weight:700;margin-bottom:9px}
+.str-do ul{list-style:none;display:grid;gap:6px}
+.str-do li{font-size:11.5px;color:var(--ink-2,#6e6e73);padding-left:19px;position:relative;line-height:1.7}
+.str-do li::before{content:"✓";position:absolute;left:0;top:0;color:#0a8a5c;font-weight:700;font-size:11px}
+.str-do b{color:var(--ink,#1d1d1f);font-weight:700}
+.str-res{border:1px solid #8fcfb2;border-radius:14px;padding:16px;background:#f1faf5;text-align:center}
+.str-res .k{font-family:var(--mono,monospace);font-size:9.5px;font-weight:700;letter-spacing:.1em;
+            color:#0a8a5c;margin-bottom:8px}
+.str-res p{font-size:13px;font-weight:700;line-height:1.7;color:var(--ink,#1d1d1f)}
+.str-res span{display:block;font-size:11.5px;font-weight:400;color:var(--ink-2,#6e6e73);margin-top:7px;line-height:1.7}
+
+.str-note{margin-top:26px;text-align:center;font-size:11.5px;color:var(--ink-3,#86868b);line-height:1.85}
+
+@media(max-width:900px){
+  .str-ivi{grid-template-columns:1fr}
+  .str-chips{grid-template-columns:1fr 1fr}
+  .str-ladder{grid-template-columns:1fr}
+  .str-diag{grid-template-columns:1fr}
+  .str-out{grid-template-columns:1fr}
+  .str-princ ul{grid-template-columns:1fr}
+}
+@media(max-width:680px){
+  .str{padding:20px 14px 30px}
+  .str-sub{padding-left:0;border-left:0;border-top:1px solid var(--line,#d2d2d7);padding-top:8px;width:100%}
+  .str-chips{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="str">
+
+  <div class="str-head">
+    <div class="str-h1">模擬跑得好不算數,實機跑得好才算</div>
+    <div class="str-sub">Sim-to-Real · 可觀測 → 可驗證 → 可歸因</div>
+  </div>
+  <p class="str-lead">
+    整套導航堆疊自 Isaac Sim 部署到廠區實機,目前 <b>3 台運行</b>。落差一定會有,問題是<b>能不能指名道姓地說出它是什麼</b>——
+    所以我補的不是單點修正,而是三件讓落差無所遁形的基礎建設:<b>看得見機器人在想什麼</b>(可觀測)、
+    <b>一階一階往上驗</b>(可驗證)、<b>每個現象都追到根因</b>(可歸因)。
+  </p>
+
+  <!-- ============ 架構圖 ============ -->
+  <div class="str-stage">
+    <div class="str-scroll">
+    <svg class="str-svg" viewBox="0 0 780 402" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Sim-to-Real 閉環架構:模擬經階梯式驗證後部署上實機,實機由 IVI 監控產生現象,現象進入落差解析(TF、DDS、命令佇列)找出根因,再回饋修正模擬與實機。">
+      <defs>
+        <marker id="strArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M0 1 L9 5 L0 9 z" fill="#c7ccd1"/>
+        </marker>
+        <marker id="strArrAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M0 1 L9 5 L0 9 z" fill="#b45309"/>
+        </marker>
+      </defs>
+
+      <!-- 上排:模擬 → 驗證階梯 → 實機 → 監控 -->
+      <rect class="str-box str-box--sim" x="24" y="118" width="152" height="94" rx="14"/>
+      <text class="str-tb" x="100" y="152" text-anchor="middle">模擬 · Isaac Sim</text>
+      <text class="str-ts" x="100" y="170" text-anchor="middle">每晚 300 場景無人值守</text>
+      <text class="str-ts" x="100" y="186" text-anchor="middle">成功率 40% → ~100%</text>
+
+      <rect class="str-box str-box--gate" x="200" y="118" width="176" height="94" rx="14"/>
+      <circle cx="214" cy="132" r="11" fill="var(--ink,#1d1d1f)"/>
+      <text class="str-num" x="214" y="136" text-anchor="middle">2</text>
+      <text class="str-tb" x="298" y="152" text-anchor="middle">階梯式驗證</text>
+      <g class="str-tm">
+        <text x="298" y="171" text-anchor="middle">對位 → 站點 → 自由導航</text>
+        <text x="298" y="189" text-anchor="middle">每一階可獨立驗證與回歸</text>
+      </g>
+
+      <rect class="str-box str-box--real" x="400" y="118" width="152" height="94" rx="14"/>
+      <text class="str-tb" x="476" y="152" text-anchor="middle">實機 · 廠區</text>
+      <text class="str-ts" x="476" y="170" text-anchor="middle">3 台運行中</text>
+      <text class="str-ts" x="476" y="186" text-anchor="middle">目標 2026 年 20 台</text>
+
+      <rect class="str-box" x="576" y="118" width="176" height="94" rx="14"/>
+      <circle cx="590" cy="132" r="11" fill="var(--ink,#1d1d1f)"/>
+      <text class="str-num" x="590" y="136" text-anchor="middle">1</text>
+      <text class="str-tb" x="674" y="152" text-anchor="middle">IVI 監控介面</text>
+      <g class="str-tm">
+        <text x="674" y="171" text-anchor="middle">前 / 左 / 右鏡頭 · 路徑</text>
+        <text x="674" y="189" text-anchor="middle">決策原因與信心值</text>
+      </g>
+
+      <path class="str-ln" d="M176 165 L196 165"/>
+      <path class="str-ln" d="M376 165 L396 165"/>
+      <path class="str-ln" d="M552 165 L572 165"/>
+      <text class="str-tm" x="186" y="155" text-anchor="middle">驗</text>
+      <text class="str-tm" x="386" y="155" text-anchor="middle">部署</text>
+      <text class="str-tm" x="562" y="155" text-anchor="middle">觀測</text>
+
+      <!-- 下排:落差解析 -->
+      <rect class="str-box str-box--diag" x="90" y="278" width="600" height="96" rx="14"/>
+      <circle cx="104" cy="292" r="11" fill="var(--ink,#1d1d1f)"/>
+      <text class="str-num" x="104" y="296" text-anchor="middle">3</text>
+      <text class="str-tb" x="390" y="303" text-anchor="middle">落差解析 · 現象 → 原因 → 影響 → 對策</text>
+
+      <g>
+        <rect x="112" y="320" width="176" height="38" rx="10" fill="#fff" stroke="#a9cdf5" stroke-width="1.3"/>
+        <text class="str-tb" x="200" y="338" text-anchor="middle" style="font-size:11.5px">TF Tree</text>
+        <text class="str-ts" x="200" y="351" text-anchor="middle">座標 · 時間 · 外參</text>
+
+        <rect x="302" y="320" width="176" height="38" rx="10" fill="#fff" stroke="#8fcfb2" stroke-width="1.3"/>
+        <text class="str-tb" x="390" y="338" text-anchor="middle" style="font-size:11.5px">DDS 通訊</text>
+        <text class="str-ts" x="390" y="351" text-anchor="middle">QoS · domain · 傳輸通道</text>
+
+        <rect x="492" y="320" width="176" height="38" rx="10" fill="#fff" stroke="#e6c9a0" stroke-width="1.3"/>
+        <text class="str-tb" x="580" y="338" text-anchor="middle" style="font-size:11.5px">執行器時序</text>
+        <text class="str-ts" x="580" y="351" text-anchor="middle">命令佇列 · 下發速率</text>
+      </g>
+
+      <!-- 觀測到的現象往下進解析;根因往回改模擬與實機 -->
+      <path class="str-ln" d="M674 212 L674 274"/>
+      <text class="str-tm" x="690" y="248">現象</text>
+      <path class="str-ln str-ln--back" d="M90 326 L60 326 L60 216"/>
+      <text class="str-tm" x="54" y="262" text-anchor="end" style="fill:#b45309">根因回饋</text>
+      <path class="str-ln str-ln--back" d="M476 278 L476 216"/>
+      <text class="str-tm" x="492" y="248" style="fill:#b45309">修正</text>
+
+      <text class="str-tm" x="390" y="34" text-anchor="middle" font-size="10">
+        模擬驗證 → 實機部署 → 落差回饋,三段接成一個閉環
+      </text>
+      <path d="M240 48 L540 48" stroke="#e5e5ea" stroke-width="1"/>
+    </svg>
+    </div>
+  </div>
+
+  <!-- ============ ① IVI ============ -->
+  <div class="str-sec">
+    <div class="str-sech">
+      <div class="str-badge">1</div>
+      <div>
+        <h2>做出 IVI,隨時監控機器人視角——馬上知道它為什麼左轉</h2>
+        <p>導航出問題時最貴的不是修,是<b>猜</b>。所以第一件事是把機器人的視角與決策理由攤在畫面上:
+        看得到前左右鏡頭、看得到規劃出來的路徑,更重要的是看得到<b>「它認為自己該右轉」的四個依據與信心值</b>。
+        從此問題定位不再從「我覺得它剛剛怪怪的」開始。</p>
+      </div>
+    </div>
+
+    <div class="str-ivi">
+      <!-- 左:狀態與任務 -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="str-p">
+          <h4>Robot Status</h4>
+          <div class="str-kv"><span class="k">狀態</span><span class="v ok">NORMAL</span></div>
+          <div class="str-kv"><span class="k">速度</span><span class="v">0.45 m/s</span></div>
+          <div class="str-kv"><span class="k">電量</span><span class="v">78 %</span></div>
+          <div class="str-kv" style="margin-bottom:0"><span class="k">模式</span><span class="v hi">AUTO</span></div>
+        </div>
+        <div class="str-p">
+          <h4>Task Info</h4>
+          <div class="str-kv"><span class="k">任務</span><span class="v" style="font-size:10px">T-20250514-17</span></div>
+          <div class="str-kv"><span class="k">下一步</span><span class="v hi" style="font-size:11px">TURN RIGHT</span></div>
+          <div class="str-kv" style="margin-bottom:0"><span class="k">進度</span><span class="v">65 %</span></div>
+        </div>
+        <div class="str-p" style="flex:1">
+          <h4>Alerts</h4>
+          <div class="str-kv" style="margin-bottom:0"><span class="k">目前告警</span><span class="v ok" style="font-size:11px">None</span></div>
+        </div>
+      </div>
+
+      <!-- 中:鏡頭與路徑 -->
+      <div class="str-p" style="display:flex;flex-direction:column;gap:8px">
+        <h4>Camera / Path View</h4>
+        <div class="str-cams">
+          <div class="str-cam str-cam--main"><span>MAP · GLOBAL / LOCAL PATH</span></div>
+          <div class="str-cam"><span>FRONT</span></div>
+          <div class="str-cam"><span>LEFT</span></div>
+          <div class="str-cam"><span>RIGHT</span></div>
+        </div>
+      </div>
+
+      <!-- 右:決策原因 —— 這一塊才是整個介面的重點 -->
+      <div class="str-p str-reason">
+        <h4>Decision Reason</h4>
+        <div class="str-verdict">TURN RIGHT</div>
+        <div class="str-chk"><i>✓</i><div><b>Path Planning</b><span>全域路徑於此處轉彎</span></div></div>
+        <div class="str-chk"><i>✓</i><div><b>Obstacle Avoidance</b><span>右側無阻擋障礙物</span></div></div>
+        <div class="str-chk"><i>✓</i><div><b>Map Constraint</b><span>目標區域為可通行區</span></div></div>
+        <div class="str-chk"><i>✓</i><div><b>Traffic Rule</b><span>符合廠區靠右規則</span></div></div>
+        <div class="str-conf"><span class="k">CONFIDENCE</span><span class="v">0.92</span></div>
+      </div>
+    </div>
+    <p class="str-scrhint">介面示意 · 數值為畫面配置用的範例值</p>
+
+    <div class="str-chips">
+      <div class="str-chip"><h5>即時視角監控</h5><p>前 / 左 / 右鏡頭與路徑同畫面,現場看到什麼、機器人看到什麼可以對照</p></div>
+      <div class="str-chip"><h5>決策原因透明</h5><p>路徑規劃、避障、地圖限制、通行規則四項依據一目了然</p></div>
+      <div class="str-chip"><h5>快速定位問題</h5><p>知道它「為什麼」右轉,才分得出是規劃錯、感知錯、還是地圖錯</p></div>
+      <div class="str-chip"><h5>提升調試效率</h5><p>減少盲目猜測,問題排查從描述現象進到指認模組</p></div>
+    </div>
+  </div>
+
+  <!-- ============ ② 驗證階梯 ============ -->
+  <div class="str-sec">
+    <div class="str-sech">
+      <div class="str-badge">2</div>
+      <div>
+        <h2>架構設計成可驗證的:對位 → 下站點 → 自由導航</h2>
+        <p>直接讓機器人跑自由導航,失敗了也說不出是定位、控制還是規劃的問題。
+        所以驗證要有階梯:<b>先驗最小的閉環,通過才准往上一階</b>。
+        每一階都有可量化的通過條件,失敗時範圍自然被鎖在那一階裡——這是把車用 MIL / SIL / HIL 的分層邏輯搬過來的同一件事。</p>
+      </div>
+    </div>
+
+    <div class="str-ladder">
+      <div class="str-rung str-rung--1">
+        <div class="step">STEP 01</div>
+        <h5>對位驗證</h5>
+        <div class="cond">下 5 cm → Δx ≤ 5 cm · Δy ≤ 5 cm</div>
+        <ul>
+          <li>驗證定位精度</li>
+          <li>驗證控制精度</li>
+          <li><b>最小閉環驗證單元</b>:命令下多少、實際走多少</li>
+        </ul>
+      </div>
+      <div class="str-rung str-rung--2">
+        <div class="step">STEP 02</div>
+        <h5>下站點</h5>
+        <div class="cond">直接到達指定站點</div>
+        <ul>
+          <li>驗證路徑規劃</li>
+          <li>驗證避障能力</li>
+          <li>站點到站點的連續精度</li>
+        </ul>
+      </div>
+      <div class="str-rung str-rung--3">
+        <div class="step">STEP 03</div>
+        <h5>自由導航</h5>
+        <div class="cond">任意座標任務 · 長時間運行</div>
+        <ul>
+          <li>驗證全域規劃</li>
+          <li>驗證動態避障</li>
+          <li>長時間穩定性驗證</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="str-princ">
+      <h5>可驗證架構的設計原則</h5>
+      <ul>
+        <li><b>模組化設計</b>,方便單點驗證</li>
+        <li><b>可量化指標</b>,驗證結果可衡量而非靠感覺</li>
+        <li><b>由簡到難</b>,逐步擴展能力邊界</li>
+        <li>每一層都可<b>獨立驗證與回歸測試</b></li>
+        <li>確保 <b>Sim 與 Real 行為一致</b>,模擬結論才對實機有效</li>
+        <li>失敗時<b>範圍鎖在該階</b>,不必全系統重查</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ ③ 落差解析 ============ -->
+  <div class="str-sec">
+    <div class="str-sech">
+      <div class="str-badge">3</div>
+      <div>
+        <h2>把 Sim-to-Real 的常見落差拆成可查表的東西</h2>
+        <p>落差不該每次都重新推理一遍。我把遇過的現象整理成<b>現象 → 原因 → 影響 → 對策</b>的對照表,
+        分成三群:<b>TF</b>(座標與時間)、<b>DDS</b>(通訊)、<b>執行器時序</b>(命令下發)。
+        表的價值不在完整,在<b>下次遇到同一個現象時不必再猜</b>。</p>
+      </div>
+    </div>
+
+    <div class="str-diag">
+      <div class="str-tf">
+        <h5>TF Tree · 先確認這棵樹是對的</h5>
+        <svg class="str-tfsvg" viewBox="0 0 320 216" xmlns="http://www.w3.org/2000/svg" role="img"
+             aria-label="TF 樹:map 連到 odom,odom 連到 base_link,base_link 連到 base_footprint、base_lidar、base_camera。">
+          <g stroke="#c7ccd1" stroke-width="1.1" fill="none">
+            <path d="M160 34 L160 54"/>
+            <path d="M160 82 L160 102"/>
+            <path d="M160 130 L160 144 L52 144 L52 158"/>
+            <path d="M160 130 L160 158"/>
+            <path d="M160 130 L160 144 L268 144 L268 158"/>
+          </g>
+          <rect class="str-tfnode str-tfnode--root" x="120" y="10" width="80" height="24" rx="7"/>
+          <text x="160" y="26" text-anchor="middle">map</text>
+          <rect class="str-tfnode" x="120" y="58" width="80" height="24" rx="7"/>
+          <text x="160" y="74" text-anchor="middle">odom</text>
+          <rect class="str-tfnode" x="112" y="106" width="96" height="24" rx="7"/>
+          <text x="160" y="122" text-anchor="middle">base_link</text>
+          <rect class="str-tfnode" x="6" y="158" width="92" height="24" rx="7"/>
+          <text x="52" y="174" text-anchor="middle">base_footprint</text>
+          <rect class="str-tfnode" x="122" y="158" width="76" height="24" rx="7"/>
+          <text x="160" y="174" text-anchor="middle">base_lidar</text>
+          <rect class="str-tfnode" x="226" y="158" width="86" height="24" rx="7"/>
+          <text x="268" y="174" text-anchor="middle">base_camera</text>
+          <text x="160" y="204" text-anchor="middle" style="fill:#86868b;font-size:8.5px">
+            一棵樹、單一父節點、時間戳對得上
+          </text>
+        </svg>
+        <p class="cap">
+          <b>規劃輸出不進這棵樹。</b>global_path / goal / local_path 是 topic 而不是 frame,
+          把它們畫進 TF tree 是常見的誤解——TF 只描述<b>座標系之間的關係</b>,
+          先把這件事講清楚,下面那張表才有共同語言。
+        </p>
+      </div>
+
+      <div class="str-tblwrap">
+        <table class="str-tbl">
+          <thead>
+            <tr><th>落差</th><th>現象</th><th>原因</th><th>影響</th><th>對策</th></tr>
+          </thead>
+          <tbody>
+            <tr class="str-grp"><td colspan="5">
+              <span class="str-gtag str-gtag--tf"><i></i>TF <em>座標 · 時間 · 外參</em></span>
+            </td></tr>
+            <tr>
+              <td>TF 延遲</td><td>跳動 / 漂移</td><td>時間不同步、網路延遲</td>
+              <td>定位不穩、路徑抖動</td><td class="fix">時間同步、緩衝區調整</td>
+            </tr>
+            <tr>
+              <td>座標系不一致</td><td>方向顛倒 / 鏡像</td><td>座標定義不一致</td>
+              <td>路徑反向、控制異常</td><td class="fix">統一座標定義並寫進規格</td>
+            </tr>
+            <tr>
+              <td>外參誤差</td><td>偏移 / 旋轉誤差</td><td>感測器安裝誤差</td>
+              <td>定位偏差、地圖錯位</td><td class="fix">外參標定與誤差補償</td>
+            </tr>
+            <tr>
+              <td>尺度不一致</td><td>距離縮放錯誤</td><td>Sim 與 Real 單位不同</td>
+              <td>路徑偏差、控制誤差</td><td class="fix">單位統一、尺度校正</td>
+            </tr>
+            <tr>
+              <td>動態物體干擾</td><td>障礙物誤檢 / 漏檢</td><td>感知差異、域差異</td>
+              <td>避障失效、路徑不合理</td><td class="fix">感知參數調整、域適配</td>
+            </tr>
+
+            <tr class="str-grp"><td colspan="5">
+              <span class="str-gtag str-gtag--dds"><i></i>DDS <em>通訊層 · 模擬與實機差最多的一層</em></span>
+            </td></tr>
+            <tr>
+              <td>QoS 不相容</td><td>topic 有 publisher,訂閱端一筆都收不到</td>
+              <td>Reliability / Durability / History 設定不匹配</td>
+              <td>感知或命令<b>靜默中斷</b>,且不報錯</td>
+              <td class="fix">統一 QoS profile,寫進 SDS 介面規格</td>
+            </tr>
+            <tr>
+              <td>傳輸通道改變</td><td>週期抖動、大訊息時斷時續</td>
+              <td>模擬走本機 / 共享記憶體,實機走無線與跨網段</td>
+              <td>控制迴圈時序不穩、TF 外插失效</td>
+              <td class="fix">大資料改走 shared memory,調整 UDP buffer 與 MTU</td>
+            </tr>
+            <tr>
+              <td>Domain 未隔離</td><td>多台機器互相收到對方的 topic</td>
+              <td>同網段共用 <span style="font-family:var(--mono)">ROS_DOMAIN_ID</span></td>
+              <td>命令誤送、資料污染,現象隨機且難重現</td>
+              <td class="fix">每台獨立 domain,或改用 discovery server</td>
+            </tr>
+            <tr>
+              <td>時間源殘留</td><td>實機查 TF 一律回「查不到該時間點」</td>
+              <td>實機仍開著 <span style="font-family:var(--mono)">use_sim_time</span>,在等 /clock</td>
+              <td>定位輸出整批被丟棄,看起來像定位掛了</td>
+              <td class="fix">啟動參數分離,納入 CI 啟動檢查</td>
+            </tr>
+            <tr>
+              <td>Executor 阻塞</td><td>回呼延遲,外觀酷似 TF 延遲</td>
+              <td>單執行緒 executor 被長工作卡住</td>
+              <td>誤判成網路問題,整個查錯方向</td>
+              <td class="fix">callback group 分離、改多執行緒 executor</td>
+            </tr>
+
+            <tr class="str-grp"><td colspan="5">
+              <span class="str-gtag str-gtag--act"><i></i>執行器 <em>命令下發時序</em></span>
+            </td></tr>
+            <tr>
+              <td>命令佇列積壓</td><td>命令下 20 cm,實機走 28 cm</td>
+              <td>驅動器韌體 FIFO 積 10 筆,回授迴路看不見在途命令</td>
+              <td>停不準、對位驗證過不了</td>
+              <td class="fix">下發速率對齊消化速率 ·
+                <a href="01_CmdBufferGap.html">看細部圖 →</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="str-out">
+      <div class="str-do">
+        <h5>我的做法</h5>
+        <ul>
+          <li>建立 <b>TF Tree 檢查工具</b>,自動化檢查連接關係與延遲</li>
+          <li><b>可視化 TF 關係與資料流</b>,讓斷鏈與時間錯位一眼看得出來</li>
+          <li>把 <b>QoS 與 domain 設定納入啟動檢查</b>,不相容在起機當下就擋下來,而不是跑到現場才發現收不到</li>
+          <li>建立 <b>Sim vs Real 差異分析清單</b>,現象進來先查表再開查</li>
+          <li>持續優化,<b>減少差異帶來的影響</b>而不只是記錄差異</li>
+        </ul>
+      </div>
+      <div class="str-res">
+        <div class="k">RESULT</div>
+        <p>縮小 Sim 與 Real 的差距,<br>提升實機表現穩定性
+          <span>模擬的結論能拿來預測實機行為,模擬才算數——這是整條閉環存在的理由。</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <p class="str-note">
+    介面與圖形為示意;表中各列為實際遇過並處理的落差類型。
+  </p>
+</div>
+
+</body>
+</html>
