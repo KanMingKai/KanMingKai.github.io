@@ -256,6 +256,20 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 .pt-verify:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .pt-verify .ic{font-size:10px;opacity:.75}
 .pt-no-plain{font-family:var(--mono);font-size:15.5px;font-weight:700;color:var(--blue);letter-spacing:.01em}
+
+/* 「查看簡述」—— 取代原本標題後面那個 .jump「看完整專案 →」的連結,
+   改放到左邊的 .xp-m metric 欄,與 .pt-verify(專利的「Google Patents 查證」)
+   同一個視覺家族:一樣的藥丸外形、一樣住在 .xp-m 裡。
+   ★ 它是導覽連結而不是展開鈕 —— 底下的三條要點一律保持展開,不收合。
+     所以圖示用 →(站內既有 .jump 的慣例),不是 ↗(那是外連)也不是 ▾(那是展開)。 */
+.xp-brief{display:inline-flex;align-items:center;gap:5px;margin-top:9px;
+  font-size:11.5px;font-weight:600;line-height:1;text-decoration:none;
+  color:var(--blue);background:#eef5ff;border:1px solid #cfe2fb;border-radius:8px;
+  padding:6px 11px;transition:background .18s,border-color .18s,color .18s}
+.xp-brief:hover{background:#dce9fb;border-color:var(--blue);color:var(--blue-d)}
+.xp-brief:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.xp-brief .ic{font-size:10px;opacity:.75}
+@media(max-width:640px){ .xp-m .xp-brief{grid-column:1/-1;justify-self:start;margin-top:4px} }
 @media(max-width:640px){.edu{grid-template-columns:1fr;gap:6px}}
 </style>
 </head>
@@ -340,7 +354,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 
 <section style="background:var(--bg-alt)">
 <div class="wrap">
-  <div class="co reveal">
+  <div class="co reveal" id="co-fih-robotics">
     <div class="co-head">
       <span class="co-name">富智康 FIH · Robotics<span class="co-grp">鴻海集團</span></span>
       <span class="co-period">2025.05 – 現職</span>
@@ -348,10 +362,10 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     </div>
     <p class="co-scope">主導工廠 AMR 的<b>評估與規劃架構</b>,跨 3 組協作,從系統規格、運動規劃到 Sim-to-Real 驗證;目標 2026 年 <b>20 台</b>上線。<code>Python</code> · <code>ROS 2 / Nav2</code> · <code>Isaac Sim</code>。</p>
 
-    <div class="xp">
-      <div class="xp-m"><div class="big sm">規格先行</div><div class="unit">車用 V 型開發流程</div></div>
+    <div class="xp" id="xp-transfer">
+      <div class="xp-m"><div class="big sm">規格先行</div><div class="unit">車用 V 型開發流程</div><a class="xp-brief" href="../process_page/01_process.html#transfer">看流程怎麼搬過來<span class="ic" aria-hidden="true">→</span></a></div>
       <div class="xp-c">
-        <h4>自研全域導航規劃模組 · 以車用 V 型流程開發<a class="jump" href="../process_page/01_process.html#transfer">看流程怎麼搬過來 →</a></h4>
+        <h4>自研全域導航規劃模組 · 以車用 V 型流程開發</h4>
         <p class="xp-sum">用<span class="hl">系統設計規格</span>驅動演算法開發,並把 <span class="hl">Simulink 模型化設計</span>的分層方法移植到 Python 物件導向</p>
         <div class="xp-detail">
         <ul>
@@ -428,7 +442,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 
 <section>
 <div class="wrap">
-  <div class="co reveal">
+  <div class="co reveal" id="co-mobiledrive">
     <div class="co-head">
       <span class="co-name">富智捷 MobileDrive<span class="co-grp">鴻海集團 × Stellantis 合資</span></span>
       <span class="co-period">2021.06 – 2025.06</span>
@@ -436,10 +450,10 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     </div>
     <p class="co-scope">量產 ADAS 橫向控制框架;技術交付 <b>6+ 整車客戶</b>(BYD 比亞迪、Windrose 葦渡、CMC 中華汽車),成果上 <b>5 款量產車 · L2.9</b> 高速公路自駕。</p>
 
-    <div class="xp">
-      <div class="xp-m"><div class="big">2~3 天</div><div class="unit">原 4 個月+</div></div>
+    <div class="xp" id="xp-trj">
+      <div class="xp-m"><div class="big">2~3 天</div><div class="unit">原 4 個月+</div><a class="xp-brief" href="../trj_page/01_trj_page.html">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
       <div class="xp-c">
-        <h4>TRJ 通用型軌跡規劃架構<a class="jump" href="../trj_page/01_trj_page.html">看完整專案 →</a></h4>
+        <h4>TRJ 通用型軌跡規劃架構</h4>
         <p class="xp-sum">主導架構收斂:開發週期 <span class="hl">4 個月+ → 2~3 天</span>、運算量降至原 <span class="hl">37%</span>|專利 <a class="pt-link" href="https://patents.google.com/patent/TW202426860A/zh" target="_blank" rel="noopener"><span class="hl">TW202426860A</span></a></p>
         <div class="xp-detail">
         <ul>
@@ -451,8 +465,8 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
       </div>
     </div>
 
-    <div class="xp">
-      <div class="xp-m"><div class="big">5 款車</div><div class="unit">台 3 · 中 2 · L2.9</div></div>
+    <div class="xp" id="xp-platforms">
+      <div class="xp-m"><div class="big">5 款車</div><div class="unit">台 3 · 中 2 · L2.9</div><a class="xp-brief" href="../trj_page/01_trj_page.html#platforms">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
       <div class="xp-c">
         <h4>L2.9 高速公路自駕量產 · 中國現場技術整合與展示</h4>
         <p class="xp-sum">與<span class="hl">覺非科技</span>合作導入地圖資訊實現<span class="hl">自動上下匝道</span>達 <span class="hl">L2.9</span>,向 <span class="hl">6 家</span>一線車廠與 Tier 1 現場展示</p>
@@ -466,10 +480,10 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
       </div>
     </div>
 
-    <div class="xp">
-      <div class="xp-m"><div class="big sm">4 家供應商</div><div class="unit">感知品質橫向評測</div></div>
+    <div class="xp" id="xp-influence">
+      <div class="xp-m"><div class="big sm">4 家供應商</div><div class="unit">感知品質橫向評測</div><a class="xp-brief" href="../lfs_page/lfs01.html#influence">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
       <div class="xp-c">
-        <h4>Mini-FOT 車道感知驗證框架<a class="jump" href="../lfs_page/lfs01.html#influence">看完整專案 →</a></h4>
+        <h4>Mini-FOT 車道感知驗證框架</h4>
         <p class="xp-sum">建立<span class="hl">自動失敗擷取</span>與<span class="hl">場景重播</span>機制,執行深圳 → 上海 <span class="hl">1,600 km</span> 長途實車驗證</p>
         <div class="xp-detail">
         <ul>
@@ -481,10 +495,10 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
       </div>
     </div>
 
-    <div class="xp">
-      <div class="xp-m"><div class="big sm">120 小時</div><div class="unit">ISO 26262 + ASPICE 訓練</div></div>
+    <div class="xp" id="xp-process">
+      <div class="xp-m"><div class="big sm">120 小時</div><div class="unit">ISO 26262 + ASPICE 訓練</div><a class="xp-brief" href="../process_page/01_process.html">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
       <div class="xp-c">
-        <h4>功能安全與流程合規 · 訓練、導入與供應商稽核<a class="jump" href="../process_page/01_process.html">看完整專案 →</a></h4>
+        <h4>功能安全與流程合規 · 訓練、導入與供應商稽核</h4>
         <p class="xp-sum">完成 <span class="hl">80h ISO 26262 + 40h ASPICE</span> 正式訓練,參與公司取得 <span class="hl">DEKRA ISO 26262 ASIL-D</span> 認證</p>
         <div class="xp-detail">
         <ul>
@@ -501,7 +515,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 
 <section style="background:var(--bg-alt)">
 <div class="wrap">
-  <div class="co reveal">
+  <div class="co reveal" id="co-fih-adas">
     <div class="co-head">
       <span class="co-name">富智康 FIH · ADAS<span class="co-grp">鴻海集團</span></span>
       <span class="co-period">2020.05 – 2021.06</span>
@@ -509,10 +523,10 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     </div>
     <p class="co-scope">專責 ADAS 橫向控制的<b>車道融合系統(LFS)</b>:與 Siemens 依 <b>ISO 26262</b> 流程共同開發,並在同一期間解決 LFS 上游三項<b>感知品質根因問題</b>。<code>MATLAB / Simulink</code> · <code>Polarion</code> · <code>INCA</code>。</p>
 
-    <div class="xp">
-      <div class="xp-m"><div class="big sm">12 個月</div><div class="unit">Siemens 共同開發</div></div>
+    <div class="xp" id="xp-safety">
+      <div class="xp-m"><div class="big sm">12 個月</div><div class="unit">Siemens 共同開發</div><a class="xp-brief" href="../lfs_page/lfs01.html#safety">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
       <div class="xp-c">
-        <h4>車道融合模組(Lane Fusion)功能安全與實車標定<a class="jump" href="../lfs_page/lfs01.html">看完整專案 →</a></h4>
+        <h4>車道融合模組(Lane Fusion)功能安全與實車標定</h4>
         <p class="xp-sum">我方技術主責,依 <span class="hl">ISO 26262</span> 推進自開發至量產,導入 <span class="hl">2 款量產車型</span></p>
         <div class="xp-detail">
         <ul>
@@ -524,10 +538,10 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
       </div>
     </div>
 
-    <div class="xp">
-      <div class="xp-m"><div class="big sm">3 款車型</div><div class="unit">客訴為零</div></div>
+    <div class="xp" id="xp-architecture">
+      <div class="xp-m"><div class="big sm">3 款車型</div><div class="unit">客訴為零</div><a class="xp-brief" href="../lfs_page/lfs01.html#architecture">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
       <div class="xp-c">
-        <h4>C1 Bias 估測器(攝影機光軸偏航偵測)<a class="jump" href="../lfs_page/lfs01.html#architecture">看完整專案 →</a></h4>
+        <h4>C1 Bias 估測器(攝影機光軸偏航偵測)</h4>
         <p class="xp-sum">自建驗證工具,偏差補償率 <span class="hl">86.81%</span>;後續產品化為量產功能,獲 <span class="hl">2025 量產計畫</span>採用</p>
         <div class="xp-detail">
         <ul>
@@ -539,10 +553,10 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
       </div>
     </div>
 
-    <div class="xp">
-      <div class="xp-m"><div class="big sm">$470–625K</div><div class="unit">替代供應商開發案</div></div>
+    <div class="xp" id="xp-decision-1">
+      <div class="xp-m"><div class="big sm">$470–625K</div><div class="unit">替代供應商開發案</div><a class="xp-brief" href="../lfs_page/lfs01.html#decision-1">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
       <div class="xp-c">
-        <h4>車道線後處理演算法<a class="jump" href="../lfs_page/lfs01.html#decision-1">看完整專案 →</a></h4>
+        <h4>車道線後處理演算法</h4>
         <p class="xp-sum">以自研軟體後處理取代感知供應商重新開發,零硬體成本,沿用至 <span class="hl">4 款量產車型</span></p>
         <div class="xp-detail">
         <ul>
@@ -554,10 +568,10 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
       </div>
     </div>
 
-    <div class="xp">
-      <div class="xp-m"><div class="big sm">4 款量產車</div><div class="unit">彎道誤報零回報</div></div>
+    <div class="xp" id="xp-decision-2">
+      <div class="xp-m"><div class="big sm">4 款量產車</div><div class="unit">彎道誤報零回報</div><a class="xp-brief" href="../lfs_page/lfs01.html#decision-2">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
       <div class="xp-c">
-        <h4>道路曲率估算公式根因修正<a class="jump" href="../lfs_page/lfs01.html#decision-2">看完整專案 →</a></h4>
+        <h4>道路曲率估算公式根因修正</h4>
         <p class="xp-sum">修正跨系統長期沿用的曲率公式,消除 LKA <span class="hl">彎道誤報</span>,同步導入 <span class="hl">4 款量產車型</span></p>
         <div class="xp-detail">
         <ul>
@@ -574,7 +588,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 
 <section>
 <div class="wrap">
-  <div class="co reveal">
+  <div class="co reveal" id="co-ncsist">
     <div class="co-head">
       <span class="co-name">國家中山科學研究院</span>
       <span class="co-period">2019.01 – 2020.10</span>
@@ -582,8 +596,8 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     </div>
     <p class="co-scope">碩士最後一年進中科院。<b>中科院具備比例閥油壓硬體、指導教授具備控制理論,我以控制專業擔任兩者之間的技術轉化角色</b>,從零建立機車 ABS 控制系統;帶 4 人跨領域團隊。</p>
 
-    <div class="xp">
-      <div class="xp-m"><div class="big">短 20<span style="font-size:12px">%</span></div><div class="unit">煞停距離</div></div>
+    <div class="xp" id="xp-ncsist">
+      <div class="xp-m"><div class="big">短 20<span style="font-size:12px">%</span></div><div class="unit">煞停距離</div><a class="xp-brief" href="../ibooster_page/01_ibooster.html#ncsist">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
       <div class="xp-c">
         <h4>機車 ABS · 把控制理論落到既有油壓硬體上</h4>
         <p class="xp-sum">以 dSPACE 快速原型串起 <span class="hl">控制演算法 → 硬體控制電路 → 比例閥油壓</span>,煞停距離較傳統短 <span class="hl">20%</span>,逼近理論最短</p>
@@ -597,8 +611,8 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
       </div>
     </div>
 
-    <div class="xp">
-      <div class="xp-m"><div class="big sm">2 估測器</div><div class="unit">專利 TWI719598B</div></div>
+    <div class="xp" id="xp-estimators">
+      <div class="xp-m"><div class="big sm">2 估測器</div><div class="unit">專利 TWI719598B</div><a class="xp-brief" href="../ibooster_page/01_ibooster.html#ncsist">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
       <div class="xp-c">
         <h4>車速與最大路面摩擦係數估測器設計</h4>
         <p class="xp-sum">設計 ABS 的兩個<span class="hl">不可直接量測量</span>;摩擦係數估測方法取得專利 <span class="hl">TWI719598B</span>,掛第一發明人</p>
@@ -617,7 +631,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 
 <section style="background:var(--bg-alt)">
 <div class="wrap">
-  <div class="co reveal">
+  <div class="co reveal" id="co-haitec">
     <div class="co-head">
       <span class="co-name">華創車電技術中心 HAITEC</span>
       <span class="co-period">2018.07 – 2018.08</span>

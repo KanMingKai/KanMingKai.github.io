@@ -90,3 +90,26 @@
 
 /* 錨點不要被兩層固定列蓋住(52px + chnav 約 45px) */
 section[id]{scroll-margin-top:108px}
+/* 履歷頁的經歷項目與公司區塊也會被當成錨點(各專案頁的「回履歷」指過來),
+   它們不是 <section>,所以上面那條吃不到,要各自補一份。 */
+.xp[id],.co[id]{scroll-margin-top:108px}
+
+/* ---------- .chnav 裡的「回履歷」 ----------
+   位置刻意放在最左邊、章節籤之前:
+     .chnav .in 是 overflow-x:auto,窄螢幕上章節籤會往右溢出成捲動區。
+     若把回履歷放右邊(margin-left:auto),它在窄螢幕會被推到捲軸外面,
+     等於最需要它的裝置上最找不到它。放最左邊則永遠在視線內。
+   顏色用藍色系,與履歷頁那顆「查看簡述 →」成對 —— 一去一回是同一組動作;
+   章節籤是灰的(頁內跳轉),藍色代表「離開這一頁」。 */
+.chnav-back{flex:none;display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--sans);font-size:12.5px;font-weight:700;text-decoration:none;
+  color:var(--blue);background:#eef5ff;border:1px solid #cfe2fb;border-radius:980px;
+  padding:6px 13px;white-space:nowrap;
+  transition:background .15s ease,border-color .15s ease,color .15s ease}
+.chnav-back:hover{background:#dce9fb;border-color:var(--blue);color:var(--blue-d)}
+.chnav-back:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+/* 與章節籤之間拉開一點,讓「離開本頁」和「頁內跳轉」兩組不會看起來像同一排 */
+.chnav-back{margin-right:6px;position:relative}
+.chnav-back::after{content:"";position:absolute;right:-6px;top:50%;transform:translateY(-50%);
+  width:1px;height:18px;background:var(--line)}
+@media(max-width:640px){ .chnav-back{font-size:12px;padding:5px 11px} }

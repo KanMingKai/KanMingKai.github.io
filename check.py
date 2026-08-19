@@ -154,6 +154,68 @@ def tracked_html():
     return sorted(glob.glob('*.html') + glob.glob('*/*.html'))
 
 
+RESUME = 'home/index.html'
+
+
+def check_resume_pairs():
+    """履歷 ⇄ 專案頁的雙向連結是否對得上。
+
+    去程:履歷項目的「查看簡述 →」(.xp-brief)指到某頁的某個錨點。
+    回程:各專案頁 .chnav 的「回履歷」按鈕,依當前章節的 data-resume
+          (沒有則用 .chnav-back 的 data-resume-default)指回履歷的某個 id。
+
+    這兩邊是分別手寫在不同檔案裡的,沒有單一來源 —— 改了一邊忘了另一邊
+    不會有任何錯誤訊息,這個函式就是那個錯誤訊息。
+
+    命名慣例:履歷項目的 id 用 xp- 加上它指向的錨點名(xp-safety ⇄ #safety),
+    退回公司層級的則是 co-。對不上的只給 WARN,因為 co- 那種本來就不對稱。
+    """
+    fails = []
+    if not os.path.exists(RESUME):
+        return ['找不到 %s' % RESUME]
+    home = read(RESUME)
+    home_ids = set(re.findall(r'\bid="([^"]+)"', home))
+
+    # --- 去程:.xp-brief 的目標檔與錨點都要在 ---
+    for href in re.findall(r'<a class="xp-brief" href="([^"]+)"', home):
+        path, _, frag = href.partition('#')
+        target = os.path.normpath(os.path.join(os.path.dirname(RESUME), path))
+        if not os.path.exists(target):
+            fails.append('%s  查看簡述指向不存在的檔案: %s' % (RESUME, href))
+            continue
+        if frag and frag not in set(re.findall(r'\bid="([^"]+)"', read(target))):
+            fails.append('%s  查看簡述指向不存在的錨點: %s' % (RESUME, href))
+
+    # --- 回程:各頁的 data-resume / data-resume-default 都要在履歷上找得到 ---
+    for page in tracked_html():
+        if page == RESUME:
+            continue
+        s = read(page)
+        for attr in ('data-resume', 'data-resume-default'):
+            for rid in re.findall(r'\b%s="([^"]+)"' % attr, s):
+                if rid not in home_ids:
+                    fails.append('%s  %s="%s" 在履歷上找不到對應的 id' % (page, attr, rid))
+    return fails
+
+
+def check_pair_symmetry():
+    """WARN 級:去程錨點與回程 id 的命名是否成對(#safety ⇄ xp-safety)。
+       不成對不一定是錯(退回公司層級的 co- 就是刻意不成對),只是提醒。"""
+    warns = []
+    if not os.path.exists(RESUME):
+        return warns
+    home = read(RESUME)
+    # 每個帶 .xp-brief 的履歷項目:它自己的 id vs 它指向的錨點
+    for m in re.finditer(r'<div class="xp" id="([^"]+)">(.{0,2000}?)</div>\s*\n\s*<div class="xp-c">',
+                         home, re.S):
+        xid, block = m.group(1), m.group(2)
+        h = re.search(r'<a class="xp-brief" href="[^"#]*#([^"]+)"', block)
+        if h and xid != 'xp-' + h.group(1):
+            warns.append('%s  項目 id「%s」與它指向的錨點「#%s」不成對(慣例是 xp-<錨點名>)'
+                         % (RESUME, xid, h.group(1)))
+    return warns
+
+
 def check_orphans_and_todos():
     warns = []
     files = tracked_html()
@@ -180,6 +242,8 @@ def main():
     sections = [
         ('數字一致性', check_numbers(), True),
         ('連結與錨點', check_links(), True),
+        ('履歷⇄專案頁雙向連結', check_resume_pairs(), True),
+        ('雙向命名成對', check_pair_symmetry(), False),
         ('孤兒與待補', check_orphans_and_todos(), False),
     ]
     failed = 0

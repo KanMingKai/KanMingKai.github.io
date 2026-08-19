@@ -401,13 +401,15 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 <!-- 章節快速跳轉。data-sec 必須等於對應 <section> 的 id,捲動高亮才會生效。 -->
 <nav class="chnav" aria-label="章節導覽">
   <div class="in">
+    <a class="chnav-back" id="chnav-back" href="../home/index.html#xp-trj"
+       data-resume-default="xp-trj">← 回履歷</a>
     <a href="#problem"       data-sec="problem">題目與限制</a>
     <a href="#methods"       data-sec="methods">方法比較</a>
     <a href="#analogy"       data-sec="analogy">跨域類比</a>
     <a href="#design"        data-sec="design">怎麼設計</a>
     <a href="#rollout"       data-sec="rollout">團隊共用</a>
     <a href="#functions"     data-sec="functions">功能 Demo</a>
-    <a href="#platforms"     data-sec="platforms">跨平台</a>
+    <a href="#platforms"     data-sec="platforms" data-resume="xp-platforms">跨平台</a>
     <a href="#reflection"    data-sec="reflection">反思</a>
   </div>
 </nav>
