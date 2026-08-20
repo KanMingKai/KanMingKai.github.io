@@ -21,23 +21,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1
 .eyebrow{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px}
 h1{font-size:clamp(26px,3.8vw,38px);font-weight:700;letter-spacing:-.015em;line-height:1.2}
 h1 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.belief{margin-top:16px;font-size:15px;color:var(--ink);font-weight:600;border-left:3px solid var(--blue);padding-left:14px;line-height:1.6}
-/* 一句話把四個專案頁串成一條鏈(感知 → 決策 → 致動)。
-   刻意不加左邊框 —— 上面的 .belief 已經有一條藍邊,再來一條會變成
-   兩句在互相搶重點。這句的重量靠開頭那三個詞與四個連結撐,不靠框線。
-   ★ 連結文字寫「做了什麼」而不是頁面名稱:頁面名稱在導覽列已經有一份,
-     這裡再列一次只是重複;寫成一句話才有串起來的作用。 */
-.chain{margin-top:14px;font-size:14.5px;color:var(--ink-2);line-height:1.9;max-width:680px}
-.chain .arrow{color:var(--ink);font-weight:800;letter-spacing:.02em}
-.chain a{color:var(--blue);text-decoration:none;border-bottom:1px solid rgba(0,113,227,.3);transition:border-color .2s ease}
-.chain a:hover,.chain a:focus-visible{border-bottom-color:currentColor}
-@media(prefers-reduced-motion:reduce){ .chain a{transition:none} }
-
 /* reveal */
 .reveal{opacity:1;transform:none}
 
 /* stat chips */
-.stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+/* 數字緊貼 h2(是同一句話的證據),與底下的散文之間反而要拉開,兩者才不會黏成一團 */
+.stats+.lead{margin-top:24px}
 .chip{border:1px solid var(--line);border-radius:11px;padding:11px 15px;background:#fff}
 .chip .v{font-size:16px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
 .chip .v.m{font-family:var(--mono)}
@@ -286,6 +276,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
       <a class="tab-l" href="../trj_page/01_trj_page.html">軌跡規劃經驗</a>
       <a class="tab-l" href="../dash_page/01_dash_page.html">AMR系統整合</a>
       <a class="tab-l" href="../ibooster_page/01_ibooster.html">底層控制經驗(研究所)</a>
+      <a class="tab-l" href="../process_page/01_process.html">車用法規經驗</a>
     </div>
   </div>
 </nav>
@@ -327,26 +318,22 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
   <div class="sec-head reveal">
     <div class="eyebrow">工作經歷 · Experience</div>
     <h2 class="h">量產 ADAS 與工廠機器人,<span class="grad">兩邊都真的出過貨</span></h2>
-    <p class="lead">在自主系統的兩端都做過、也都上線:量產 ADAS(高速公路 L2.9)與工廠 AMR。最自豪的一件事——發現每個功能團隊都在各做一套軌跡邏輯,於是退一步看人到底怎麼開車,把整套橫向規劃收斂成一個共用模組(TRJ):新功能只需定義參考線與偏移量,開發時間從 4 個月縮到 2~3 天。同一套「找結構性根因、以簡馭繁」的做法,現在正搬到工廠機器人上。</p>
-    <p class="belief">穩定的路徑感知,才能支撐無震盪的軌跡決策。</p>
-
-    <!-- 定位敘述:把四個專案頁串成一條「感知 → 決策 → 致動」的鏈。
-         導覽列只列得出四個頁名,列不出它們之間的關係;這一句補的就是關係。 -->
-    <p class="chain">
-      <span class="arrow">感知 → 決策 → 致動</span>，這條鏈的每一段我都親手做過 ——
-      <a href="../lfs_page/lfs01.html">讓不完美的感知也能安全地用</a>、
-      <a href="../trj_page/01_trj_page.html">把 9 項橫向功能收斂成一個軌跡模組</a>、
-      <a href="../dash_page/01_dash_page.html">把整套搬上工廠機器人</a>，
-      以及研究所時期<a href="../ibooster_page/01_ibooster.html">拆開一顆電子煞車助力器、把控制權重建回來</a>。
-      這四段共用同一條<a href="../process_page/01_process.html">車規 V 模型與功能安全流程</a>——它是把這些成果交得出去的那條線。
-    </p>
-
+    <!-- 數字擺在 h2 正下方而不是整塊的最後:這一塊的讀者是先掃、後讀,
+         把四個數字放在 lead 後面等於要人先讀 250 字才看得到證據,
+         而且在 1000px 高的首屏會剛好被切掉。
+         四張都是數字 —— 原本第一張「ADAS → AMR」是標籤不是數字,
+         內容又跟 h2 重複,已移除。
+         ★ 470–625K 是供應商「評估階段的報價」,不是核下來的預算,
+           所以寫「以自研取代」而不是「省下」—— 後者在面試被追問
+           「這筆預算核了嗎」會站不住。 -->
     <div class="stats">
-      <div class="chip"><div class="v">ADAS → AMR</div><div class="l">量產與工廠機器人</div></div>
       <div class="chip"><div class="v m">5 款</div><div class="l">量產車 · L2.9 上路</div></div>
       <div class="chip"><div class="v m">2~3 天</div><div class="l">新功能開發(原 4 個月+)</div></div>
+      <div class="chip"><div class="v m">$470–625K</div><div class="l">供應商報價 · 以自研取代</div></div>
       <div class="chip"><div class="v m">4 項</div><div class="l">發明專利 · 3 已獲證</div></div>
     </div>
+    <p class="lead">在自主系統的兩端都做過、也都上線:量產 ADAS(高速公路 L2.9)與工廠 AMR。最自豪的一件事——發現每個功能團隊都在各做一套軌跡邏輯,於是退一步看人到底怎麼開車,把整套橫向規劃收斂成一個共用模組(TRJ):新功能只需定義參考線與偏移量,開發時間從 4 個月縮到 2~3 天。同一套「找結構性根因、以簡馭繁」的做法,現在正搬到工廠機器人上。</p>
+
   </div>
 
 </div>
@@ -437,60 +424,60 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     <p class="co-scope">量產 ADAS 橫向控制框架;技術交付 <b>6+ 整車客戶</b>(BYD 比亞迪、Windrose 葦渡、CMC 中華汽車),成果上 <b>5 款量產車 · L2.9</b> 高速公路自駕。</p>
 
     <div class="xp" id="xp-trj">
-      <div class="xp-m"><div class="big">2~3 天</div><div class="unit">原 4 個月+</div><a class="xp-brief" href="../trj_page/01_trj_page.html">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
+      <div class="xp-m"><div class="big">2~3 天</div><div class="unit">原 4 個月+</div><a class="xp-brief" href="../trj_page/01_trj_page.html">查看簡述<span class="ic" aria-hidden="true">&rarr;</span></a></div>
       <div class="xp-c">
-        <h4>TRJ 通用型軌跡規劃架構</h4>
-        <p class="xp-sum">主導架構收斂:開發週期 <span class="hl">4 個月+ → 2~3 天</span>、運算量降至原 <span class="hl">37%</span>|專利 <a class="pt-link" href="https://patents.google.com/patent/TW202426860A/zh" target="_blank" rel="noopener"><span class="hl">TW202426860A</span></a></p>
+        <h4>通用於所有自動駕駛的軌跡規劃架構設計</h4>
+        <p class="xp-sum">主導架構收斂:開發週期 <span class="hl">4 個月+ &rarr; 2~3 天</span>、運算量降至原 <span class="hl">37%</span>|專利 <a class="pt-link" href="https://patents.google.com/patent/TW202426860A/zh" target="_blank" rel="noopener"><span class="hl">TW202426860A</span></a></p>
         <div class="xp-detail">
         <ul>
-          <li>各橫向功能長期各自實作一套軌跡邏輯,是開發成本與驗證負擔的結構性來源;由<b>人類駕駛行為回推</b>,歸納出橫向操作僅有兩種原型——沿參考線行駛、或相對參考線偏移——據此將所有橫向功能收斂為單一共用規劃模組</li>
-          <li>主導架構設計與跨功能導入,<span class="out">新增功能僅需定義參考線與偏移量,無須重寫軌跡邏輯</span>;驗證週期亦由 1 年縮短至 1 個月</li>
-          <li>已於該架構上實現自動變道、取消變道、上/下匝道、緊急逃生車道、人機共駕、大車偏移等 <b>9 項橫向功能</b>;其中 <b>5 項由我獨立落地</b>,另 <b>4 項由同事各以約 2 天接入</b>——<span class="out">別人能在兩天內接上,才證明它真的是共用模組</span></li>
+          <li><b>第一性原理 &middot; 用減法設計</b>:各橫向功能各自為政,系統複雜度與潛在風險都是從這裡長出來的。回頭看<b>人到底怎麼開車</b>,發現橫向操作其實只有兩種原型——<b>沿參考線走</b>、或<b>相對參考線偏移</b>;照這兩種把全部功能收斂成一個共用模組,冗餘邏輯從結構上就沒了(<b>專利申請中</b>)</li>
+          <li><b>契合 ISO 精神,也縮短 Time-to-market</b>:收斂之後立下一條標準——<span class="out">新增功能只需定義參考線與偏移量</span>。運算量降到原本的 <b>37%</b>;驗證路徑集中成一條,<b>系統性失效(Systematic Failures)的風險也跟著收斂</b>——這才是 ISO 26262 在意的事,不是多寫幾份文件。開發週期 <b>4 個月+ &rarr; 2~3 天</b>,驗證週期 1 年 &rarr; 1 個月</li>
+          <li><b>高度複用 &middot; Proven-in-use</b>:帶跨功能導入 <b>9 項橫向功能</b>(自動變道、取消變道、上/下匝道、緊急逃生車道、人機共駕、大車偏移);其中 <b>5 項由我獨立落地</b>,另 <b>4 項由同事各以約 2 天接入</b>——<span class="out">別人能在兩天內接上,才證明它真的是共用模組</span>,不是只有我會用的東西</li>
         </ul>
         </div>
       </div>
     </div>
 
     <div class="xp" id="xp-platforms">
-      <div class="xp-m"><div class="big">5 款車</div><div class="unit">台 3 · 中 2 · L2.9</div><a class="xp-brief" href="../trj_page/01_trj_page.html#platforms">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
+      <div class="xp-m"><div class="big sm">5 款車</div><div class="unit">台 3 &middot; 中 2 &middot; L2.9</div><a class="xp-brief" href="../trj_page/01_trj_page.html#platforms">查看簡述<span class="ic" aria-hidden="true">&rarr;</span></a></div>
       <div class="xp-c">
-        <h4>L2.9 高速公路自駕量產 · 中國現場技術整合與展示</h4>
-        <p class="xp-sum">與<span class="hl">覺非科技</span>合作導入地圖資訊實現<span class="hl">自動上下匝道</span>達 <span class="hl">L2.9</span>,向 <span class="hl">6 家</span>一線車廠與 Tier 1 現場展示</p>
+        <h4>打通圖資與 ADAS &middot; L2.9 高速公路自駕量產</h4>
+        <p class="xp-sum">與<span class="hl">覺非科技</span>對接圖資實現<span class="hl">自動上下匝道</span>達 <span class="hl">L2.9</span>,向 <span class="hl">6 家</span>一線車廠與 Tier 1 現場展示</p>
         <div class="xp-detail">
         <ul>
-          <li>赴中國與地圖廠商<b>覺非科技</b>合作,<b>HD map 與 ADAS/SD map 兩種規格皆完成導入</b>,實現<b>自動上下匝道</b>,將系統能力提升至 <b>L2.9</b>(高速公路點到點);匝道軌跡由自研 TRJ 架構規劃</li>
-          <li>導入 <b>Free Space</b>(可行駛區域)資訊,擴充<b>市區</b>自動駕駛能力</li>
-          <li>於<b>深圳、南京、上海、蘇州 4 地</b>進行現場整合;向<b>一汽、BYD、合眾、CMC 中華汽車、Lexgen 納智捷</b>等整車廠與 <b>BOSCH</b> 等 Tier 1 共 <b>6 家</b>現場展示系統能力(台灣、中國兩地);<span class="out">成果上 5 款量產車(台灣 3、中國 2)</span></li>
+          <li><b>打通圖資與 ADAS &middot; 實現 L2.9 自動上下匝道</b>:赴中國與地圖廠商<b>覺非科技</b>對接,主導底層圖資解析,把 <b>SD / ADAS Map</b> 的道路幾何接進自研的 TRJ 軌跡模組(<b>HD map 與 ADAS/SD map 兩種規格皆完成導入</b>)。系統因此拿到<b>自動上下匝道</b>的能力,高速公路自駕推進到 <b>L2.9 點到點</b></li>
+          <li><b>實地技術對接與大廠展示</b>:在<b>深圳、南京、上海、蘇州 4 地</b>做實車測試與系統除錯,處理圖資與異構系統對接的問題;向<b>一汽、BYD、合眾、CMC 中華汽車、Lexgen 納智捷</b>等整車廠與 <b>BOSCH</b> 等 Tier 1 共 <b>6 家</b>現場展示時擔任技術窗口——<span class="out">業務談得下去的前提,是系統在客戶面前不能出事</span></li>
+          <li><b>量產落地與 ODD 擴充</b>:把核心自駕系統推進到符合車規驗證標準,落地 <b>5 款量產車(台灣 3、中國 2)</b>;另整合 <b>Free Space</b>(可行駛區域)感知資訊擴充 <b>ODD</b>,為<b>市區</b>自動駕駛鋪路</li>
         </ul>
         </div>
       </div>
     </div>
 
     <div class="xp" id="xp-influence">
-      <div class="xp-m"><div class="big sm">4 家供應商</div><div class="unit">感知品質橫向評測</div><a class="xp-brief" href="../lfs_page/lfs01.html#influence">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
+      <div class="xp-m"><div class="big sm">4 家供應商</div><div class="unit">感知品質橫向評測</div><a class="xp-brief" href="../lfs_page/lfs01.html#influence">查看簡述<span class="ic" aria-hidden="true">&rarr;</span></a></div>
       <div class="xp-c">
         <h4>Mini-FOT 車道感知驗證框架</h4>
-        <p class="xp-sum">建立<span class="hl">自動失敗擷取</span>與<span class="hl">場景重播</span>機制,執行深圳 → 上海 <span class="hl">1,600 km</span> 長途實車驗證</p>
+        <p class="xp-sum">建立<span class="hl">車道線快速標註流程</span>與<span class="hl">場景重播</span>機制,執行深圳 &rarr; 上海 <span class="hl">1,600 km</span> 長途實車驗證</p>
         <div class="xp-detail">
         <ul>
-          <li>執行深圳至上海 1,600 km <b>Mini-FOT</b>(Field Operational Test),開發<b>自動失敗擷取工具</b>,自長里程 log 中自動篩出車道偵測失效案例,取代人工逐段檢視</li>
-          <li>建立<b>場景重播機制</b>,重建失效當下之環境條件以執行變道與橫向控制回歸測試,用於驗證 TRJ 通用型軌跡規劃架構的系統穩定性</li>
-          <li>以<span class="out">同一套框架與判準</span>對 Mobileye、StradVision、Horizon Robotics、PCT(FIH) 進行橫向評測,建立跨供應商的品質比較基準;並將評測方法與失效案例回饋新創供應商,支援其車道偵測演算法研發</li>
+          <li>執行深圳至上海 <b>1,600 km</b> 的 <b>Mini-FOT</b>(Field Operational Test)。長里程 log 靠人工逐段看不完,所以先建一套<b>車道線快速標註流程</b>讓跨團隊照著產出 <b>Ground Truth</b>,再拿標註與感知輸出比對,<span class="out">把車道感知的缺陷直接定位出來</span></li>
+          <li>針對篩出來的失效案例建立<b>場景重播機制</b>,把當下的環境條件還原回來,跑變道與橫向控制的<b>回歸測試</b>——用來驗證 TRJ 軌跡架構在真實極端情況下站不站得住</li>
+          <li>同一套框架與判準橫向套到 <b>Mobileye、StradVision、Horizon Robotics、PCT(FIH) 4 家供應商</b>,建立跨廠牌的品質比較基準;失效案例與評測方法也回饋給新創供應商,協助他們找出盲點、改進車道偵測演算法</li>
         </ul>
         </div>
       </div>
     </div>
 
     <div class="xp" id="xp-process">
-      <div class="xp-m"><div class="big sm">120 小時</div><div class="unit">ISO 26262 + ASPICE 訓練</div><a class="xp-brief" href="../process_page/01_process.html">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
+      <div class="xp-m"><div class="big sm">120 小時</div><div class="unit">ISO 26262 + ASPICE 訓練</div><a class="xp-brief" href="../process_page/01_process.html">查看簡述<span class="ic" aria-hidden="true">&rarr;</span></a><a class="pt-verify" href="https://www.fihmobile.com/tw/article/143-mobiledrive-iso26262" target="_blank" rel="noopener">公司認證新聞稿查證<span class="ic">&#8599;</span></a></div>
       <div class="xp-c">
-        <h4>功能安全與流程合規 · 訓練、導入與供應商稽核</h4>
+        <h4>功能安全與流程合規 &middot; 訓練、導入與供應商稽核</h4>
         <p class="xp-sum">完成 <span class="hl">80h ISO 26262 + 40h ASPICE</span> 正式訓練,參與公司取得 <span class="hl">DEKRA ISO 26262 ASIL-D</span> 認證</p>
         <div class="xp-detail">
         <ul>
-          <li>完成 <b>80 小時 ISO 26262</b> 與 <b>40 小時 ASPICE</b> 正式訓練,並將流程實際導入 <b>LFS 車道融合</b>與 <b>TRJ 軌跡規劃</b>兩個量產模組的開發流程</li>
-          <li>擔任 <b>ASPICE 供應商稽核</b>,以流程能力視角檢核供應商之需求追溯、設計與驗證產出</li>
-          <li>建立並維護需求 / 架構設計 / 系統測試規劃之<span class="out">雙向追溯</span>文件,參與公司通過 <b>DEKRA ISO 26262 ASIL-D</b> 認證(ISO 26262 最高等級),並配合 OEM 交付</li>
+          <li>完成 <b>80 小時 ISO 26262</b> 與 <b>40 小時 ASPICE</b> 正式訓練,並把流程實際導入 <b>LFS 車道融合</b>與 <b>TRJ 軌跡規劃</b>兩個量產模組:落實 <b>MAAB 建模規範</b>與 <b>Unit Test</b>,讓底層程式碼品質有標準可依</li>
+          <li>建立並維護<b>系統需求 &rarr; 架構設計 &rarr; 測試規劃</b>的雙向追溯文件,作為稽核證據。研發端把合規產出交齊,功能安全專責團隊才推得動——公司在該期間取得 <b>DEKRA ISO 26262 ASIL-D</b> 認證(ISO 26262 最高等級),並依同一套要求配合 OEM 交付</li>
+          <li>擔任 <b>ASPICE 供應商稽核</b>,從流程與技術兩個視角檢核供應商的需求追溯、設計依據與驗證產出,<span class="out">確保外部交付接得上內部的車規標準</span></li>
         </ul>
         </div>
       </div>
@@ -510,7 +497,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     <p class="co-scope">專責 ADAS 橫向控制的<b>車道融合系統(LFS)</b>:與 Siemens 依 <b>ISO 26262</b> 流程共同開發,並在同一期間解決 LFS 上游三項<b>感知品質根因問題</b>。<code>MATLAB / Simulink</code> · <code>Polarion</code> · <code>INCA</code>。</p>
 
     <div class="xp" id="xp-safety">
-      <div class="xp-m"><div class="big sm">12 個月</div><div class="unit">Siemens 共同開發</div><a class="xp-brief" href="../lfs_page/lfs01.html#safety">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
+      <div class="xp-m"><div class="big sm">12 個月</div><div class="unit">Siemens 共同開發</div><a class="xp-brief" href="../process_page/01_process.html#safety">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
       <div class="xp-c">
         <h4>車道融合模組(Lane Fusion)功能安全與實車標定</h4>
         <p class="xp-sum">我方技術主責,依 <span class="hl">ISO 26262</span> 推進自開發至量產,導入 <span class="hl">2 款量產車型</span></p>
@@ -789,59 +776,44 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
       <div class="ep-t">就學期間 · 產學與法人委託專案</div>
       <p class="ep-lead">碩士兩年在北科大先進車輛控制實驗室(陳柏全教授)承接 <b>7 件</b>業界與法人委託案，主題集中在<b>線控煞車與 ABS 估測控制</b>——同一顆致動器從機構、電路、控制到驗證做過一遍。工研院兩案為有合約金額與查核點的正式學研合作案，我為主要執行人(計畫主持人為指導教授)。</p>
 
+      <!-- 七件收成四則。工研院那三件是同一顆致動器的三個面向,併成一則;
+           聯華聚能與華創車電都是「交付能被審查的軟體」,也併成一則。
+           宏碁單獨留著 —— 它是唯一一件整車級系統整合,證明的東西跟另外三件
+           不同,而且是「底層控制經驗」那頁唯一沒有涵蓋到的一件。
+           各案的技術細節(bar 數、驅動電路、系統識別…)一律移除:那些在
+           ibooster 頁有完整版,履歷上重寫一次只是同一份東西的第二份副本。 -->
       <ul class="ev-list">
         <li>
           <span class="ev-tag">工研院</span>
           <div>
-            <div class="ev-t">電液壓煞車模組整合控制系統 · NT$70 萬學研合作案<span class="ep-per">2019.02 – 2019.08</span></div>
-            <div class="ev-d">完成 BWI 電液壓模組(EHB)的液壓迴路改裝與驅動電路設計，實作依煞車命令在<b>「駕駛者操控 / 自動駕駛 / 自動緊急煞車」三情境</b>間切換 i-booster 與 EHB 工作模式的整合策略；通過 <b>6/30 平台驗證</b>與 <b>8/31 實車測試</b>兩項合約查核點，期中／結案報告經工研院驗收。</div>
-          </div>
-        </li>
-        <li>
-          <span class="ev-tag">工研院</span>
-          <div>
-            <div class="ev-t">自動緊急煞車系統液壓模組開發與驗證 · NT$60 萬學研合作案<span class="ep-per">2019.02 – 2019.08</span></div>
-            <div class="ev-d">把<b>量產機車 ABS 模組反接進汽車煞車迴路</b>，驗證低成本 AEB 致動器方案:原廠零文件，自建閥性判定方法與 pin mapping、設計 TLP-250 隔離與 MOSFET 驅動電路。實測<b>駕駛者單獨踩踏僅 10 bar</b>、加入馬達建壓<b>6 秒達 50 bar、峰值 &gt;100 bar</b>(汽車煞車一般需求 40–50 bar)；並找出「總泵—模組位能差」為建壓成敗關鍵，據此決定整車硬體配置。另與華創車電合作於量產車(S5)實測其 EHB 執行外部減速度命令之響應，作為自建系統的比對基準。</div>
-          </div>
-        </li>
-        <li>
-          <span class="ev-tag">工研院</span>
-          <div>
-            <div class="ev-t">i-booster 線控煞車致動器逆向工程與控制器開發<span class="ep-per">2017.12 – 2019.05</span></div>
-            <div class="ev-d">原廠控制器不開放，因此自己重寫控制律:於 TI F28069 以 Simulink／Embedded Coder 實作 FOC 與 SVPWM，<b>線電壓利用率較 SPWM 提升 15.4%</b> 並降低 DSP 運算量；以最小平方回歸完成機電系統識別(分段彈簧係數、庫倫摩擦力、馬達扭矩常數)並以 Load Cell 實測驗證；上層完成踏板行程閉迴路追隨、助力模式與<b>駕駛者介入判斷</b>策略，部署於工研院 CPEV 實驗車。</div>
+            <div class="ev-t">線控煞車致動器 &middot; 3 件學研合作案<span class="ep-per">2017.12 &ndash; 2019.08</span></div>
+            <div class="ev-d"><b>i-booster 逆向工程</b>:原廠控制器不開放,自己重寫控制律,部署於工研院 CPEV 實驗車。<b>EHB 模組整合控制</b>(NT$70 萬):依煞車命令在「駕駛者操控 / 自動駕駛 / 自動緊急煞車」三情境間切換工作模式。<b>低成本 AEB 致動器驗證</b>(NT$60 萬):把量產機車 ABS 模組反接進汽車煞車迴路。後兩案通過合約查核點,期中／結案報告經工研院驗收。</div>
           </div>
         </li>
         <li>
           <span class="ev-tag">宏碁</span>
           <div>
-            <div class="ev-t">電動車自駕實驗平台改裝<span class="ep-per">2017.07 – 2019.03</span></div>
-            <div class="ev-d">將市售電動車改裝為<b>轉向／油門／煞車三軸皆可由 CAN 命令控制</b>的自駕實驗載具。獨力負責煞車軸(以 i-booster 取代真空倍力器、自製驅動電路、設計自駕／助力雙模式切換策略)，另完成 EPS 轉向移植、油門訊號模擬電路與整車電源管理；每月產出甘特圖進度回報與延遲根因說明，完成兩次驗收交付。</div>
+            <div class="ev-t">電動車自駕實驗平台改裝<span class="ep-per">2017.07 &ndash; 2019.03</span></div>
+            <div class="ev-d">把市售電動車改裝成<b>轉向／油門／煞車三軸皆可由 CAN 命令控制</b>的自駕載具。獨力負責煞車軸,另完成 EPS 轉向移植、油門訊號模擬與整車電源管理,完成兩次驗收交付——這是我第一次做<b>整車級的系統整合</b>。</div>
           </div>
         </li>
         <li>
           <span class="ev-tag">中科院</span>
           <div>
-            <div class="ev-t">機車車身動態穩定控制分析 · 107 年度委學案 分項二<span class="ep-per">2018.03 – 2018.11</span></div>
-            <div class="ev-d">機車的正向力受騎士體重與姿態影響而不可靠，傳統「先估摩擦係數再查表」的路走不通。改以卡爾曼濾波器自輪胎轉動方程式估測縱向力、以滑差為權重融合輪速與加速度積分估測絕對車速，再用時間窗格偵測 <b>μ–λ 曲線由穩定區轉入峰值區</b>的時機直接判定最佳滑差目標值，<b>免除正向力量測</b>；BikeSim 聯合模擬驗證，成果提交中科院專利申請提案並通過委學案期末審查。(實車驗證與後續發展見上方中科院經歷)</div>
+            <div class="ev-t">機車車身動態穩定控制分析 &middot; 107 年度委學案<span class="ep-per">2018.03 &ndash; 2018.11</span></div>
+            <div class="ev-d">機車正向力受騎士體重與姿態影響而不可靠,傳統「先估摩擦係數再查表」走不通。改以<b>卡爾曼濾波器</b>估測縱向力與絕對車速,直接判定最佳滑差目標值,<b>免除正向力量測</b>;BikeSim 聯合模擬驗證,成果提交中科院專利申請提案。</div>
           </div>
         </li>
         <li>
-          <span class="ev-tag">聯華聚能</span>
+          <span class="ev-tag">聯華聚能 &middot; 華創車電</span>
           <div>
-            <div class="ev-t">電動車 BMS 高壓管理(HVM)與故障處理(DHM)模組<span class="ep-per">2018.01 – 2018.05</span></div>
-            <div class="ev-d">依車廠 <b>V 模型流程</b>開發，交付物是能被審查的軟體:自上層功能需求展開 <b>SRS 需求規格 → SDD 設計說明 → 資料字典 → IO Name Mapping</b>，建立需求編號與 Requirement Matrix 追溯機制，並以<b>符合 MAAB 規範</b>的 Simulink 模型實作預充／主接觸器上下電時序與故障分級處理邏輯；同一架構同時滿足 LSEV 低速車與雙 100 兩種車型。</div>
-          </div>
-        </li>
-        <li>
-          <span class="ev-tag">華創車電</span>
-          <div>
-            <div class="ev-t">EMS 引擎管理系統模型 MAAB 規範化<span class="ep-per">2018.04 – 2018.08</span></div>
-            <div class="ev-d">依 <b>MAAB 建模規範</b>重構引擎管理系統的排氣門後壓力計算與怠速扭矩儲備控制模組，將舊版 <code>.mdl</code> 模型遷移為合規 Simulink 模型；建置對應資料字典與全域字典、統一單位與命名縮寫規則，並依 <b>Model Check List 逐項驗收</b>。</div>
+            <div class="ev-t">V 模型流程與 MAAB 建模規範 &middot; 2 件<span class="ep-per">2018.01 &ndash; 2018.08</span></div>
+            <div class="ev-d">交付物是<b>能被審查的軟體</b>:電動車 BMS 高壓管理模組自 <b>SRS 需求規格 &rarr; SDD 設計說明 &rarr; 資料字典 &rarr; 需求追溯矩陣</b>逐層展開;EMS 引擎管理模型依 <b>MAAB 建模規範</b>重構,並依 Model Check List 逐項驗收。</div>
           </div>
         </li>
       </ul>
 
-      <p class="ep-note">上述兩段流程導向的專案(聯華聚能、華創車電)是後來在 MobileDrive 導入 ISO 26262／ASPICE 的底子——在學期間就跑過完整的 V 模型左半邊。</p>
+      <p class="ep-note">最後一則是後來在 MobileDrive 導入 ISO 26262／ASPICE 的底子——在學期間就跑過完整的 V 模型左半邊。各案的技術細節與實測數據見<a href="../ibooster_page/01_ibooster.html">底層控制經驗(研究所)</a>。</p>
     </div>
 
   </div>
