@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
@@ -246,16 +246,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   .isrc-a{transform:rotate(90deg);padding:2px 0}
 }
 
-/* 安全流程那節的 V 模型圖。全站沒有任何點陣圖檔,所以和其餘圖表一樣用內嵌
-   SVG 畫 —— 字體、配色直接吃頁面 token,任何解析度都清晰。
-   原本這裡還有一張 ISO 26262 分部金字塔並排,已移除;剩單張,寬度放到 740
-   (與 .svgcard.wide 同一級),SVG 等比放大約 1.8 倍,圖裡的英文標籤才好讀。 */
-.sfg{max-width:740px;margin:26px auto 0}
-.sfg-c{background:#fff;border:1px solid var(--line);border-radius:16px;
-     padding:16px 16px 14px;box-shadow:var(--shadow)}
-.sfg-c .eb{margin-bottom:12px}
-.sfg-c svg{width:100%;height:auto;display:block}
-
 .svgcard{max-width:560px;margin:22px auto 0;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 16px 12px;box-shadow:var(--shadow)}
 .svgcard.wide{max-width:740px}
 .svgcard svg{width:100%;height:auto;display:block}
@@ -412,6 +402,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
       <a class="tab-l" href="../trj_page/01_trj_page.html">軌跡規劃經驗</a>
       <a class="tab-l" href="../dash_page/01_dash_page.html">AMR系統整合</a>
       <a class="tab-l" href="../ibooster_page/01_ibooster.html">底層控制經驗(研究所)</a>
+      <a class="tab-l" href="../process_page/01_process.html">車用法規經驗</a>
     </div>
   </div>
 </nav>
@@ -427,7 +418,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
     <a href="#architecture" data-sec="architecture" data-resume="xp-architecture">C1 Bias 補償</a>
     <a href="#decision-1" data-sec="decision-1" data-resume="xp-decision-1">決策① Lane Degrade</a>
     <a href="#decision-2" data-sec="decision-2" data-resume="xp-decision-2">決策② 半徑公式</a>
-    <a href="#safety" data-sec="safety" data-resume="xp-safety">安全流程</a>
   </div>
 </nav>
 
@@ -1095,112 +1085,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
         </div>
       </div>
 
-    </div>
-  </div>
-</section>
-
-<!-- ===== 8. SAFETY PROCESS =====
-     原本是 INFLUENCE 的後半段,獨立出來是因為兩者不是同一件事:那邊講
-     「怎麼量出四家相機的差異」,這裡講「怎麼把東西交得出去」—— 稽核、
-     標準、流程。後來又從第 3 節移到最後:前面七節都是單一技術問題的解法,
-     這一節談的是跨專案的交付能力,收在末尾當總結比夾在技術案例中間合理,
-     結尾那句金句也才真的收得住全頁。 -->
-<section class="band-alt" id="safety">
-  <div class="wrap">
-    <div class="unit">
-      <div class="unit-head">
-        <div class="unit-tag">SAFETY PROCESS · 稽核與交付</div>
-        <div class="unit-title">演算法跑得動<br>不等於交得出去</div>
-        <p class="unit-lead">演算法能不能跑，我自己驗得出來；<b>能不能交到別人手上，得照工業標準的規矩走</b>。西門子聯合驗證與德凱 ISO 26262／ASPICE 稽核，是我把「會做」練成「交得出去」的兩段訓練。</p>
-      </div>
-
-      <!-- 兩張標準結構圖並排:左邊 ISO 26262 的分部金字塔,右邊含追溯性的 V 模型。
-           都是內嵌 SVG,不是圖檔 —— 全站沒有點陣圖,插截圖會和其餘向量圖表格格不入。 -->
-      <div class="sfg">
-
-        <div class="sfg-c">
-          <div class="eb">V 模型 · 需求到驗證的追溯</div>
-          <svg viewBox="0 0 400 236" role="img" aria-label="V 模型：左側由系統需求逐層展開到軟體實作，右側由單元測試逐層驗證回系統確效，兩側逐層對應追溯">
-            <g font-family="var(--sans)">
-              <!-- V 形只畫最後一列收斂到谷底的那一段。原本從最上面拉到谷底,
-                   斜帶會橫穿整張圖、和中間的追溯虛線交錯成一團,反而看不出結構。 -->
-              <path d="M69 172 L200 202 L331 172" fill="none" stroke="#cfe3fb" stroke-width="13"
-                    stroke-linecap="round" stroke-linejoin="round"/>
-
-              <!-- Traceability + 實際落實它的工具。只畫「追溯」是教科書圖,
-                   標出 Polarion 才看得出這條追溯鏈是真的在工具裡維護過的。 -->
-              <rect x="123" y="6" width="15" height="18" rx="3" fill="none" stroke="#6e6e73" stroke-width="1.4"/>
-              <path d="M127 3.5h7v4h-7z" fill="#6e6e73"/>
-              <path d="M126.5 15.5l2.4 2.4 4.6-5" fill="none" stroke="#0a8a5c" stroke-width="1.6"
-                    stroke-linecap="round" stroke-linejoin="round"/>
-              <text x="145" y="20" font-size="10.5" font-weight="600" fill="#6e6e73">Traceability</text>
-              <rect x="222" y="7" width="55" height="16" rx="8" fill="#e8f2fd" stroke="#0071e3" stroke-width="1"/>
-              <text x="249.5" y="18.5" font-size="9" font-weight="700" fill="#0071e3" text-anchor="middle">Polarion</text>
-
-              <!-- 逐層對應的雙向虛線 -->
-              <g stroke="#9a9aa0" stroke-width="1">
-                <line x1="140" y1="47"  x2="260" y2="47"  stroke-dasharray="3 3"/>
-                <line x1="140" y1="83"  x2="260" y2="83"  stroke-dasharray="3 3"/>
-                <line x1="140" y1="119" x2="260" y2="119" stroke-dasharray="3 3"/>
-                <line x1="140" y1="155" x2="260" y2="155" stroke-dasharray="3 3"/>
-              </g>
-              <g fill="#9a9aa0">
-                <polygon points="132,47 139,43.5 139,50.5"/>   <polygon points="268,47 261,43.5 261,50.5"/>
-                <polygon points="132,83 139,79.5 139,86.5"/>   <polygon points="268,83 261,79.5 261,86.5"/>
-                <polygon points="132,119 139,115.5 139,122.5"/><polygon points="268,119 261,115.5 261,122.5"/>
-                <polygon points="132,155 139,151.5 139,158.5"/><polygon points="268,155 261,151.5 261,158.5"/>
-              </g>
-
-              <!-- 左臂:需求逐層展開 -->
-              <g fill="#0071e3">
-                <rect x="10" y="34"  width="118" height="26" rx="5"/>
-                <rect x="10" y="70"  width="118" height="26" rx="5"/>
-                <rect x="10" y="106" width="118" height="26" rx="5"/>
-                <rect x="10" y="142" width="118" height="26" rx="5"/>
-              </g>
-              <g font-size="9" fill="#fff" text-anchor="middle">
-                <text x="69" y="50.5">System Requirements</text>
-                <text x="69" y="86.5">System Architecture</text>
-                <text x="69" y="122.5">SW Requirements</text>
-                <text x="69" y="158.5">SW Design</text>
-              </g>
-
-              <!-- 右臂:測試逐層驗證回去 -->
-              <g fill="#0a8a5c">
-                <rect x="272" y="34"  width="118" height="26" rx="5"/>
-                <rect x="272" y="70"  width="118" height="26" rx="5"/>
-                <rect x="272" y="106" width="118" height="26" rx="5"/>
-                <rect x="272" y="142" width="118" height="26" rx="5"/>
-              </g>
-              <g font-size="9" fill="#fff" text-anchor="middle">
-                <text x="331" y="50.5">System Validation</text>
-                <text x="331" y="86.5">System Verification</text>
-                <text x="331" y="122.5">Integration Test</text>
-                <text x="331" y="158.5">Unit Test</text>
-              </g>
-
-              <!-- 谷底:實作 -->
-              <rect x="141" y="200" width="118" height="26" rx="5" fill="#0058b0"/>
-              <text x="200" y="216.5" font-size="9" fill="#fff" text-anchor="middle">SW Implementation</text>
-            </g>
-          </svg>
-        </div>
-
-      </div>
-
-      <p class="p-narr" style="margin-top:24px"><b>最早與西門子聯合驗證 LFS、依 MAAB 工業標準重構交付</b>時，就打下了底子——那時我學到的不只是演算法，而是「如何把內部原型，變成別人信得過、接得住的交付物」。這套流程涵蓋 LFS 與 OFS 兩個系統，我負責的是 LFS，實際參與了 ASIL 分解、FMEA 與安全需求追溯——<b>需求與追溯鏈以 Polarion 管理</b>，每一條安全需求都要能一路追到對應的驗證證據。</p>
-
-      <p class="p-narr" style="margin-top:16px">後續，我們 ADAS 團隊也在另一階段整體通過德凱（DEKRA）的 ISO 26262 / ASPICE 認證，我個人另外完成官方 80 小時培訓。<b>這兩段經驗，讓我對安全流程的理解，從「自己執行、被稽核」延伸到「團隊層級的稽核與標準內化」——這也是我後來能定出驗證方法、讓四家大廠與兩個團隊都能照著做的底氣來源。</b></p>
-
-      <p class="gold">從被大廠驗證，到定標準給大廠用，再到教會別的團隊自己驗——我留下的不是一份報告，是一套方法。</p>
-
-      <!-- 這一節只講 LFS 這一段的安全流程;跨四段經歷的完整 V 模型落點、
-           ASPICE 稽核與交付物清單另開一頁,不塞進本頁。 -->
-      <p style="text-align:center;margin-top:20px">
-        <a href="../process_page/01_process.html" style="font-size:13.5px;font-weight:600;color:var(--blue);text-decoration:none;border-bottom:1px solid rgba(0,113,227,.35);padding-bottom:2px">
-          看完整的 V 模型 · ISO 26262 · ASPICE 經驗（四段經歷的落點）→
-        </a>
-      </p>
     </div>
   </div>
 </section>
