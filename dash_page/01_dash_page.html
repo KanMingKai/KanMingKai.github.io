@@ -221,8 +221,8 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 /* ============================================================
    AMR Sim-to-Real 落地對照 —— 原稿的整頁版搬進本頁
    ------------------------------------------------------------
-   圖的內容、配色、六張卡的排法完全沿用
-   robot_page/amr_sim_to_real_adas_single_screen.html,這裡只做搬家:
+   圖的內容、配色、六張卡的排法沿用當初的獨立頁
+   (robot_page/amr_sim_to_real_adas_single_screen.html,原檔已刪,本頁是唯一版本):
      ★ 原檔的 CSS 全部收進 .s2r-stage —— 它的 :root 定義了同名的
        --blue / --green(#2563eb / #059669),跟 tokens.css 是不同值,
        不收起來會把整頁重新上色。
@@ -319,8 +319,8 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 /* ============================================================
    Isaac Sim 24/7 驗證週期 —— 原稿的整頁版搬進本頁
    ------------------------------------------------------------
-   搬法與上面那張 .s2r-stage 完全相同(圖的內容與配色一律沿用
-   robot_page/isaac_sim_247_cycle_single_screen.html,這裡只做搬家):
+   搬法與上面那張 .s2r-stage 完全相同(圖的內容與配色沿用當初的獨立頁
+   robot_page/isaac_sim_247_cycle_single_screen.html,原檔已刪,本頁是唯一版本):
      ★ 原檔 CSS 全部收進 .isc-stage —— 它的 :root 同樣定義了同名的
        --ink / --blue / --green / --amber,值跟 tokens.css 都不一樣,
        不收起來會把整頁的字色與品牌色一起換掉。
@@ -377,7 +377,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 /* ============================================================
    Claude Code 輔助開發流程(V 模型)—— 原稿搬進本頁
    ------------------------------------------------------------
-   圖沿用 robot_page/dev_pipeline_diagram_v2.html,只做搬家。
+   圖沿用當初的獨立頁 robot_page/dev_pipeline_diagram_v2.html(原檔已刪,本頁是唯一版本)。
    這張跟上面兩張的搬法不同:它本來就是流動的 SVG(viewBox + width:100%),
    不需要 .s2r-stage / .isc-stage 那套「固定舞台 + transform 縮放」,
    所以也沒有 [data-stage-w],頁尾那支縮放腳本不會碰它。
@@ -389,9 +389,11 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
        本頁的 <head> 本來就有載這一支。
    容器寬度跟 .s2r-fig 同一組數字,三張圖的字級才會落在同一個尺度上。
    ============================================================ */
-#pipeline .wrap{max-width:1120px}
+/* 註:這一節不放寬 .wrap —— .dvp-fig 收到 861 之後,
+   預設的 .wrap(可用寬 936)本來就裝得下,放寬只是死規則。
+   #sim2real / #sim247 兩節仍需要放寬,那兩張圖是滿版的。 */
 .dvp-fig{
-  max-width:1076px;margin:0 auto;background:var(--bg);
+  max-width:861px;margin:0 auto;background:var(--bg);
   border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);
   padding:14px;overflow:hidden;
 }
@@ -434,6 +436,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
       <a class="tab-l" href="../trj_page/01_trj_page.html">軌跡規劃經驗</a>
       <span class="tab-l cur">AMR系統整合</span>
       <a class="tab-l" href="../ibooster_page/01_ibooster.html">底層控制經驗(研究所)</a>
+      <a class="tab-l" href="../process_page/01_process.html">車用法規經驗</a>
     </div>
   </div>
 </nav>
@@ -480,8 +483,8 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
       <rect x="0" y="0" width="1300" height="800" fill="#ffffff"/>
 
       <!-- ===== Top column labels ===== -->
-      <text x="195" y="30" text-anchor="middle" font-size="17" font-weight="800" fill="var(--ink)">（左側：需求、架構與設計）</text>
-      <text x="1105" y="30" text-anchor="middle" font-size="17" font-weight="800" fill="var(--ink)">（右側：整合與驗證）</text>
+      <text x="195" y="30" text-anchor="middle" font-size="20.4" font-weight="800" fill="var(--ink)">（左側：需求、架構與設計）</text>
+      <text x="1105" y="30" text-anchor="middle" font-size="20.4" font-weight="800" fill="var(--ink)">（右側：整合與驗證）</text>
 
       <!-- =========================================================== -->
       <!-- ROW 1 : Box1 (left / teal) + Box4 (right / navy) — all boxes now a uniform 150 tall (header 34 + body 116) -->
@@ -491,7 +494,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
       <g transform="translate(-40,0)">
         <path d="M60,94 L410,94 L410,196 Q410,210 396,210 L74,210 Q60,210 60,196 Z" fill="#ffffff" stroke="var(--border)" stroke-width="1.5"/>
         <path d="M60,74 Q60,60 74,60 L396,60 Q410,60 410,74 L410,94 L60,94 Z" fill="var(--teal)" stroke="var(--teal-deep)" stroke-width="1.5"/>
-        <text x="76" y="83" font-size="14.5" font-weight="800" fill="#ffffff">[1. 需求與規格定義]</text>
+        <text x="76" y="83" font-size="17.4" font-weight="800" fill="#ffffff">[1. 需求與規格定義]</text>
 
         <g transform="translate(102,124)">
           <circle r="22" fill="var(--teal-tint)"/>
@@ -502,16 +505,16 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
           <circle cx="6" cy="8" r="5" fill="none" stroke="var(--teal)" stroke-width="1.6"/>
           <line x1="9.5" y1="11.5" x2="13.5" y2="15.5" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"/>
         </g>
-        <text x="156" y="129" font-size="15" font-weight="800" fill="var(--teal-deep)">逆向萃取規格流程</text>
-        <text x="80" y="169" font-size="13" fill="var(--sub)"><tspan fill="var(--teal)">• </tspan>與 AI 共同產出規格書</text>
-        <text x="80" y="187" font-size="13" fill="var(--sub)"><tspan fill="var(--teal)">• </tspan>確保對齊必要功能</text>
+        <text x="156" y="129" font-size="18" font-weight="800" fill="var(--teal-deep)">逆向萃取規格流程</text>
+        <text x="80" y="169" font-size="15.6" fill="var(--sub)"><tspan fill="var(--teal)">• </tspan>與 AI 共同產出規格書</text>
+        <text x="80" y="187" font-size="15.6" fill="var(--sub)"><tspan fill="var(--teal)">• </tspan>確保對齊必要功能</text>
       </g>
 
       <!-- Box4 body + header (shifted +240 to start the right V-arm) -->
       <g transform="translate(240,0)">
         <path d="M690,94 L1040,94 L1040,196 Q1040,210 1026,210 L704,210 Q690,210 690,196 Z" fill="#ffffff" stroke="var(--border)" stroke-width="1.5"/>
         <path d="M690,74 Q690,60 704,60 L1026,60 Q1040,60 1040,74 L1040,94 L690,94 Z" fill="var(--navy)" stroke="var(--navy-deep)" stroke-width="1.5"/>
-        <text x="706" y="83" font-size="14.5" font-weight="800" fill="#ffffff">[4. 系統與驗收測試]</text>
+        <text x="706" y="83" font-size="17.4" font-weight="800" fill="#ffffff">[4. 系統與驗收測試]</text>
 
         <g transform="translate(732,124)">
           <circle r="22" fill="var(--navy-tint)"/>
@@ -523,17 +526,17 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
           <circle cx="8" cy="10" r="7" fill="#16a34a" stroke="#fff" stroke-width="1.2"/>
           <path d="M5,10 L7.3,12.3 L11.5,7.5" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         </g>
-        <text x="786" y="129" font-size="15" font-weight="800" fill="var(--navy-deep)">測試與驗收閉環</text>
-        <text x="710" y="162" font-size="13" fill="var(--sub)"><tspan fill="var(--navy)">• </tspan>隨機生成 200~300 個測試場景（含通過指標）</text>
-        <text x="710" y="180" font-size="13" fill="var(--sub)"><tspan fill="var(--navy)">• </tspan>夜間壓力測試 (Stress Test)（導航+站點執行）</text>
-        <text x="710" y="198" font-size="13" fill="var(--sub)"><tspan fill="var(--navy)">• </tspan>自動總結報告與改進項目</text>
+        <text x="786" y="129" font-size="18" font-weight="800" fill="var(--navy-deep)">測試與驗收閉環</text>
+        <text x="710" y="162" font-size="15.6" fill="var(--sub)"><tspan fill="var(--navy)">• </tspan>隨機生成 200~300 個測試場景（含通過指標）</text>
+        <text x="710" y="180" font-size="15.6" fill="var(--sub)"><tspan fill="var(--navy)">• </tspan>夜間壓力測試 (Stress Test)（導航+站點執行）</text>
+        <text x="710" y="198" font-size="15.6" fill="var(--sub)"><tspan fill="var(--navy)">• </tspan>自動總結報告與改進項目</text>
       </g>
 
       <!-- Row1 cross-validation arrow (widest gap: top of the V) -->
-      <text x="650" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">（橫向驗證）</text>
+      <text x="650" y="120" text-anchor="middle" font-size="15.6" font-weight="700" fill="var(--ink)">（橫向驗證）</text>
       <line x1="390" y1="139" x2="910" y2="139" stroke="var(--line)" stroke-width="1.6" marker-start="url(#dvp-arrow-ink)" marker-end="url(#dvp-arrow-ink)"/>
-      <text x="650" y="165" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--navy-deep)">確保最終系統的整體行為，</text>
-      <text x="650" y="185" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--navy-deep)">100% 滿足基準規格書</text>
+      <text x="650" y="165" text-anchor="middle" font-size="15" font-weight="700" fill="var(--navy-deep)">確保最終系統的整體行為，</text>
+      <text x="650" y="185" text-anchor="middle" font-size="15" font-weight="700" fill="var(--navy-deep)">100% 滿足基準規格書</text>
 
       <!-- =========================================================== -->
       <!-- ROW 2 : Box2 (left / teal) + Box3 (right / navy)             -->
@@ -542,7 +545,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
       <g transform="translate(60,0)">
         <path d="M60,284 L410,284 L410,386 Q410,400 396,400 L74,400 Q60,400 60,386 Z" fill="#ffffff" stroke="var(--border)" stroke-width="1.5"/>
         <path d="M60,264 Q60,250 74,250 L396,250 Q410,250 410,264 L410,284 L60,284 Z" fill="var(--teal)" stroke="var(--teal-deep)" stroke-width="1.5"/>
-        <text x="76" y="273" font-size="14.5" font-weight="800" fill="#ffffff">[2. 系統架構層 （我主導）]</text>
+        <text x="76" y="273" font-size="17.4" font-weight="800" fill="#ffffff">[2. 系統架構層 （我主導）]</text>
 
         <g transform="translate(102,314)">
           <circle r="22" fill="var(--teal-tint)"/>
@@ -555,16 +558,16 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
           <rect x="7" y="8" width="9" height="7" rx="1.6" fill="#fff" stroke="var(--teal)" stroke-width="1.5"/>
           <path d="M5.5,-2 L5.5,3 M5.5,3 L-3,8 M5.5,3 L11.5,8" fill="none" stroke="var(--teal)" stroke-width="1.4"/>
         </g>
-        <text x="156" y="319" font-size="15" font-weight="800" fill="var(--teal-deep)">系統拓樸與介面規劃</text>
-        <text x="80" y="352" font-size="13" fill="var(--sub)"><tspan fill="var(--teal)">• </tspan>定義 Node 職責</text>
-        <text x="80" y="370" font-size="13" fill="var(--sub)"><tspan fill="var(--teal)">• </tspan>規劃 Topic/Msg</text>
-        <text x="80" y="388" font-size="13" fill="var(--sub)"><tspan fill="var(--teal)">• </tspan>Action/Service</text>
+        <text x="156" y="319" font-size="18" font-weight="800" fill="var(--teal-deep)">系統拓樸與介面規劃</text>
+        <text x="80" y="352" font-size="15.6" fill="var(--sub)"><tspan fill="var(--teal)">• </tspan>定義 Node 職責</text>
+        <text x="80" y="370" font-size="15.6" fill="var(--sub)"><tspan fill="var(--teal)">• </tspan>規劃 Topic/Msg</text>
+        <text x="80" y="388" font-size="15.6" fill="var(--sub)"><tspan fill="var(--teal)">• </tspan>Action/Service</text>
       </g>
 
       <g transform="translate(140,0)">
         <path d="M690,284 L1040,284 L1040,386 Q1040,400 1026,400 L704,400 Q690,400 690,386 Z" fill="#ffffff" stroke="var(--border)" stroke-width="1.5"/>
         <path d="M690,264 Q690,250 704,250 L1026,250 Q1040,250 1040,264 L1040,284 L690,284 Z" fill="var(--navy)" stroke="var(--navy-deep)" stroke-width="1.5"/>
-        <text x="706" y="273" font-size="14.5" font-weight="800" fill="#ffffff">[3. 整合與架構驗證]</text>
+        <text x="706" y="273" font-size="17.4" font-weight="800" fill="#ffffff">[3. 整合與架構驗證]</text>
 
         <g transform="translate(732,314)">
           <circle r="22" fill="var(--navy-tint)"/>
@@ -578,17 +581,17 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
           <path d="M8.7,2 L5.7,2.6 L7.6,7 Z" fill="var(--navy)"/>
           <path d="M-3,7.6 L1.8,8.7 L-2.6,10.6 Z" fill="var(--navy)"/>
         </g>
-        <text x="786" y="319" font-size="15" font-weight="800" fill="var(--navy-deep)">Topic Analysis 架構驗證</text>
-        <text x="710" y="352" font-size="13" fill="var(--sub)"><tspan fill="var(--navy)">• </tspan>每天 9:00 自動產生最新 Node/Callback Graph</text>
-        <text x="710" y="370" font-size="13" fill="var(--sub)"><tspan fill="var(--navy)">• </tspan>自動對齊，抓出幽靈連線/死結</text>
-        <text x="710" y="388" font-size="13" fill="var(--sub)"><tspan fill="var(--navy)">• </tspan>PM 透過架構變動掌握每日進度</text>
+        <text x="786" y="319" font-size="18" font-weight="800" fill="var(--navy-deep)">Topic Analysis 架構驗證</text>
+        <text x="710" y="352" font-size="15.6" fill="var(--sub)"><tspan fill="var(--navy)">• </tspan>每天 9:00 自動產生最新 Node/Callback Graph</text>
+        <text x="710" y="370" font-size="15.6" fill="var(--sub)"><tspan fill="var(--navy)">• </tspan>自動對齊，抓出幽靈連線/死結</text>
+        <text x="710" y="388" font-size="15.6" fill="var(--sub)"><tspan fill="var(--navy)">• </tspan>PM 透過架構變動掌握每日進度</text>
       </g>
 
       <!-- Row2 cross-validation arrow -->
-      <text x="650" y="310" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">（橫向驗證）</text>
+      <text x="650" y="310" text-anchor="middle" font-size="15.6" font-weight="700" fill="var(--ink)">（橫向驗證）</text>
       <line x1="490" y1="329" x2="810" y2="329" stroke="var(--line)" stroke-width="1.6" marker-start="url(#dvp-arrow-ink)" marker-end="url(#dvp-arrow-ink)"/>
-      <text x="650" y="355" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--navy-deep)">實際運行的節點圖，</text>
-      <text x="650" y="375" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--navy-deep)">必須與我腦海的架構圖完全一致</text>
+      <text x="650" y="355" text-anchor="middle" font-size="15" font-weight="700" fill="var(--navy-deep)">實際運行的節點圖，</text>
+      <text x="650" y="375" text-anchor="middle" font-size="15" font-weight="700" fill="var(--navy-deep)">必須與我腦海的架構圖完全一致</text>
 
       <!-- =========================================================== -->
       <!-- ROW 3 : Box2.1 (left / teal) + Box2.2 (right / navy)         -->
@@ -597,7 +600,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
       <g transform="translate(140,0)">
         <path d="M60,474 L410,474 L410,576 Q410,590 396,590 L74,590 Q60,590 60,576 Z" fill="#ffffff" stroke="var(--border)" stroke-width="1.5"/>
         <path d="M60,454 Q60,440 74,440 L396,440 Q410,440 410,454 L410,474 L60,474 Z" fill="var(--teal)" stroke="var(--teal-deep)" stroke-width="1.5"/>
-        <text x="76" y="463" font-size="14.5" font-weight="800" fill="#ffffff">[2.1 詳細設計層]</text>
+        <text x="76" y="463" font-size="17.4" font-weight="800" fill="#ffffff">[2.1 詳細設計層]</text>
 
         <g transform="translate(102,504)">
           <circle r="22" fill="var(--teal-tint)"/>
@@ -611,16 +614,16 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
             <path d="M-2.2,4 L0,9 L2.2,4 Z" fill="var(--teal-deep)"/>
           </g>
         </g>
-        <text x="156" y="509" font-size="15" font-weight="800" fill="var(--teal-deep)">演算法與邏輯藍圖</text>
-        <text x="80" y="542" font-size="13" fill="var(--sub)"><tspan fill="var(--teal)">• </tspan>A* 啟發函數設計</text>
-        <text x="80" y="560" font-size="13" fill="var(--sub)"><tspan fill="var(--teal)">• </tspan>自由導航規則</text>
-        <text x="80" y="578" font-size="13" fill="var(--sub)"><tspan fill="var(--teal)">• </tspan>站點任務邏輯</text>
+        <text x="156" y="509" font-size="18" font-weight="800" fill="var(--teal-deep)">演算法與邏輯藍圖</text>
+        <text x="80" y="542" font-size="15.6" fill="var(--sub)"><tspan fill="var(--teal)">• </tspan>A* 啟發函數設計</text>
+        <text x="80" y="560" font-size="15.6" fill="var(--sub)"><tspan fill="var(--teal)">• </tspan>自由導航規則</text>
+        <text x="80" y="578" font-size="15.6" fill="var(--sub)"><tspan fill="var(--teal)">• </tspan>站點任務邏輯</text>
       </g>
 
       <g transform="translate(60,0)">
         <path d="M690,474 L1040,474 L1040,576 Q1040,590 1026,590 L704,590 Q690,590 690,576 Z" fill="#ffffff" stroke="var(--border)" stroke-width="1.5"/>
         <path d="M690,454 Q690,440 704,440 L1026,440 Q1040,440 1040,454 L1040,474 L690,474 Z" fill="var(--navy)" stroke="var(--navy-deep)" stroke-width="1.5"/>
-        <text x="706" y="463" font-size="14.5" font-weight="800" fill="#ffffff">[2.2 模組與單元測試]</text>
+        <text x="706" y="463" font-size="17.4" font-weight="800" fill="#ffffff">[2.2 模組與單元測試]</text>
 
         <g transform="translate(732,504)">
           <circle r="22" fill="var(--navy-tint)"/>
@@ -630,17 +633,17 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
           <path d="M-12,2 L-5,-5 L1,1 L9,-9" fill="none" stroke="#2f9e63" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M9,-9 l2.6,-1.4 l-0.4,2.9 l-2.6,1.4 l1.6,-2.4 l-2.4,-1.6 z" fill="#f2a541"/>
         </g>
-        <text x="786" y="509" font-size="15" font-weight="800" fill="var(--navy-deep)">視覺化測試載具</text>
-        <text x="710" y="542" font-size="13" fill="var(--sub)"><tspan fill="var(--navy)">• </tspan>即時畫圖輸出現有邏輯</text>
-        <text x="722" y="560" font-size="13" fill="var(--sub)">方便掌控邏輯正確性</text>
-        <text x="710" y="578" font-size="13" fill="var(--sub)"><tspan fill="var(--navy)">• </tspan>快速且大量測試邏輯</text>
+        <text x="786" y="509" font-size="18" font-weight="800" fill="var(--navy-deep)">視覺化測試載具</text>
+        <text x="710" y="542" font-size="15.6" fill="var(--sub)"><tspan fill="var(--navy)">• </tspan>即時畫圖輸出現有邏輯</text>
+        <text x="722" y="560" font-size="15.6" fill="var(--sub)">方便掌控邏輯正確性</text>
+        <text x="710" y="578" font-size="15.6" fill="var(--sub)"><tspan fill="var(--navy)">• </tspan>快速且大量測試邏輯</text>
       </g>
 
       <!-- Row3 cross-validation arrow (narrowest gap: base of the V) -->
-      <text x="650" y="500" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">（橫向驗證）</text>
+      <text x="650" y="500" text-anchor="middle" font-size="15.6" font-weight="700" fill="var(--ink)">（橫向驗證）</text>
       <line x1="570" y1="519" x2="730" y2="519" stroke="var(--line)" stroke-width="1.6" marker-start="url(#dvp-arrow-ink)" marker-end="url(#dvp-arrow-ink)"/>
-      <text x="650" y="545" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--navy-deep)">視覺化結果</text>
-      <text x="650" y="565" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--navy-deep)">符合藍圖</text>
+      <text x="650" y="545" text-anchor="middle" font-size="15" font-weight="700" fill="var(--navy-deep)">視覺化結果</text>
+      <text x="650" y="565" text-anchor="middle" font-size="15" font-weight="700" fill="var(--navy-deep)">符合藍圖</text>
 
       <!-- =========================================================== -->
       <!-- Diagonal column connectors (the V-arms' staircase steps)     -->
@@ -656,7 +659,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
       <!-- =========================================================== -->
       <!-- Bottom : Claude Code box (the apex of the V) — same 150 height as the other boxes -->
       <!-- =========================================================== -->
-      <text x="650" y="616" text-anchor="middle" font-size="13" font-weight="800" fill="var(--sub)">[最底部：程式碼實作]</text>
+      <text x="650" y="616" text-anchor="middle" font-size="15.6" font-weight="800" fill="var(--sub)">[最底部：程式碼實作]</text>
 
       <g transform="translate(100,0)">
         <path d="M420,664 L680,664 L680,768 Q680,780 668,780 L432,780 Q420,780 420,768 Z" fill="#ffffff" stroke="var(--border)" stroke-width="1.5"/>
@@ -667,10 +670,10 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
           <path d="M4,-8 L11,0 L4,8" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
           <line x1="1.5" y1="9" x2="-1.5" y2="-9" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
         </g>
-        <text x="475" y="652" font-size="16" font-weight="800" fill="#ffffff">撰寫底層程式碼</text>
+        <text x="475" y="652" font-size="19.2" font-weight="800" fill="#ffffff">撰寫底層程式碼</text>
 
-        <text x="436" y="712" font-size="12.5" fill="var(--sub)"><tspan fill="var(--orange)">• </tspan>依指示撰寫具體代碼</text>
-        <text x="436" y="732" font-size="12.5" fill="var(--sub)"><tspan fill="var(--orange)">• </tspan>實作演算法與 ROS API</text>
+        <text x="436" y="712" font-size="15" fill="var(--sub)"><tspan fill="var(--orange)">• </tspan>依指示撰寫具體代碼</text>
+        <text x="436" y="732" font-size="15" fill="var(--sub)"><tspan fill="var(--orange)">• </tspan>實作演算法與 ROS API</text>
       </g>
 
     </svg>
@@ -1132,18 +1135,13 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 </section>
 
 <!-- ============ Sim-to-Real 落地 ============ -->
-<!-- 這一節是 robot_page/amr_sim_to_real_adas.html 那六張卡的濃縮版:
-     原稿是左右兩欄、六張卡、六張大圖,要捲三個畫面才讀得完 —— 那是一份講義,
-     不是一頁履歷該有的密度。這裡收成「一個畫面一張圖」:
-       ★ 一列 = 一組「真機上量到的現象 → 對應的驗證手段」,橫著讀完就是一組。
-         六張卡在原稿裡是兩欄各自編號,讀者得自己把左 2 配右 1;現在配對直接
-         畫在圖上,省掉這一步(所以列的順序不等於原稿的卡片順序)。
-       ★ 每張卡只留「一句標題 + 一句根因 + 一個看得到的證據」。
-         原稿每張卡的大圖(等角倉庫、HMI 全畫面、場景庫縮圖牆)資訊量高但重複 ——
-         縮成一個畫面之後能留的只有「數字」跟「形狀」,所以留下 5.42/3.10 這種
-         對比、佇列的形狀、三階指令的階梯,其餘一律砍掉。
-       ★ 色語言沿用本頁既有的:琥珀 = 卡住我們的東西,綠 = 已驗證/採用的做法,
-         跟下一節 mc2 表格的「採用」綠是同一個意思,不另立一套。 -->
+<!-- 這一節的圖搬自當初的獨立頁 robot_page/amr_sim_to_real_adas_single_screen.html(原檔已刪):
+     左右兩欄六張卡,原檔用一支 JS 把固定尺寸的舞台縮到填滿「視窗」;
+     搬進本頁改成縮到填滿「容器寬」(理由見 .s2r-stage 的樣式註記),
+     並把圖上的英文標註翻成中文 —— 指令、站點代號與量測值維持原文,
+     那些是實際打進去的字串,翻了反而對不上真實系統。
+     ★ robot_page/ 整個目錄(原稿與更早的草稿)都已移除 ——
+       頁內這一份是唯一版本,要改圖就是改這裡。 -->
 <section id="sim2real">
   <div class="wrap">
     <div class="unit">
