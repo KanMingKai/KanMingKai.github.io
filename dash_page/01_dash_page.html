@@ -40,6 +40,12 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 .unit-tag{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--ink-3);margin-bottom:10px}
 .unit-title{font-size:clamp(20px,2.8vw,26px);font-weight:700;letter-spacing:-.01em;line-height:1.35}
 .unit-lead{font-size:13.5px;color:var(--ink-2);line-height:1.8;margin-top:12px;max-width:640px;margin-left:auto;margin-right:auto}
+/* 標題下方的條列。.unit-head 整體置中,但條列若跟著置中,每一行的左緣會參差,
+   所以整塊置中、內文左對齊。trj / lfs / ibooster / process 各有一份同規格的。 */
+.unit-points{max-width:680px;margin:16px auto 0;display:grid;gap:11px;text-align:left}
+.unit-points p{font-size:13.5px;color:var(--ink-2);line-height:1.8;padding-left:16px;position:relative}
+.unit-points p::before{content:"";position:absolute;left:0;top:10px;width:5px;height:5px;border-radius:50%;background:var(--line)}
+.unit-points b{color:var(--ink);font-weight:700}
 .unit-lead b{color:var(--ink);font-weight:700}
 /* 多段連續的導言用這個 —— 置中只適合一兩行,超過就該靠左,
    每行起點對齊眼睛才好回行。區塊本身仍置中(margin auto 不動)。 */
@@ -448,10 +454,8 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
        data-resume-default="co-fih-robotics">← 回履歷</a>
     <a href="#pipeline" data-sec="pipeline">開發流程</a>
     <a href="#flow"    data-sec="flow">自動維護</a>
-    <a href="#bridge"  data-sec="bridge">ADAS → AMR</a>
     <a href="#sim2real" data-sec="sim2real">落地驗證</a>
     <a href="#sim247"  data-sec="sim247">24/7 驗證</a>
-    <a href="#reflection" data-sec="reflection">反思</a>
   </div>
 </nav>
 
@@ -466,9 +470,11 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">DEV PIPELINE · V 模型</div>
-        <div class="unit-title">AI 寫的是最底層的程式碼；每一層要驗什麼，得先有人定義</div>
-        <p class="unit-lead left">Claude Code 進來之後，產出程式碼的速度不再是瓶頸，「產出的東西有沒有人接得住」才是。所以流程排成 V 模型：<b>左臂由人往下定義</b> —— 需求規格、系統拓樸（Node 職責、Topic/Msg、Action/Service）、演算法藍圖；<b>最底部才交給 AI 實作</b>；<b>右臂再一層一層驗回來</b>。</p>
-        <p class="unit-lead left">關鍵在每一條橫線：右邊每一層的驗證對象，就是左邊同一層的產出 —— 單元測試對詳細設計、架構驗證對系統拓樸、驗收測試對需求規格。這張圖也是這一頁的骨架，<b>第 3 格與第 4 格就是後面兩節</b>：「每天 9:00 自動產生 Node/Callback Graph」是下一節的架構儀表板，「夜間壓力測試」是最後那節的 Isaac Sim 24/7。</p>
+        <div class="unit-title">V 模型全端研發與架構主導<br>端到端系統規劃、自動化 Topic 驗證與閉環測試</div>
+        <div class="unit-points">
+          <p><b>系統架構主導與規格定義</b>：主導機器人系統的架構層規劃，包含<b>節點職責定義</b>、<b>Topic / Msg</b> 與 <b>Action / Service</b> 介面設計；AI 負責的是最底層的實作，每一層要驗什麼、介面長什麼樣，仍然得先由人定義。</p>
+          <p><b>自動化架構驗證與測試閉環建置</b>：導入每日自動化 <b>Topic Analysis</b> 架構驗證與視覺化測試載具，讓動態節點圖與設計藍圖<b>逐日對齊</b>；同時建置隨機測試場景與<b>夜間壓力測試</b>閉環，把系統穩定度變成可追蹤的數字。</p>
+        </div>
       </div>
     </div>
 
@@ -701,12 +707,12 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
              下面那張圖自己會說;標題要扛的是這一節真正的主張 ——
              把車用那套規格紀律搬過來,並且把維護的人拿掉。 -->
         <div class="unit-title">導入車用的嚴謹制度：文件從人工維護，轉為自動維護</div>
-        <!-- 三段的順序是「規格哪來的 → 在 AMR 怎麼跑 → 為什麼要拆成兩條流」。
-             第三段是這張圖的設計理由(確定性的歸程式、語意的歸 LLM),
-             不是圖的說明文字 —— 圖自己會講,重複講一次是浪費。 -->
-        <p class="unit-lead left">這套規格是從車用搬過來的。ADAS 裡每條訊號進版本前都得先有一份 <b>signal definition</b>：名稱、型別、值域、更新週期。<b>模擬驗證和 unit test</b> 也直接照這份規格生測資。</p>
-        <p class="unit-lead left">到了 AMR，這份規格不再靠人填，改成<b>系統統一自動管理</b>：每天 <b>09:00 由 GitLab CI</b> 從原始碼重解一次，再畫成圖（概念接近 rqt_graph）。沒有人工這關，就不會有<b>文件品質不一</b>的問題。</p>
-        <p class="unit-lead left">另外我把架構拆成兩條分流，是為了<b>省 Claude Code token</b>，也為了<b>管控輸出穩定性</b>：程式架構關係用程式解析，同一份程式碼跑幾次都是同一張圖，一個 token 都不用花；<b>LLM 只讀 diff</b>，做它真正擅長的事，把改動翻成人話。整包原始碼丟給 LLM 畫架構也不是不行，但 token 燒不完，而且<b>每次畫出來都不一樣</b>。</p>
+        <!-- 原本標題下有三段散文(規格哪來的 → 在 AMR 怎麼跑 → 為什麼拆成兩條流),已改成兩點條列。
+             拆成兩條流的設計理由(確定性的歸程式解析、語意的歸 LLM)不進條列 —— 下面那張圖自己會講。 -->
+        <div class="unit-points">
+          <p><b>自動化架構解析與管線建置</b>：設計並實作自動化分析工作流,由 <b>CI Server 每日定時解析原始碼</b>(產出 <code>topic_report.xlsx</code>),再由前端 Web Dashboard 動態生成 <b>Node-Topic 拓樸圖</b>與 <b>Callback 觸發鏈</b>,取代會過期的人工維護文件。</p>
+          <p><b>AI 輔助異動追蹤與協作</b>：整合 AI 輔助工具(<b>Claude Code</b>)自動產出結構化異動記錄(<code>changes.json</code>),讓架構變更與程式碼實作即時對齊,跨團隊看的是同一份每日更新的事實。</p>
+        </div>
       </div>
     </div>
 
@@ -939,202 +945,6 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   </div>
 </section>
 
-<!-- ============ ADAS → AMR ============ -->
-<!-- 這一節要說的不是那張比較表本身,是它代表的那件事——
-     「先定義約束,可選集合自己就會收斂」。所以對照表右邊接一張
-     象限圖:需求先畫成一個區域,兩個方法再各自落點。
-     表格是為這一頁重畫的(.mc2-),與 TRJ 頁那張沒有共用 class。
-
-     ★ 標題只講「要把 ADAS 的成功搬進 AMR」,不講勝負 —— 這是刻意的。
-       原本寫過「三段式在四個維度上同時勝出」,那句話在 ADAS 內部成立,
-       搬到這一頁就不成立了:MPPI 是機器人團隊現在正在跑的東西,講勝負
-       等於當面否定同事的現行作法,而且結論本身站不住 —— >100% 是
-       TC397 這顆 MCU 上的數字,在 x86 / Jetson 上 MPPI 是算得動的。
-       「為什麼是三段式」這件事交給下面三個地方各自去講,不進標題:
-       導言(約束)、表格的「適合的場域」列、右邊象限圖的綠框。 -->
-<section id="bridge" class="band-alt">
-  <div class="wrap">
-    <div class="unit">
-      <div class="unit-head">
-        <div class="unit-tag">ADAS → AMR</div>
-        <div class="unit-title">機器人現在用 MPPI，但我們團隊想把 ADAS 軌跡規劃的成功搬進 AMR 領域</div>
-        <p class="unit-lead">MPPI 在<b>非結構化環境、動態障礙物、算力放得下一顆 GPU</b> 的時候是合理的選擇，機器人團隊用它有它的道理。我們這次的約束不同：<b>運算力受限</b>（嵌入式 MCU，固定週期內必須算完）、<b>輸出必須穩定</b>（同樣的輸入要給同樣的線，才回歸得了、才對得起客戶逐段追問）。這兩個條件把可選集合壓得很小——而三段式，是我在 ADAS 已經把這條路走完、並在 9 個功能、5 種車型上驗證過的那一個。</p>
-      </div>
-      <!-- 為這一頁重新畫的精簡對照:只留三段式與 MPPI 兩欄(我們的答案放左邊,
-           先看結論再看對照)。TRJ 頁那張表要回答「三種方法各自的取捨」,
-           所以有三欄、五個維度、長註腳;這裡要回答的只有一句「我們的約束
-           指向這一個」,多一欄就多一次比較,反而稀釋掉右邊那張象限圖。 -->
-      <div class="mc2">
-
-        <!-- ── 左:ADAS 已驗證的結果 ── -->
-        <div class="mc2-card">
-          <div class="mc2-grid">
-
-            <div class="mc2-h mc2-h--k"></div>
-            <div class="mc2-h mc2-h--pick">
-              <b>三段式<span class="mc2-badge">採用</span></b>
-              <small>Line → Curve → Line</small>
-            </div>
-            <!-- 「機器人團隊現行」寫在表頭而不是只寫在註腳:讀者第一眼就要知道
-                 右欄不是一個被淘汰的候選,是同事現在正在跑的東西 -->
-            <div class="mc2-h">
-              <b>MPPI</b>
-              <small>Model Predictive Path Integral<br>機器人團隊現行</small>
-            </div>
-
-            <!-- 圖列:同一個 3.5 m 換道場景,同一組座標與配色,才有可比性 -->
-            <!-- 副標只留「示意圖」:3.5 m 這個數字在兩張 SVG 裡都有尺寸線標著,
-                 列名重複一次會在 86px 的欄寬裡折成兩行 -->
-            <div class="mc2-k mc2-k--fig">換道軌跡<small>示意圖</small></div>
-            <div class="mc2-fig mc2-fig--pick">
-              <svg viewBox="0 0 190 210" role="img" aria-label="三段式:直線、曲線、直線三段接起來,兩個節點清楚可標">
-                <rect x="0.5" y="0.5" width="189" height="209" rx="7" fill="#fff" stroke="#e5e5ea"/>
-                <line x1="95" y1="14" x2="95" y2="196" stroke="#d2d2d7" stroke-width="1.2" stroke-dasharray="7 7"/>
-                <rect x="45" y="26" width="26" height="40" rx="8" fill="none" stroke="#c7ccd1" stroke-width="1.3" stroke-dasharray="4 3"/>
-                <text x="40" y="52" text-anchor="end" font-size="9" fill="#86868b">目標</text>
-                <path d="M58,18 H132" stroke="#c7ccd1" stroke-width="1"/>
-                <path d="M58,14 V22 M132,14 V22" stroke="#c7ccd1" stroke-width="1"/>
-                <rect x="79" y="10" width="30" height="11" fill="#fff"/>
-                <text x="95" y="19" text-anchor="middle" font-size="8.5" fill="#86868b">3.5 m</text>
-                <!-- 段 1:直線 -->
-                <path d="M119,176 V146" fill="none" stroke="#0a8a5c" stroke-width="2.4" stroke-linecap="round"/>
-                <text x="126" y="164" font-size="9" font-weight="700" fill="#0a8a5c">段 1</text>
-                <!-- 段 2:曲線(C0 + C1 連續,所以兩端接得上) -->
-                <path d="M119,146 C119,116 58,110 58,80" fill="none" stroke="#0071e3" stroke-width="2.4" stroke-linecap="round"/>
-                <text x="126" y="116" font-size="9" font-weight="700" fill="#0071e3">段 2</text>
-                <!-- 段 3:直線 -->
-                <path d="M58,80 V50" fill="none" stroke="#d97706" stroke-width="2.4" stroke-linecap="round"/>
-                <text x="50" y="70" text-anchor="end" font-size="9" font-weight="700" fill="#d97706">段 3</text>
-                <!-- 兩個節點:可解釋性的來源,每一段的起訖都指得出來 -->
-                <circle cx="119" cy="146" r="3.4" fill="#fff" stroke="#0071e3" stroke-width="1.9"/>
-                <circle cx="58"  cy="80"  r="3.4" fill="#fff" stroke="#0071e3" stroke-width="1.9"/>
-                <rect x="106" y="176" width="26" height="40" rx="8" fill="#f5f5f7" stroke="#c7ccd1" stroke-width="1.3"/>
-                <rect x="113" y="184" width="12" height="9" rx="3" fill="#d2d2d7"/>
-              </svg>
-            </div>
-            <div class="mc2-fig">
-              <svg viewBox="0 0 190 210" role="img" aria-label="MPPI:上千條取樣軌跡發散,選出的路徑呈鋸齒狀">
-                <!-- 車道 -->
-                <rect x="0.5" y="0.5" width="189" height="209" rx="7" fill="#fff" stroke="#e5e5ea"/>
-                <line x1="95" y1="14" x2="95" y2="196" stroke="#d2d2d7" stroke-width="1.2" stroke-dasharray="7 7"/>
-                <!-- 目標位置(虛線車) -->
-                <rect x="45" y="26" width="26" height="40" rx="8" fill="none" stroke="#c7ccd1" stroke-width="1.3" stroke-dasharray="4 3"/>
-                <text x="40" y="52" text-anchor="end" font-size="9" fill="#86868b">目標</text>
-                <!-- 3.5 m 標註 -->
-                <path d="M58,18 H132" stroke="#c7ccd1" stroke-width="1"/>
-                <path d="M58,14 V22 M132,14 V22" stroke="#c7ccd1" stroke-width="1"/>
-                <rect x="79" y="10" width="30" height="11" fill="#fff"/>
-                <text x="95" y="19" text-anchor="middle" font-size="8.5" fill="#86868b">3.5 m</text>
-                <!-- 取樣 rollout:發散的細線,這就是 MPPI 貴在哪裡 -->
-                <g stroke="#93c5fd" stroke-width="0.9" fill="none" opacity=".8">
-                  <path d="M119,178 C112,140 96,104 74,58"/>
-                  <path d="M119,178 C114,142 104,106 92,62"/>
-                  <path d="M119,178 C116,144 112,108 110,66"/>
-                  <path d="M119,178 C118,146 120,110 128,70"/>
-                  <path d="M119,178 C120,148 128,112 146,76"/>
-                </g>
-                <g stroke="#c7ccd1" stroke-width="0.9" fill="none" opacity=".75">
-                  <path d="M119,178 C110,138 88,102 58,54"/>
-                  <path d="M119,178 C122,150 136,114 162,84"/>
-                </g>
-                <!-- 選出的軌跡:鋸齒 = 每幀取樣不同,方向盤會跟著甩 -->
-                <path d="M119,178 L116,166 L119,156 L113,146 L116,134 L108,124 L111,112 L101,102
-                         L104,90 L94,80 L96,70 L86,62 L82,54 L70,48 L64,44"
-                      fill="none" stroke="#ef4444" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
-                <!-- 自車 -->
-                <rect x="106" y="176" width="26" height="40" rx="8" fill="#f5f5f7" stroke="#c7ccd1" stroke-width="1.3"/>
-                <rect x="113" y="184" width="12" height="9" rx="3" fill="#d2d2d7"/>
-              </svg>
-            </div>
-
-            <!-- 這一列放在數字前面,不放最後:它是讀下面四列的前提。
-                 擺到最後的話,讀者已經先讀完四列「MPPI 差」才看到但書,
-                 補救不回來。有了這一列,右欄的琥珀才從「它爛」變成
-                 「它的長處不在我們這題」。 -->
-            <div class="mc2-k">適合的場域</div>
-            <div class="mc2-v mc2-v--ctx mc2-v--pick"><b>結構化路徑</b><span>固定週期・嵌入式 MCU</span></div>
-            <div class="mc2-v mc2-v--ctx"><b>非結構化環境</b><span>動態障礙・有 GPU</span></div>
-
-            <!-- TC397 掛在列名上,不重複寫進右邊那格 —— 基準是「整列共用」的
-                 前提,寫在列名比寫在格子裡短,而且對兩欄同時生效。
-                 這三個字不能整個省掉:少了它,「&gt;100%」在一個跑 x86 / Jetson
-                 的團隊眼中會被直接反駁 —— 這個數字只在這顆 MCU 上成立。 -->
-            <div class="mc2-k">運算量<small>TC397</small></div>
-            <div class="mc2-v mc2-v--pick"><b>37%</b><span>距離參數化，單點查詢 O(1)</span></div>
-            <div class="mc2-v mc2-v--miss"><b>&gt;100%</b><span>上千次 rollout，單週期算不完</span></div>
-
-            <!-- ★ 「輸出穩定性」與「新功能週期」兩列已移除。
-                 前者不是不重要 —— 它是右邊象限圖的 y 軸 —— 而是第一列那兩張
-                 軌跡圖已經把它畫出來了(一條平順、一條鋸齒),再用文字說一次
-                 是重複。後者屬於團隊產出,不屬於「這兩個方法各自的性質」,
-                 留在這張只回答約束的表裡會岔題。
-                 要加回來的話請先想清楚上面這件事。 -->
-            <div class="mc2-k">可解釋性</div>
-            <div class="mc2-v mc2-v--pick"><b>高</b><span>三個輸入數字決定整條線</span></div>
-            <div class="mc2-v"><b>極低</b><span>統計結果，無法逐段說明</span></div>
-
-          </div>
-          <!-- 右欄的出處已經寫在表頭的「機器人團隊現行」,這裡只需要交代左欄 -->
-          <div class="mc2-foot">ADAS · 已在 9 個功能 · 5 種車型上驗證</div>
-        </div>
-
-        <!-- ── 中:轉場 ── -->
-        <svg class="mc2-arrow" viewBox="0 0 64 40" aria-hidden="true">
-          <path d="M0,12 H38 V0 L64,20 L38,40 V28 H0 Z" fill="#d8dce2"/>
-        </svg>
-
-        <!-- ── 右:需求先畫成一個區域,兩個方法再各自落點 ── -->
-        <!-- 讀圖順序刻意設計過:綠框(需求)最先畫進 DOM 也最先被看見,
-             座標軸次之,兩個點最後 —— 看到的是「我們先定了要什麼,
-             然後發現只有一個東西落在裡面」,不是「比了一場,誰贏」。 -->
-        <div class="mc2-quad">
-          <div class="mc2-quad-t">兩個方案落在哪</div>
-          <svg viewBox="0 0 240 246" xmlns="http://www.w3.org/2000/svg" role="img"
-               aria-label="兩軸座標圖：橫軸為單週期運算成本，縱軸為輸出穩定性。左上角綠色虛線框標示我們要的區域，三段式落在框內；MPPI 落在右下角，代表機器人團隊現行作法。一條虛線箭頭從 MPPI 指向綠框。">
-            <!-- 需求框:先畫,因為它是前提不是結果 -->
-            <rect x="46" y="22" width="92" height="84" rx="6"
-                  fill="#ecfdf5" stroke="#0a8a5c" stroke-width="1.2" stroke-dasharray="5 4"/>
-            <text x="52" y="36" font-size="8.5" font-weight="700" fill="#0a8a5c"
-                  font-family="var(--mono)" opacity=".85">我們要的區域</text>
-
-            <!-- 座標軸 -->
-            <path d="M46,18 V206 H232" fill="none" stroke="#d2d2d7" stroke-width="1.2"/>
-            <path d="M46,12 l-3.5,7 h7 Z" fill="#d2d2d7"/>
-            <path d="M238,206 l-7,-3.5 v7 Z" fill="#d2d2d7"/>
-            <text x="40" y="26"  text-anchor="end" font-size="8.5" fill="#86868b">高</text>
-            <text x="40" y="204" text-anchor="end" font-size="8.5" fill="#86868b">低</text>
-            <text x="50" y="220" font-size="8.5" fill="#86868b">低</text>
-            <text x="232" y="220" text-anchor="end" font-size="8.5" fill="#86868b">高</text>
-            <text x="139" y="238" text-anchor="middle" font-size="9.5" fill="#6e6e73">單週期運算成本</text>
-            <text transform="translate(15,114) rotate(-90)" text-anchor="middle"
-                  font-size="9.5" fill="#6e6e73">輸出穩定性</text>
-
-            <!-- 現況 → 目標。刻意指向綠框的角而不是三段式那個點:
-                 要講的是「往這個區域移動」,不是「照抄這條線」 -->
-            <path d="M182,158 C172,146 160,128 149,110" fill="none"
-                  stroke="#a1a1a6" stroke-width="1.2" stroke-dasharray="4 4" opacity=".7"/>
-            <path d="M144,104 L152.9,110.1 L146.3,114.5 Z" fill="#a1a1a6" opacity=".7"/>
-
-            <!-- 兩個落點 -->
-            <circle cx="92" cy="62" r="5.5" fill="#0a8a5c" stroke="#fff" stroke-width="2"/>
-            <text x="92" y="82" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0a8a5c">三段式</text>
-            <text x="92" y="94" text-anchor="middle" font-size="8.5" fill="#0a8a5c"
-                  font-family="var(--mono)" opacity=".85">ADAS 已驗證</text>
-
-            <circle cx="190" cy="166" r="5.5" fill="#a1a1a6" stroke="#fff" stroke-width="2"/>
-            <text x="190" y="186" text-anchor="middle" font-size="10.5" font-weight="700" fill="#6e6e73">MPPI</text>
-            <text x="190" y="198" text-anchor="middle" font-size="8.5" fill="#86868b"
-                  font-family="var(--mono)">機器人現行</text>
-          </svg>
-          <div class="mc2-quad-s">機器人現在在右下角。<br>我們要的是左上角——<br>那正是 ADAS 已經走完的那條路。</div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ Sim-to-Real 落地 ============ -->
 <!-- 這一節的圖搬自當初的獨立頁 robot_page/amr_sim_to_real_adas_single_screen.html(原檔已刪):
      左右兩欄六張卡,原檔用一支 JS 把固定尺寸的舞台縮到填滿「視窗」;
      搬進本頁改成縮到填滿「容器寬」(理由見 .s2r-stage 的樣式註記),
@@ -1142,14 +952,16 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
      那些是實際打進去的字串,翻了反而對不上真實系統。
      ★ robot_page/ 整個目錄(原稿與更早的草稿)都已移除 ——
        頁內這一份是唯一版本,要改圖就是改這裡。 -->
-<section id="sim2real">
+<section id="sim2real" class="band-alt">
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">SIM-TO-REAL · 落地</div>
-        <div class="unit-title">模擬裡跑得動，不等於真機跑得動：三個坑，三個從 ADAS 帶回來的做法</div>
-        <p class="unit-lead left">AMR 在模擬環境裡收斂得很漂亮，搬上真機才發現問題不在演算法。實際踩到的是三件事：<b>舊速度指令卡在 ROS 2 佇列裡，煞停慢半拍</b>、<b>當下看不到軌跡走得對不對</b>、<b>里程計回報的距離對不上實際位移</b>。三個都不是規劃器算錯，是「來不及」、「看不見」與「對不準」。</p>
-        <p class="unit-lead left">右邊三個做法不是為了這台機器人新發明的，是 ADAS 那邊已經在跑的紀律搬過來：<b>把規劃結果疊回操作畫面</b>、<b>由下而上一層驗過才放行</b>、<b>場景庫全跑完才碰真機</b>。同一套流程，換一個載體。</p>
+        <div class="unit-title">Sim-to-Real 系統整合與車規紀律導入<br>把 ADAS 的驗證標準跨域移植，擊破 AMR 實機落地瓶頸</div>
+        <div class="unit-points">
+          <p><b>精準診斷 Sim-to-Real 系統級痛點</b>：AMR 在模擬環境裡收斂得很漂亮，搬上真機才發現問題不在演算法。跳脫演算法除錯的迷思，定位出三件系統整合與物理限制的問題：<b>舊速度指令卡在 ROS 2 佇列裡，煞停慢半拍</b>、<b>當下看不到軌跡走得對不對</b>、<b>里程計回報的距離對不上實際位移</b>。三個都不是規劃器算錯，是「來不及」、「看不見」與「對不準」。</p>
+          <p><b>跨領域導入車規級驗證與除錯紀律</b>：右邊三個做法不是為這台機器人新發明的，是 ADAS 那邊已經在跑的紀律搬過來：<b>把規劃結果疊回操作畫面</b>、<b>由下而上一層驗過才放行</b>、<b>場景庫全跑完才碰真機</b>。同一套流程，換一個載體。</p>
+        </div>
       </div>
     </div>
 
@@ -1347,14 +1159,16 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 <!-- 這一節接的是上一節右欄第 3 張卡(模擬先行)。那張卡回答「驗什麼」,
      這一節回答「什麼時候驗」—— 拆成兩節而不是併進上一節,是因為上一節
      那張圖已經是六張卡的資訊量,再塞一條時間軸進去就不是一個畫面了。 -->
-<section id="sim247" class="band-alt">
+<section id="sim247">
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">ISAAC SIM · 24/7</div>
-        <div class="unit-title">上一節的「模擬先行」要划得來，前提是它不佔用人的時間</div>
-        <p class="unit-lead left">所以驗證被排成一天的循環：<b>白天</b>設計測試案例、跑常規驗證；<b>夜間</b>自動化壓力測試接手，在 Isaac Sim 裡跑 100~200 種任務組合去挑戰極限；<b>早晨</b>報告已經彙整完成，工程師一坐下就看得到測試組數、失敗案例與 TOP 問題。</p>
-        <p class="unit-lead left">換來的不是「機器不用睡」這種說法，而是把<b>等結果</b>這段時間從工作日裡挪走 —— 右邊那四項價值，都是從這一點長出來的。</p>
+        <div class="unit-title">研發效能優化與自動化驗證閉環<br>Isaac Sim 日夜壓力測試管線，零人工等待的迭代</div>
+        <div class="unit-points">
+          <p><b>自動化測試管線與日夜循環架構</b>：上一節的「模擬先行」要划得來，前提是它不佔用人的時間。驗證因此被排成一天的循環：<b>白天</b>設計測試案例、跑常規驗證；<b>夜間</b>自動化壓力測試接手，在 Isaac Sim 裡跑 <b>100~200 種任務組合</b>去挑戰極限；<b>早晨</b>報告已彙整完成。</p>
+          <p><b>工程負擔解放與決策效率</b>：換來的不是「機器不用睡」這種說法，而是把<b>等結果</b>這段時間從工作日裡挪走。工程師一坐下就看得到<b>測試組數、失敗案例與 TOP 問題</b>，右邊那四項價值都是從這一點長出來的。</p>
+        </div>
       </div>
     </div>
 
@@ -1815,15 +1629,6 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 <!-- ============ 反思 ============ -->
 <!-- TODO(你補):這一段目前是空的骨架。另外兩頁的收尾都是「這件事讓我體會到…」,
      建議寫:為什麼選擇讓文件自動產生而不是要求大家寫得更勤、團隊實際的接受度如何。 -->
-<!-- 不加 band-alt:前面的 #sim247 已經是灰底,連兩塊灰會黏成一整塊。
-     全頁的交替是 白(flow) → 灰(bridge) → 白(sim2real) → 灰(sim247) → 白(reflection)。 -->
-<section id="reflection">
-  <div class="wrap">
-    <p style="font-size:16px;color:var(--ink);font-weight:600;line-height:1.7;max-width:560px;margin:0 auto;text-align:center">要讓文件不過期，靠的不是要求大家寫得更勤，而是讓它根本不需要人去記得。</p>
-  </div>
-</section>
-
-<!-- ============ CTA ============ -->
 <section class="cta">
   <div class="wrap">
     <div class="cta-btns">

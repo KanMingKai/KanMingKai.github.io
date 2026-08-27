@@ -51,7 +51,11 @@ STALE = [
     ('供應商報價',   r'500\s*' + DASH + r'\s*700K',           '已統一為 USD 470–625K'),
     ('供應商報價',   r'1500\s*' + DASH + r'\s*2000\s*萬|1500 到 2000 萬', '已統一為 USD 470–625K'),
     ('C1 Bias 補償率', r'86\.8(?!1)',                         '已統一為 86.81%'),
-    ('AMR 成功率',   r'70\s*%?\s*(提升至|→)\s*96|70→96',      '已統一為 40% → ~100%(場景成功率)'),
+    ('AMR 成功率',   r'70\s*%?\s*(提升至|→)\s*96|70→96',      '已統一為 40% → 99%(站點任務成功率)'),
+    # 「~100%」是 v9 之前的舊寫法。約等於 100% 在面試站不住,一定會被追問實際數字,
+    # 而 99%(297/300)連失敗那 3 組是什麼原因都交代得出來。regex 只鎖「提升至 ~100」
+    # 這種敘述句,不會誤傷 home/index.html 裡解釋這件事的那段註解。
+    ('AMR 成功率',   r'(提升至|→)\s*~\s*100',                 '已統一為 99%(297/300)'),
     ('AMR 場景基準', r'178\s*場景',                            '已統一為 300 場景'),
     ('姓名',         r'Wade Kan',                              '已統一為 Ming-Kai Kan'),
     ('姓名',         r'\[你的名字\]',                          '佔位符未替換'),
@@ -65,7 +69,8 @@ REQUIRED = [
     ('TRJ 開發週期',   r'2~3\s*天',                    ['home/index.html', 'trj_page/01_trj_page.html']),
     ('TRJ 運算量',     r'37\s*%',                      ['home/index.html', 'trj_page/01_trj_page.html']),
     ('TRJ 功能數',     r'9\s*項[橫側]向功能',           ['home/index.html', 'trj_page/01_trj_page.html']),
-    ('AMR 成功率',     r'40\s*%?\s*(提升至|→)\s*~?\s*100', ['home/index.html']),
+    ('AMR 成功率',     r'40\s*%?\s*(提升至|→)\s*99', ['home/index.html']),
+    ('AMR 成功率分母', r'297\s*/\s*300',             ['home/index.html']),
     ('C1 Bias 補償率', r'86\.81\s*%',                  ['home/index.html', 'lfs_page/lfs01.html']),
     ('供應商報價',     r'470\s*' + DASH + r'\s*625K',   ['home/index.html', 'lfs_page/lfs01.html']),
     ('感知供應商數',   r'4\s*[大家]感知廠|4\s*家供應商|對接\s*4\s*大廠', ['home/index.html', 'lfs_page/lfs01.html']),

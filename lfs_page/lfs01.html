@@ -40,7 +40,16 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 .unit-head{text-align:center;margin-bottom:32px}
 .unit-tag{font-size:12px;font-weight:700;color:var(--blue);letter-spacing:.06em;margin-bottom:8px}
 .unit-title{font-size:clamp(21px,3vw,30px);font-weight:700;letter-spacing:-.015em;line-height:1.25}
+/* 標題裡的金額與工期不能折行:「(USD 470–625K)」拆成兩行會被讀成兩筆金額 */
+.unit-title .nb{white-space:nowrap}
 .unit-lead{font-size:13.5px;color:var(--ink-2);margin-top:12px;max-width:560px;margin-left:auto;margin-right:auto;line-height:1.7}
+/* 標題下方的條列。.unit-head 整體置中,但條列若跟著置中,每一行的左緣會參差不齊,
+   所以整塊仍置中、內文改左對齊 —— 與 #decision-2 那條 .unit-lead 的處理同一個道理。
+   寬度給到 660(比 .unit-lead 的 560 寬):條列每行前面有粗體標籤,太窄會把標籤擠斷。 */
+.unit-points{max-width:660px;margin:16px auto 0;display:grid;gap:11px;text-align:left}
+.unit-points p{font-size:13.5px;color:var(--ink-2);line-height:1.75;padding-left:16px;position:relative}
+.unit-points p::before{content:"";position:absolute;left:0;top:9px;width:5px;height:5px;border-radius:50%;background:var(--line)}
+.unit-points b{color:var(--ink);font-weight:700}
 .p-narr{font-size:14.5px;color:var(--ink);line-height:1.85;max-width:620px;margin:0 auto}
 .p-mid{font-size:16px;color:var(--ink);font-weight:600;line-height:1.7;max-width:600px;margin:28px auto 0;text-align:center}
 .gold{font-size:15px;color:var(--ink-2);line-height:1.8;max-width:600px;margin:28px auto 0;text-align:center;font-style:italic}
@@ -105,7 +114,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 /* timeline */
 
 /* ── development timeline(C1 bias 動畫下方)──
-   五個節點的橫向歷程:2022 通勤觀察 → 2024 量產上車。
+   五個節點的橫向歷程:2020 通勤觀察 → 2023 量產上車。
    >760px 橫排共用一條貫穿的軸線,圓圈用白底把軸線遮出斷點;
    ≤760px 軸線轉成靠左的直線、節點改直排 —— 五欄在手機上每欄只剩 60px,
    橫排硬塞會把說明文字擠成一字一行。 */
@@ -320,7 +329,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 #simulation .unit-lead,
 #decision-1 .unit-lead,
 #root-cause .unit-lead,
-#decision-2 .unit-lead{max-width:640px;text-align:left}
 /* 導言和下面那張圖中間疊了兩段間距(unit-head 的 32 + .ldemo 的 28 = 60),
    中間空一大塊,讀起來像斷掉。這裡歸零,只留 .ldemo 自己的 28 —— 和 #method
    的 20 差不多,兩節的節奏才一致。 */
@@ -417,7 +425,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
     <a href="#root-cause" data-sec="root-cause">根因拆解</a>
     <a href="#architecture" data-sec="architecture" data-resume="xp-architecture">C1 Bias 補償</a>
     <a href="#decision-1" data-sec="decision-1" data-resume="xp-decision-1">決策① Lane Degrade</a>
-    <a href="#decision-2" data-sec="decision-2" data-resume="xp-decision-2">決策② 半徑公式</a>
+    <a href="#decision-2" data-sec="decision-2">決策② 半徑公式</a>
   </div>
 </nav>
 
@@ -427,8 +435,12 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">METHOD · 一切的起點</div>
-        <div class="unit-title">先跑 100 km 摸清 ADAS 相機性能<br>再改融合邏輯</div>
-        <p class="unit-lead">接到車道線融合這題，第一件事是搞清楚感知的極限在哪。我先拿手邊現有的數據做了一份小統計，確認值得投資源，才把實驗規劃寫成提案向主管報告。後續我主導 <b>100 km 連續路況實車測試</b>，協調驗證部門收數據、跑標準化標註流程。Mobileye EQ3/EQ4、Horizon J2/J3/J5、Stradvision，我們都用<b>同一套標準</b>驗證過。這批結果後來不只是軟體優化的依據，也做成模擬環境的相機模型，更回頭成為自研感知團隊的驗收標準。</p>
+        <div class="unit-title">技術主導與專案推進</div>
+        <div class="unit-points">
+          <p><b>前期評估與提案</b>：針對車道線融合任務，先以手邊現有數據做小規模驗證評估可行性，再把實驗規劃寫成提案，成功向管理層爭取資源。</p>
+          <p><b>跨團隊協同測試</b>：主導 <span class="nb">100 km</span> 連續路況實車測試，橫向協調驗證部門與標註團隊，建立<b>標準化測試流程</b>，完成主流相機平台（Mobileye EQ3/EQ4、Horizon J2/J3/J5、StradVision）之效能極限測繪。</p>
+          <p><b>組織級技術資產轉化</b>：實測成果不僅是感知融合與軟體優化的關鍵依據，更轉化為<b>模擬環境的相機模型</b>，並確立為內部<b>自研感知團隊的產品驗收標準</b>。</p>
+        </div>
       </div>
 
       <!-- 總覽:先給三秒鐘讀得完的版本,細節在下面的 STEP 卡片 -->
@@ -506,8 +518,12 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">INFLUENCE · 標準與賦能</div>
-        <div class="unit-title">分析各感知器差異<br>據此制定感知對策</div>
-        <p class="unit-lead">規格書只寫標稱偵測距離，不會寫這顆相機在什麼條件下開始失效。<b>這部分沒有廠商會給</b>，我只能自己從 100 km 的資料裡分速域、分場景一段一段量，再把量到的規律<b>擬合成公式</b>。有了公式，融合層才有依據判斷什麼時候該信相機、什麼時候該切換。同一套方法我用在四家相機上，量出來的差異直接決定了各自的融合對策。</p>
+        <div class="unit-title">感測器特性分析與建模</div>
+        <div class="unit-points">
+          <p><b>痛點突破與資料探勘</b>：面對供應商規格書<b>只寫標稱偵測距離、不寫真實失效邊界</b>的盲點，主動從 <span class="nb">100 km</span> 實車資料按速域與應用場景分層剖析，逆向擬合出各相機的<b>實際性能衰退公式</b>。</p>
+          <p><b>融合策略賦能</b>：依據量化分析結果，為融合層（Fusion Layer）建立科學化的權重切換依據，精準判定不同相機的<b>信賴區間</b>。</p>
+          <p><b>跨平台通用性</b>：成功將此分析框架橫向套用到 <b>4 家供應商</b>的相機，精準量化其性能差異，並直接驅動各自的客製化融合對策落地。</p>
+        </div>
       </div>
 
       <!-- 這一節原本在圖與圖說之後,還有四家大廠的 .vtab 表、「一個人能把
@@ -539,8 +555,12 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">SIMULATION · 基礎設施</div>
-        <div class="unit-title">難複現的問題<br>變成可重跑的測資</div>
-        <p class="unit-lead">實車路測最難處理的不是問題本身，是<b>它只發生那一次</b>。改完演算法想確認問題有沒有對策掉，得再開一次車、還要剛好碰上同樣的路況，這非常耗時，也耗成本。我用 Mini-FOT 累積的資料建了一套<b>相機感知模型</b>，再用真實數據產生對應的道路場景，把「重新開到那段路上測一次」換成「再跑一次腳本」：<b>先在模擬裡確認問題解掉了，才實際到該路段驗證</b>，省下無效的來回車程。</p>
+        <div class="unit-title">場景重建與資料驅動開發</div>
+        <div class="unit-points">
+          <p><b>痛點識別與效能瓶頸突破</b>：針對實車路測「<b>偶發性問題難以重現</b>、驗證成本高昂且耗時」的痛點，打破傳統盲目上路測試的低效模式。</p>
+          <p><b>虛擬重現架構設計</b>：利用 Mini-FOT（Field Operational Test）累積的 <span class="nb">1,600 km</span> 實車資料建立<b>相機感知模型</b>，並將真實道路場景與感測數據轉化為<b>可重跑的標準化測資</b>。</p>
+          <p><b>商業與時間成效</b>：實現「先在模擬環境中確認演算法解法有效、再進行實車最終驗證」的開發模式，大幅減少無效的來回車程與測試成本，顯著提升演算法迭代效率。</p>
+        </div>
       </div>
 
       <div class="ldemo ldemo--tall" style="margin-top:26px">
@@ -556,8 +576,12 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">ROOT CAUSE · 收斂</div>
-        <div class="unit-title">一個問題補一個做法<br>補到最後會難以控管</div>
-        <p class="unit-lead">多台測試車輛、多個專案，再加上 MIL 與 CIL 兩種測試，回報進來的問題<b>又多又雜</b>，團隊把它們收進同一份清單統一管理。雖然最省事的路就是一個問題補一個做法，但<b>軟體最後肯定會又肥又亂</b>。所以我把問題拆開、重新歸類，這樣我寫的每一套演算法都能<b>一次對應好幾個同類型的問題</b>，讓軟體架構簡單明瞭，又能覆蓋所有問題點。</p>
+        <div class="unit-title">系統化問題分析與歸納</div>
+        <div class="unit-points">
+          <p><b>痛點識別與風險防禦</b>：面對多專案、多測試車輛及 <span class="nb">MIL / CIL</span> 多重測試環境下湧現的雜亂問題，拒絕「一個問題一個補丁（One-off Patch）」的鴕鳥做法，防範軟體架構膨脹與失控。</p>
+          <p><b>歸納抽象與演算法設計</b>：將海量問題進行系統化拆解與歸類，找出底層共性，設計出<b>高內聚、低耦合</b>的通用演算法架構。</p>
+          <p><b>成效產出</b>：實現「<b>一套演算法同時覆蓋多類別問題</b>」，在大幅精簡軟體複雜度、維持架構清爽的同時，確保所有測試情境與問題點全數完美覆蓋。</p>
+        </div>
       </div>
 
       <!-- 側向根因拆解 mind-map -->
@@ -783,19 +807,23 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
              標題再談三根柱子就對不上內容,所以改成 C1 Bias 自己的題目。
              (根因章那兩句「三柱架構」的預告後來也一併刪了,全頁已無此說法) -->
         <div class="unit-tag">OWNERSHIP · 自己找的題目</div>
-        <div class="unit-title">從驗證的工具<br>轉變為量產的策略</div>
-        <p class="unit-lead">ADAS 相機輸出的車道線，<b>只要校正不確實就會帶著偏差</b>。2022 年一次搭車途中我想到：本車已經走過的軌跡，本身就是一把現成的尺——拿它回頭比對相機當下看到的車道線，偏得多少就量得出來。這支腳本原本是用來判斷 V&amp;V Team 校正相機是否確實，估測的偏差精準，所以主管建議<b>2024 年直接上了量產車</b>，成為相機車道線的即時補償，系統穩定性大幅提升，<b>此後也未再收到廠商車道偏差導致的客訴</b>。</p>
+        <div class="unit-title">洞察痛點與創新發想</div>
+        <div class="unit-points">
+          <p><b>洞察痛點與創新發想</b>：針對 ADAS 相機校正偏差問題，提出「以本車歷史軌跡作為動態量測基準」的創新思維，開發出高精度的車道線偏差驗證腳本。</p>
+          <p><b>推動研發標準化</b>：該工具因高精確度被 V&amp;V Team 採納為標準驗證工具，並在團隊中穩定沿用三年。</p>
+          <p><b>技術轉化與商業影響</b>：2023 年成功解決量產前 FOT 階段的產線殘留偏差痛點，推動內部將驗證工具轉化為量產即時補償邏輯（On-board Software）並隨車出廠，<b>補償率 86.81%</b>、導入 <b>3 款量產車型</b>，徹底根絕車道偏差客訴，達成零客訴紀錄。</p>
+        </div>
       </div>
 
-      <!-- 開發歷程:這條線講的是「它怎麼來的」—— 從 2022 通勤路上的一個觀察,
-           到 2024 變成每台車都在跑的模組;下面的動畫接著演「補償後長什麼樣」。
+      <!-- 開發歷程:這條線講的是「它怎麼來的」—— 從 2020 通勤路上的一個觀察,
+           到 2023 變成每台車都在跑的模組;下面的動畫接著演「補償後長什麼樣」。
            先來歷、後實測,所以時間軸排在動畫上面。 -->
       <div class="dtl">
         <div class="eb">開發歷程 · 從通勤觀察到量產標配</div>
         <div class="dtl-track">
 
           <div class="dtl-n">
-            <div class="dtl-yr">2022</div>
+            <div class="dtl-yr">2020</div>
             <div class="dtl-ic">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <circle cx="12" cy="9.8" r="5.4"/>
@@ -817,11 +845,11 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
               </svg>
             </div>
             <div class="dtl-t">作為校正即時驗證工具</div>
-            <div class="dtl-d">作為 V&amp;V Team 校正後的即時驗證工具，驗證精確度受肯定。</div>
+            <div class="dtl-d">作為 V&amp;V Team 校正後的即時驗證工具，估測精準受肯定，成為該團隊標準驗證工具並沿用三年。</div>
           </div>
 
           <div class="dtl-n">
-            <div class="dtl-yr">2024</div>
+            <div class="dtl-yr">2023</div>
             <div class="dtl-ic">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M3.2 15.2v-2.6l2-4.4a1.9 1.9 0 0 1 1.7-1.1h10.2a1.9 1.9 0 0 1 1.7 1.1l2 4.4v2.6"/>
@@ -830,7 +858,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
               </svg>
             </div>
             <div class="dtl-t">導入量產車</div>
-            <div class="dtl-d">以即時相機車道補償模組的形式部署上車。</div>
+            <div class="dtl-d">CMC 量產前 FOT 發現產線校正仍有殘留偏差，本方案轉為量產邏輯部署上車。</div>
           </div>
 
           <div class="dtl-n">
@@ -878,8 +906,12 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">KEY DECISION 01</div>
-        <div class="unit-title">用演算法對策<br>取代高成本及高工時的模型重新訓練</div>
-        <p class="unit-lead">當車道線 View Range 過短時，感知輸出的 <b>C₂、C₃ 高階項在遠端被過度外推</b>，導致車道線尾端大幅甩動，影響橫向控制穩定度。供應商評估需重新訓練感知模型，<b>報價 USD 470–625K，工期數月</b>。我提出改在 ADAS 端以後處理解決：<b>依有效 View Range 動態降階</b>，把車道線重新擬合為較低階方程式（短距 C₀–C₁、中距 C₀–C₂、full range 維持 C₀–C₃），<b>以近乎零成本消除尾端甩動</b>，效果幾乎一樣，該對策也獲得主管肯定。</p>
+        <div class="unit-title">用演算法對策<br>取代高成本<span class="nb">(USD 470–625K)</span>及高工時<span class="nb">(半年)</span>的模型重新訓練</div>
+        <div class="unit-points">
+          <p><b>痛點識別與成本防禦</b>：感知模型因 View Range 過短，高階項（C₂、C₃）在遠端被過度外推，引發<b>車道線尾端甩動</b>並影響橫向控制穩定度。成功阻斷供應商提出的「重訓感知模型」高成本方案（報價 <span class="nb">USD 470–625K</span>）。</p>
+          <p><b>創新演算法設計</b>：提出「<b>動態降階擬合</b>」對策，依有效 View Range 自適應調整多項式階數（短距 <span class="nb">C₀–C₁</span>、中距 <span class="nb">C₀–C₂</span>、全距維持 <span class="nb">C₀–C₃</span>）。</p>
+          <p><b>商業與技術成效</b>：不動感知韌體、不加硬體，以近乎零成本的軟體後處理消除尾端甩動、提升橫向控制穩定度，<b>硬體成本為零</b>，並以自研對策取代該筆重開發報價；經主管指定為量產標準解法。</p>
+        </div>
       </div>
       <!-- 決策流程 + 動畫,合成一張卡(排版比照 #architecture 與 #decision-2)。
            02 那格底下掛一個琥珀色的代價標註,把「不走這條路」的理由當場秀出來。 -->
@@ -1004,8 +1036,11 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
       <!-- HERO -->
       <div class="unit-head">
         <div class="unit-tag">KEY DECISION 02</div>
-        <div class="unit-title">同事說半徑數字怪怪的<br>我用幾何推導確認了一次</div>
-        <p class="unit-lead">在 ADAS 業界，評估道路半徑的標準做法其實有誤，<b>但長年沒有人懷疑過它</b>。同事回報問題後，我先用幾何方法求證，再查資料佐證，最後把算法改掉，並<b>套用到每一個 ADAS 系統</b>，整體穩定度跟著提高。</p>
+        <div class="unit-title">細節洞察與持續改善</div>
+        <div class="unit-points">
+          <p><b>保持懷疑與驗證</b>：面對不合常理的結果，沒有盲目相信既有權威或大眾慣例，而是回頭檢視底層邏輯。</p>
+          <p><b>深度拆解與排查</b>：逐層追蹤公式的運算細節、邊界條件（Edge Cases）或輸入變數，最終精準定位出盲點或漏洞。</p>
+        </div>
       </div>
 
       <!-- 流程時間軸 + 動畫,合成一張卡(排版比照 #architecture 的開發歷程卡)。

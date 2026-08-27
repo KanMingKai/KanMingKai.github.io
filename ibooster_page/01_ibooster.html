@@ -246,6 +246,12 @@ section{padding:clamp(56px,9vw,104px) 0}
 .unit-lead.left{text-align:left}
 .unit-lead b{color:var(--ink,#1d1d1f);font-weight:700}
 .unit-lead code{font-family:var(--mono,monospace);font-size:11.5px;background:#eceef1;padding:1px 5px;border-radius:4px;color:#0f5c74}
+/* 標題下方的條列。.unit-head 整體置中,但條列若跟著置中,每一行的左緣會參差不齊,
+   所以整塊仍置中、內文改左對齊。trj_page 與 lfs_page 各有一份同規格的,改一邊記得對另外兩邊。 */
+.unit-points{max-width:660px;margin:16px auto 0;display:grid;gap:11px;text-align:left}
+.unit-points p{font-size:13.5px;color:var(--ink-2,#6e6e73);line-height:1.8;padding-left:16px;position:relative}
+.unit-points p::before{content:"";position:absolute;left:0;top:10px;width:5px;height:5px;border-radius:50%;background:#d2d2d7}
+.unit-points b{color:var(--ink,#1d1d1f);font-weight:700}
 .cta{text-align:center}
 .cta-btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
 .cta-btns a{font-size:14px;font-weight:600;text-decoration:none;padding:12px 22px;border-radius:980px;transition:opacity .2s,background .2s}
@@ -772,8 +778,11 @@ section{padding:clamp(56px,9vw,104px) 0}
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">IBOOSTER · 電液壓煞車平台逆向工程</div>
-        <div class="unit-title">讓 i-booster 可以被控制、也逆向推導出內部的結構</div>
-        <p class="unit-lead left">當時想把車輛自動化的廠商都卡在同一件事：<b>煞車沒有電控介面</b> —— 轉向與油門都能下命令，只有煞車還是駕駛的一隻腳。業界常見的替代做法是搬一顆汽車 <b>ABS 液壓模組</b>來增壓，但那顆模組本來是為<b>防鎖死</b>設計的，閥以開關方式作動，擅長「快速洩壓」，卻<b>很難線性地要多少壓力就給多少</b>。指導教授因此把題目交給我和一位博士生：對 Bosch <b>i-booster</b> 做逆向工程 —— 它是馬達直接推總泵柱塞，位置控得住、壓力就跟著線性，正好補上液壓模組缺的那一段。我們把它拆開、量機構、辨識參數、建出模型，再在模型上發展控制策略；最後<b>由 i-booster 串聯 EHB</b>（前者線性建壓、後者分輪調壓），成為 <b>ACER</b> 與<b>工研院</b>自動駕駛計畫的煞車系統。下面的機構圖與所有參數，依據都是這台被拆開的實物。</p>
+        <div class="unit-title">Bosch i-booster 逆向工程與車用煞車線控化</div>
+        <div class="unit-points">
+          <p><b>硬體逆向工程與系統建模</b>：針對自駕車<b>缺乏電控煞車介面</b>的產業痛點（轉向與油門都能下命令，只有煞車還是駕駛的一隻腳），主導 Bosch <b>i-booster</b> 實物拆解與逆向工程，量測機構、辨識參數並建立動態控制模型，克服傳統 <b>ABS 液壓模組</b>閥以開關方式作動、<b>無法線性控壓</b>的缺陷。下面的機構圖與所有參數，依據都是這台被拆開的實物。</p>
+          <p><b>線控煞車系統整合與專案落地</b>：開發以 i-booster <b>線性建壓</b>、串聯 <b>EHB 分輪調壓</b>的完整煞車控制架構，成為 <b>ACER</b> 與<b>工研院</b>自動駕駛計畫的核心煞車系統。</p>
+        </div>
       </div>
     </div>
 
@@ -1156,8 +1165,11 @@ section{padding:clamp(56px,9vw,104px) 0}
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">EHB · 電液壓煞車模組</div>
-        <div class="unit-title">拆開 EHB，並用它做到自動減速度控制</div>
-        <p class="unit-lead left">i-booster 只能推總泵柱塞 —— 它建的是「整條迴路一起上」的壓力。要做 ABS 或 AEB 這種<b>四個輪各自要多少</b>的控制，就得在總泵與分泵之間再插一顆能分輪調壓的模組。對角雙迴路、每輪一組進／出液閥、共用一組雙活塞油泵。</p>
+        <div class="unit-title">EHB 液壓解構與分輪動態調壓<br>突破全迴路建壓限制，實現 ABS 與 AEB 減速度控制</div>
+        <div class="unit-points">
+          <p><b>液壓系統逆向解構與架構設計</b>：i-booster 只能推總泵柱塞，建的是「<b>整條迴路一起上</b>」的壓力；要做 ABS 或 AEB 這種<b>四個輪各自要多少</b>的控制，就得在總泵與分泵之間再插一顆能分輪調壓的模組。拆解 EHB 後掌握其硬體本質：<b>對角雙迴路</b>、每輪一組<b>進／出液閥</b>、共用一組<b>雙活塞油泵</b>。</p>
+          <p><b>主動安全減速度控制實作</b>：整合 i-booster <b>線性建壓</b>與 EHB <b>分輪獨立調壓</b>，建立四輪動態減速度控制能力，滿足 <b>ABS</b>（防鎖死）與 <b>AEB</b>（自動緊急煞車）的控制需求。</p>
+        </div>
       </div>
     </div>
 
@@ -1515,9 +1527,11 @@ section{padding:clamp(56px,9vw,104px) 0}
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">PLATFORM · 電控煞車平台</div>
-        <div class="unit-title">i-booster 與 EHB 液壓平台逆向工程<br>套用在 ITRI 與 ACER 的自動駕駛載具</div>
-        <p class="unit-lead left">大四提前進研究所，指導教授直接把這個題目交給我：<b>把 i-booster 與 EHB 兩顆量產模組的原廠控制器拔掉</b>，換上自己的控制板與驅動電路，直接控制裡面的 <b>PMSM 馬達</b>與 <b>12 顆電磁閥</b>。上層只要從 CAN 送一個煞車命令，車就會自己踩下去 —— 這一套成為自駕載具的<b>煞車致動層</b>。</p>
-        <p class="unit-lead left">再把兩顆模組<b>串聯起來協同建壓</b>，因為兩者的短處剛好互補：i-booster 實測 <b>0.32 秒</b>就能把油壓從 0 拉到 <b>17 bar</b>，但它只能讓整條迴路一起上壓；EHB 能分輪調壓，<b>從零建壓卻要 1～2 秒</b>，對 AEB 太慢。所以讓 i-booster 負責把基礎壓力快速拉起來、EHB 負責分輪與補壓，兩者同時作動才能<b>有效提升油壓、拉高煞車時的最大減速度</b> —— 這是單靠任何一顆都做不到的，也是廠商<b>減速度控制</b>需求真正要的東西。成果套用在 <b>ITRI 與 ACER 的自動駕駛載具</b>上。</p>
+        <div class="unit-title">線控煞車平台逆向工程與雙模組協同控制<br>破解 i-booster 與 EHB 原廠黑箱，成功部署 ITRI 與 ACER 自駕載具</div>
+        <div class="unit-points">
+          <p><b>硬體逆向工程與自研控制器開發</b>：拆解 i-booster 與 EHB 兩顆量產模組並<b>拔除原廠控制器</b>，自行設計控制板與驅動電路，直接控制內部的 <b>PMSM 馬達</b>與 <b>12 顆電磁閥</b>；上層只要從 <b>CAN</b> 送一個煞車命令，車就會自己踩下去。</p>
+          <p><b>異質液壓模組協同控制與性能突破</b>：兩顆模組的短處剛好互補：i-booster 實測 <b>0.32 秒</b>把油壓從 0 拉到 <b>17 bar</b>，但只能讓整條迴路一起上壓；EHB 能分輪調壓，<b>從零建壓卻要 1~2 秒</b>，對 AEB 太慢。改為 i-booster 快速拉起基礎壓力、EHB 負責分輪與補壓，兩者同時作動才能<b>拉高煞車時的最大減速度</b>，這是單靠任何一顆都做不到的。成果落地於 <b>ITRI 與 ACER 的自動駕駛載具</b>。</p>
+        </div>
       </div>
     </div>
 
@@ -1634,12 +1648,11 @@ section{padding:clamp(56px,9vw,104px) 0}
     <div class="unit">
       <div class="unit-head">
         <div class="unit-tag">NCSIST · 機車 ABS 比例式液壓模組</div>
-        <div class="unit-title">另一台車：機車量不到絕對車速，滑差控制還是得做</div>
-        <p class="unit-lead left">上面三節是工研院 CPEV 案、是汽車。同一段時間還有中科院 107 年度委學案的機車 ABS ——
-          中科院有比例閥油壓硬體、指導教授有控制構想，我做中間那段<b>技術轉化</b>，帶 4 人團隊把它變成跑得動的估測鏈。
-          難的地方跟 i-booster 剛好相反：i-booster 是「東西在手上、但被封死」，
-          機車是<b>「東西是開的、但那顆感測器根本不存在」</b> —— ABS 的本質是閉迴路滑差控制，
-          而滑差需要絕對車速，量產機車上沒有任何一顆感測器量得到它。</p>
+        <div class="unit-title">機車 ABS 無感測器滑差控制與狀態估測<br>克服無絕對車速感測的極限，帶領團隊完成閉迴路控制落地</div>
+        <div class="unit-points">
+          <p><b>無感測器狀態估測架構設計</b>：ABS 的本質是<b>閉迴路滑差控制</b>，而滑差需要<b>絕對車速</b>，量產機車上沒有任何一顆感測器量得到它。難處與 i-booster 剛好相反：i-booster 是「東西在手上、但被封死」，機車是<b>「東西是開的、但那顆感測器根本不存在」</b>。主導核心演算法開發，以數學模型突破這道物理瓶頸，建立動態車速與滑差的估測鏈。</p>
+          <p><b>控制構想之工程轉化與團隊領導</b>：上面三節是工研院 CPEV 案、是汽車；同一段時間還有<b>中科院 107 年度委學案</b>的機車 ABS。中科院有比例閥油壓硬體、指導教授有控制構想，我做中間那段<b>技術轉化</b>，帶 <b>4 人團隊</b>把學術構想變成實際跑得動的車載控制系統，打通軟硬體閉環。</p>
+        </div>
       </div>
     </div>
 
