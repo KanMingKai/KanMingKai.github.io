@@ -38,9 +38,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1
 
 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
 /* 章節底色白 / 灰嚴格交錯 —— 章節之間沒有分隔線,底色是唯一的分界。
-   新增章節時記得把後面所有 .band-alt 重新交錯一次。
-   目前:vmodel 白 / coverage 灰 / iso26262 白 / aspice 灰 /
-        artifact 白 / transfer 灰 / close 白 */
+   增刪章節時記得把後面所有 .band-alt 重新交錯一次。
+   目前只剩三節,都不用 .band-alt:hero 白 / vmodel 白 / cta 白。
+   (coverage、mbd、iso26262、safety、aspice、artifact、transfer 已陸續移除;
+    coverage 的四段落點表併進了 vmodel) */
 section{padding:clamp(52px,8vw,92px) 0}
 .band-alt{background:var(--bg-alt)}
 .unit{margin:0 auto}
@@ -309,8 +310,7 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);border:1p
   <div class="in">
     <a class="chnav-back" id="chnav-back" href="../home/index.html#xp-process"
        data-resume-default="xp-process">← 回履歷</a>
-    <a href="#vmodel"   data-sec="vmodel">那條 V</a>
-    <a href="#transfer" data-sec="transfer" data-resume="xp-transfer">搬上機器人</a>
+    <a href="#vmodel"   data-sec="vmodel" data-resume="xp-vmodel">那條 V</a>
   </div>
 </nav>
 
@@ -538,96 +538,12 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);border:1p
 </div>
 </section>
 
-<!-- ===== 6. 搬上機器人 ===== -->
-<section id="transfer" class="band-alt">
-<div class="wrap">
-  <div class="unit">
-    <div class="unit-head">
-      <div class="unit-tag">TRANSFER · 把 V 搬上機器人</div>
-      <div class="unit-title">機器人團隊不會有人跟你談 ASIL<br>但那套紀律，換個名字照樣成立</div>
-      <p class="unit-lead">2025 年進 FIH Robotics 之後，我沒有把 ISO 26262 那套文件硬搬過去,沒有 OEM 要看，搬過去只會變成沒人維護的樣板。<b>我搬的是機制:規格先行、分層驗證、介面凍結、追溯不靠人。</b>左欄是車用的做法，右欄是它在 ROS 2 上長成的樣子。</p>
-    </div>
-
-    <div class="pv-map">
-      <div class="pv-maphead">
-        <div>車用 ADAS 的做法</div><div></div><div>我在 AMR 的對應做法</div>
-      </div>
-
-      <div class="pv-row">
-        <div class="pv-side car"><div class="h">SRS / SDD 規格先行</div><div class="d">先寫需求與設計,再實作,再回頭對規格驗證</div></div>
-        <div class="pv-arrow">→</div>
-        <div class="pv-side bot"><div class="h">ROS 2 系統設計規格 SDS</div><div class="d">先以 SDS 定義模組行為與輸入輸出,取代原本靠補丁堆疊、模組間<b>循環相依</b>的程式碼</div></div>
-      </div>
-
-      <div class="pv-row">
-        <div class="pv-side car"><div class="h">Simulink 子系統分層</div><div class="d">模型化設計把系統切成單一職責的子系統</div></div>
-        <div class="pv-arrow">→</div>
-        <div class="pv-side bot"><div class="h">Python 物件導向分層</div><div class="d"><b>MapGraph / MissionManager / RouteFSM / NodeGraphPlanner</b> 各對應單一職責的類別,使<b>架構圖與程式碼一一對應</b>、可逐層審查</div></div>
-      </div>
-
-      <div class="pv-row">
-        <div class="pv-side car"><div class="h">介面凍結與需求追溯(Polarion)</div><div class="d">介面與需求變更要留下追溯紀錄</div></div>
-        <div class="pv-arrow">→</div>
-        <div class="pv-side bot"><div class="h">Mermaid 架構圖納入版控</div><div class="d">介面變更須<b>同步更新架構圖並於 Merge Request 審查</b>,避免文件過時與幽靈介面</div></div>
-      </div>
-
-      <div class="pv-row">
-        <div class="pv-side car"><div class="h">Signal definition 訊號規格</div><div class="d">每條訊號進版本前先定義名稱、型別、值域、更新週期;模擬與單元測試直接照規格生測資</div></div>
-        <div class="pv-arrow">→</div>
-        <div class="pv-side bot"><div class="h">規格不再靠人填</div><div class="d">改由<b>每天 09:00 GitLab CI 從原始碼重解一次</b>再自動繪圖;<b>沒有人工這關,就不會有文件品質不一的問題</b></div></div>
-      </div>
-
-      <div class="pv-row">
-        <div class="pv-side car"><div class="h">MIL 單元驗證</div><div class="d">模型層級的單元行為驗證</div></div>
-        <div class="pv-arrow">→</div>
-        <div class="pv-side bot"><div class="h">L1 單元測試</div><div class="d"><b>pytest / gtest</b>,隨 Merge Request 自動觸發</div></div>
-      </div>
-
-      <div class="pv-row">
-        <div class="pv-side car"><div class="h">SIL / CIL 子系統整合</div><div class="d">軟體在環與程式碼在環的整合驗證</div></div>
-        <div class="pv-arrow">→</div>
-        <div class="pv-side bot"><div class="h">L2 子系統整合</div><div class="d">如<b>定位 + 控制閉環</b>的整合測試</div></div>
-      </div>
-
-      <div class="pv-row">
-        <div class="pv-side car"><div class="h">dSPACE HIL · 目標硬體驗證</div><div class="d">在真正的車規控制器(TC277)上驗,而不只在開發機</div></div>
-        <div class="pv-arrow">→</div>
-        <div class="pv-side bot"><div class="h">CI Runner 佈署於 Jetson</div><div class="d">自架 GitLab <b>Project Runner</b> 佈在 Jetson,使 CI 在<b>實際 ARM 目標硬體</b>上執行,而非僅在 x86 開發機驗證</div></div>
-      </div>
-
-      <div class="pv-row">
-        <div class="pv-side car"><div class="h">1,600 km Mini-FOT 與場景重播</div><div class="d">自長里程 log 自動篩出失效案例,重建當下環境條件跑回歸</div></div>
-        <div class="pv-arrow">→</div>
-        <div class="pv-side bot"><div class="h">Isaac Sim 夜間 300 場景回歸</div><div class="d">自 SLAM 地圖自動採樣可通行目標量產測試場景,<b>整夜無人值守</b>、可固定隨機種子重跑;自動分類失敗原因並產出成功率報表,<b>40% → ~100%</b></div></div>
-      </div>
-
-      <div class="pv-row">
-        <div class="pv-side car"><div class="h">量產實車驗證</div><div class="d">5 款量產車 · L2 高速公路自駕上路</div></div>
-        <div class="pv-arrow">→</div>
-        <div class="pv-side bot"><div class="h">Sim-to-Real 實機部署</div><div class="d">整套導航堆疊自模擬部署至實機,<b>3 台於廠區運行</b>;兩端埋<b>同一組量測</b>疊成對照儀表,逐項定位行為落差(如 RS485 不具即時性、里程計回報對不上實際位移)</div></div>
-      </div>
-    </div>
-
-    <div class="pv-quote">
-      <div class="ic">→</div>
-      <p>車用那套流程的價值不在文件本身，在<b>「任何一個結論都找得到它的依據」</b>。工具會換、標準名稱會換，但這件事不換,所以它搬得動。</p>
-    </div>
-  </div>
-</div>
-</section>
-
 <!-- ===== CLOSE + CTA ===== -->
 <section class="pv-cta">
 <div class="wrap">
-  <p class="p-narr" style="text-align:center">
-    <b>流程不是為了做文件。</b>它是把「我做得到」變成「團隊接得住、客戶信得過」的唯一方法。
-  </p>
-  <p class="gold">從被大廠驗證，到定標準給大廠用，再到教會別的團隊自己驗,我留下的不是一份報告，是一套方法。</p>
-
-  <div class="pv-btns" style="margin-top:34px">
-    <a class="p" href="mailto:tkps50803@gmail.com?subject=關於車規開發流程與功能安全經驗">想聊聊？寄信給我</a>
-    <a class="s" href="../ibooster_page/04_vmodel.html">看研究所產學案的 V 落點圖 →</a>
-    <a class="s" href="../home/index.html">回履歷 →</a>
+  <div class="pv-btns">
+    <a class="s" href="../home/index.html">回到履歷</a>
+    <a class="p" href="mailto:tkps50803@gmail.com?subject=關於車規開發流程與功能安全經驗">聯絡我</a>
   </div>
 </div>
 </section>

@@ -431,10 +431,11 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
       </div>
     </div>
 
-    <!-- xp-transfer 這個 id 不能拿掉:process_page/01_process.html 的章節導覽以
-         data-resume="xp-transfer" 回連到這裡,check.py 的「履歷⇄專案頁雙向連結」會檢查。 -->
-    <div class="xp" id="xp-transfer">
-      <div class="xp-m"><div class="big sm">L1&ndash;L3</div><div class="unit">目標硬體上驗證</div><a class="xp-brief" href="../process_page/01_process.html#transfer">看流程怎麼搬過來<span class="ic" aria-hidden="true">&rarr;</span></a></div>
+    <!-- xp-vmodel 這個 id 不能拿掉:process_page/01_process.html 的章節導覽以
+         data-resume="xp-vmodel" 回連到這裡,check.py 的「履歷⇄專案頁雙向連結」會檢查。
+         原本指向該頁的 #transfer(把 V 搬上機器人),該節已移除,改指 #vmodel。 -->
+    <div class="xp" id="xp-vmodel">
+      <div class="xp-m"><div class="big sm">L1&ndash;L3</div><div class="unit">目標硬體上驗證</div><a class="xp-brief" href="../process_page/01_process.html#vmodel">看流程怎麼搬過來<span class="ic" aria-hidden="true">&rarr;</span></a></div>
       <div class="xp-c">
         <h4>依 V-Model 的分層驗證流程建置</h4>
         <p class="xp-sum">切分 <span class="hl">L1 單元 / L2 整合 / L3 系統</span>三層;<span class="hl">Runner 部署於 Jetson</span>,L1、L2 直接在 ARM 目標硬體上跑</p>
