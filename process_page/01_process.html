@@ -188,6 +188,11 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);border:1p
 .pv-cta{padding:clamp(44px,6vw,68px) 0}
 .pv-btns{display:flex;flex-wrap:wrap;gap:11px;justify-content:center}
 .pv-btns a{font-size:13.5px;font-weight:600;text-decoration:none;border-radius:11px;padding:12px 18px;transition:background .2s,border-color .2s,color .2s}
+/* 聯絡按鈕下方的純文字信箱。mailto 需要對方電腦有設定郵件軟體,
+   很多人沒有 —— 按鈕沒反應時,這一行是唯一還能複製到地址的地方。 */
+.cta-mail{margin-top:12px;font-size:12.5px;color:var(--ink-3)}
+.cta-mail a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid rgba(0,0,0,.18)}
+.cta-mail a:hover{color:var(--ink);border-bottom-color:var(--ink-3)}
 .pv-btns a.p{background:var(--blue);color:#fff;border:1px solid var(--blue)}
 .pv-btns a.p:hover{background:var(--blue-d);border-color:var(--blue-d)}
 .pv-btns a.s{background:#fff;color:var(--ink);border:1px solid var(--line)}
@@ -535,8 +540,9 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);border:1p
 <div class="wrap">
   <div class="pv-btns">
     <a class="s" href="../home/index.html" data-en='Back to resume'>回到履歷</a>
-    <a class="p" href="mailto:tkps50803@gmail.com?subject=關於車規開發流程與功能安全經驗" data-en='Contact me'>聯絡我</a>
+    <a class="p" href="mailto:tkps50803@gmail.com?subject=%E9%97%9C%E6%96%BC%E8%BB%8A%E8%A6%8F%E9%96%8B%E7%99%BC%E6%B5%81%E7%A8%8B%E8%88%87%E5%8A%9F%E8%83%BD%E5%AE%89%E5%85%A8%E7%B6%93%E9%A9%97" data-en-href="mailto:tkps50803@gmail.com?subject=About%20the%20automotive%20process%20and%20functional%20safety%20work" data-en='Contact me'>聯絡我</a>
   </div>
+  <div class="cta-mail" data-en='or email <a href="mailto:tkps50803@gmail.com">tkps50803@gmail.com</a> directly'>或直接寄信到 <a href="mailto:tkps50803@gmail.com">tkps50803@gmail.com</a></div>
 </div>
 </section>
 

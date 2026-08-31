@@ -187,6 +187,11 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 .cta-btns a{display:inline-block;padding:12px 26px;border-radius:980px;font-size:14px;font-weight:600;text-decoration:none}
 .cta-btns .p{background:var(--ink);color:#fff}
 .cta-btns .s{border:1px solid var(--line);color:var(--ink)}
+/* 聯絡按鈕下方的純文字信箱。mailto 需要對方電腦有設定郵件軟體,
+   很多人沒有 —— 按鈕沒反應時,這一行是唯一還能複製到地址的地方。 */
+.cta-mail{margin-top:12px;font-size:12.5px;color:var(--ink-3)}
+.cta-mail a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid rgba(0,0,0,.18)}
+.cta-mail a:hover{color:var(--ink);border-bottom-color:var(--ink-3)}
 
 @media(max-width:680px){
   .scale{grid-template-columns:1fr}
@@ -701,7 +706,6 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
           </tr>
         </tbody>
       </table>
-      <p class="ctab-note" data-en='Colour indicates only whether something is good or bad for production, not whether the method itself is good, which is why one method shows both green and red: that is its trade-off. The three trajectory diagrams are illustrative geometry, not measured paths. Compute load is relative utilization on the same TC397 with the same set of lateral features, with the S-L version as the 100% baseline; &gt;100% means it cannot finish within one cycle. Smoothness and explainability are engineering assessments, not measurements; the development cycle is the actual figure from the program.'>顏色只表示「這件事在量產上是好是壞」，不表示方法本身好壞，所以同一個方法會同時出現綠色與紅色，那正是它的取捨。三張軌跡圖為示意圖，幾何為說明用途，非實測軌跡。運算量為同一顆 TC397、同一組側向功能下的相對佔用，以 S-L 版本為 100% 基準；&gt;100% 表示單週期內算不完。平順性與可解釋性為工程評估等級，非量測值；開發週期為專案實際經驗值，MPPI 未進入開發，故無數據。</p>
     </div>
   </div>
 </section>
@@ -729,7 +733,6 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 
       <iframe class="arm-trj-embed" src="01_ArmTrjOneScene.html" loading="lazy" title="從機械手臂聯想到 trj 軌跡設計" style="margin-top:20px"></iframe>
 
-      <p style="font-size:13.5px;color:var(--ink-2);line-height:1.7;max-width:560px;margin:20px auto 0;text-align:center" data-en='The analogy settled it: trj does not need a separate algorithm per feature. One way of thinking about boundary conditions describes both "offset to a new position" and "join a changing path".'>這個類比讓我確定：trj 不需要為 9 項功能各自設計演算法，用同一套邊界條件思維，就能同時描述「偏移到新位置」跟「銜接一條變動路徑」這兩種行為。</p>
     </div>
   </div>
 </section>
@@ -939,8 +942,6 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
     </div>
     <div class="tdo-hint" data-en='&larr; swipe to see the full diagram &rarr;'>← 左右滑動查看完整圖 →</div>
 
-    <p class="tdo-kicker" data-en='Whether it is an offset case or a joining case, three numbers, <span class="tdo-em-b">offset</span>, <span class="tdo-em-b">join start</span> and <span class="tdo-em-b">join end</span>, describe the trajectory requirements of all 9 features.'>不管是偏移類還是銜接類，都只需要<span class="tdo-em-b" data-en='offset'>偏移量</span>、<span class="tdo-em-b" data-en='join start'>銜接起點</span>、<span class="tdo-em-b" data-en='join end'>銜接終點</span>，三個數字，就能描述所有 9 項功能的軌跡需求。</p>
-    <p class="tdo-note" data-en='The trajectories and map route shown are illustrative, used to explain the classification logic, not measured data.'>圖中軌跡與地圖路線為示意，用於說明分類邏輯，非實測資料。</p>
   </div>
 </section>
 
@@ -1179,8 +1180,9 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   <div class="wrap">
     <div class="cta-btns">
       <a class="s" href="../home/index.html" data-en='Back to resume'>回到履歷</a>
-      <a class="p" href="mailto:tkps50803@gmail.com?subject=關於 TRJ 共用軌跡規劃模組" data-en='Contact me'>聯絡我</a>
+      <a class="p" href="mailto:tkps50803@gmail.com?subject=%E9%97%9C%E6%96%BC%20TRJ%20%E5%85%B1%E7%94%A8%E8%BB%8C%E8%B7%A1%E8%A6%8F%E5%8A%83%E6%A8%A1%E7%B5%84" data-en-href="mailto:tkps50803@gmail.com?subject=About%20the%20TRJ%20shared%20trajectory%20planning%20module" data-en='Contact me'>聯絡我</a>
     </div>
+    <div class="cta-mail" data-en='or email <a href="mailto:tkps50803@gmail.com">tkps50803@gmail.com</a> directly'>或直接寄信到 <a href="mailto:tkps50803@gmail.com">tkps50803@gmail.com</a></div>
   </div>
 </section>
 

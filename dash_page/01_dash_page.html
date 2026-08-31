@@ -421,6 +421,11 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 .cta-btns .p:hover{background:var(--blue-d)}
 .cta-btns .s{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
 .cta-btns .s:hover{background:#ececf0}
+/* 聯絡按鈕下方的純文字信箱。mailto 需要對方電腦有設定郵件軟體,
+   很多人沒有 —— 按鈕沒反應時,這一行是唯一還能複製到地址的地方。 */
+.cta-mail{margin-top:12px;font-size:12.5px;color:var(--ink-3)}
+.cta-mail a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid rgba(0,0,0,.18)}
+.cta-mail a:hover{color:var(--ink);border-bottom-color:var(--ink-3)}
 
 @media(max-width:900px){
   .cdf-fig-foot{grid-template-columns:1fr}
@@ -684,7 +689,6 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 
     </svg>
     </figure>
-    <p class="dvp-note" data-en='The left arm defines downward, the bottom implements, the right arm verifies upward; the three horizontal lines in the middle say that what this level verifies is exactly what the same level on the left produced.'>左臂往下定義、最底部實作、右臂往上驗證；中間三條橫線是「這一層驗的，就是左邊同一層的產出」。</p>
   </div>
 </section>
 
@@ -940,7 +944,6 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
       </figcaption>
     </figure>
 
-    <p class="cdf-note" data-en='The two flows meet at exactly one point, the change marking: CI decides what the architecture diagram looks like, and the change record only marks where this round of edits landed.'>兩條流唯一的交會點是「標注修改」：架構圖由 CI 決定長相，異動記錄只負責標注這次修改了哪裡。</p>
   </div>
 </section>
 
@@ -1149,7 +1152,6 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
       </div>
     </figure>
 
-    <p class="s2r-note" data-en='The blue column on the left is the three symptoms measured on the real robot; the green column on the right is the three practices that answer them, each numbered 1 &rarr; 3. Commands, station IDs and measured values in the diagram are left as they are (<code>move 2.0</code>, <code>goto ST-02</code>, <code>SCN-0842</code>) because those are what is actually typed in.'>左欄（藍）是真機上量到的三個現象，右欄（綠）是接住它們的三個做法，兩欄各自編號 1 → 3。圖上的指令、站點代號與量測值維持原文（<code>move 2.0</code>、<code>goto ST-02</code>、<code>SCN-0842</code>）—— 那些是實際打進去的東西，翻成中文反而對不上。</p>
   </div>
 </section>
 
@@ -1629,8 +1631,9 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   <div class="wrap">
     <div class="cta-btns">
       <a class="s" href="../home/index.html" data-en='Back to resume'>回到履歷</a>
-      <a class="p" href="mailto:tkps50803@gmail.com?subject=關於 異動記錄 × 架構儀表板" data-en='Contact me'>聯絡我</a>
+      <a class="p" href="mailto:tkps50803@gmail.com?subject=%E9%97%9C%E6%96%BC%20%E7%95%B0%E5%8B%95%E8%A8%98%E9%8C%84%20%C3%97%20%E6%9E%B6%E6%A7%8B%E5%84%80%E8%A1%A8%E6%9D%BF" data-en-href="mailto:tkps50803@gmail.com?subject=About%20the%20change%20log%20and%20architecture%20dashboard" data-en='Contact me'>聯絡我</a>
     </div>
+    <div class="cta-mail" data-en='or email <a href="mailto:tkps50803@gmail.com">tkps50803@gmail.com</a> directly'>或直接寄信到 <a href="mailto:tkps50803@gmail.com">tkps50803@gmail.com</a></div>
   </div>
 </section>
 

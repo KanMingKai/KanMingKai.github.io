@@ -4,6 +4,9 @@
      <h4 data-en='Single navigation architecture'>廠區 AMR 單一導航架構與雙模切換設計</h4>
    沒有 data-en 的元素不會被動到,所以可以一段一段慢慢補,不必一次翻完。
 
+   ★ data-en-href:連結在英文模式要換目的地時用。目前只有各頁的「聯絡我」需要 ——
+     mailto 的主旨若留中文,外籍讀者按下去會看到一封主旨是中文的信。
+
    ★ 中文原文不寫進 HTML —— 第一次切換時才把當下的 innerHTML 記進 JS 的
      Map 裡。這樣中文永遠是檔案裡看得到的那一份,英文是附加的,
      改中文時不必同步改第二個地方。
@@ -15,12 +18,19 @@
   var zh = new Map();          // 元素 → 中文原始 innerHTML
   var cur = 'zh';
 
+  var zhHref = new Map();     // 元素 → 中文版 href
+
   function nodes() { return document.querySelectorAll('[data-en]'); }
 
   function apply(lang) {
     nodes().forEach(function (el) {
       if (!zh.has(el)) zh.set(el, el.innerHTML);
       el.innerHTML = (lang === 'en') ? el.getAttribute('data-en') : zh.get(el);
+    });
+    // 連結目的地也要跟著換(見上方 data-en-href 說明)
+    document.querySelectorAll('[data-en-href]').forEach(function (el) {
+      if (!zhHref.has(el)) zhHref.set(el, el.getAttribute('href'));
+      el.setAttribute('href', (lang === 'en') ? el.getAttribute('data-en-href') : zhHref.get(el));
     });
     document.documentElement.lang = (lang === 'en') ? 'en' : 'zh-Hant';
     cur = lang;
