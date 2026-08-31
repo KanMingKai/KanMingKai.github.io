@@ -405,20 +405,21 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   <div class="in">
     <a href="../index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
     <div class="tabs">
-      <a class="tab-l" href="../home/index.html">履歷</a>
-      <span class="tab-l cur">感知融合經驗</span>
-      <a class="tab-l" href="../trj_page/01_trj_page.html">軌跡規劃經驗</a>
-      <a class="tab-l" href="../dash_page/01_dash_page.html">AMR系統整合</a>
-      <a class="tab-l" href="../ibooster_page/01_ibooster.html">底層控制經驗(研究所)</a>
-      <a class="tab-l" href="../process_page/01_process.html">車用法規經驗</a>
+      <a class="tab-l" href="../home/index.html" data-en='Resume'>履歷</a>
+      <span class="tab-l cur" data-en='Perception Fusion'>感知融合經驗</span>
+      <a class="tab-l" href="../trj_page/01_trj_page.html" data-en='Trajectory Planning'>軌跡規劃經驗</a>
+      <a class="tab-l" href="../dash_page/01_dash_page.html" data-en='AMR Integration'>AMR系統整合</a>
+      <a class="tab-l" href="../ibooster_page/01_ibooster.html" data-en='Low-Level Control'>底層控制經驗(研究所)</a>
+      <a class="tab-l" href="../process_page/01_process.html" data-en='Automotive Process'>車用法規經驗</a>
     </div>
+    <button type="button" id="lang-btn" class="pnav-lang" aria-label="Switch to English" aria-pressed="false">EN</button>
   </div>
 </nav>
 
 <nav class="chnav" id="chnav" aria-label="章節導覽">
   <div class="in">
     <a class="chnav-back" id="chnav-back" href="../home/index.html#co-fih-adas"
-       data-resume-default="co-fih-adas">← 回履歷</a>
+       data-resume-default="co-fih-adas" data-en='&larr; Back to resume'>← 回履歷</a>
     <a href="#method" data-sec="method">跨團隊主導驗證流程</a>
     <a href="#influence" data-sec="influence" data-resume="xp-influence">感測器特性分析與建模</a>
     <a href="#simulation" data-sec="simulation">場景重建與資料驅動開發</a>
@@ -1131,6 +1132,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 /* .chnav 捲動高亮已移至 ../assets/nav.js(三頁共用) */
 </script>
 <script src="../assets/nav.js"></script>
+<script src="../assets/i18n.js"></script>
 
 </body>
 </html>

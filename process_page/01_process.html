@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>車規開發流程 — V 模型 · ISO 26262 · ASPICE</title>
+<title data-en='Automotive Development Process &mdash; V-Model &middot; ISO 26262 &middot; ASPICE'>車規開發流程 — V 模型 · ISO 26262 · ASPICE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -293,15 +293,16 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);border:1p
 <!-- 固定導覽列(六頁共用元件,樣式見 assets/nav.css)-->
 <nav class="pnav">
   <div class="in">
-    <a href="../home/index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
+    <a href="../home/index.html" class="brand" data-en='Ming-Kai Kan'>甘銘凱 Ming-Kai Kan</a>
     <div class="tabs">
-      <a class="tab-l" href="../home/index.html">履歷</a>
-      <a class="tab-l" href="../lfs_page/lfs01.html">感知融合經驗</a>
-      <a class="tab-l" href="../trj_page/01_trj_page.html">軌跡規劃經驗</a>
-      <a class="tab-l" href="../dash_page/01_dash_page.html">AMR系統整合</a>
-      <a class="tab-l" href="../ibooster_page/01_ibooster.html">底層控制經驗(研究所)</a>
-      <span class="tab-l cur">車用法規經驗</span>
+      <a class="tab-l" href="../home/index.html" data-en='Resume'>履歷</a>
+      <a class="tab-l" href="../lfs_page/lfs01.html" data-en='Perception Fusion'>感知融合經驗</a>
+      <a class="tab-l" href="../trj_page/01_trj_page.html" data-en='Trajectory Planning'>軌跡規劃經驗</a>
+      <a class="tab-l" href="../dash_page/01_dash_page.html" data-en='AMR Integration'>AMR系統整合</a>
+      <a class="tab-l" href="../ibooster_page/01_ibooster.html" data-en='Low-Level Control'>底層控制經驗(研究所)</a>
+      <span class="tab-l cur" data-en='Automotive Process'>車用法規經驗</span>
     </div>
+    <button type="button" id="lang-btn" class="pnav-lang" aria-label="Switch to English" aria-pressed="false">EN</button>
   </div>
 </nav>
 
@@ -309,26 +310,26 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);border:1p
 <nav class="chnav" aria-label="章節導覽">
   <div class="in">
     <a class="chnav-back" id="chnav-back" href="../home/index.html#xp-process"
-       data-resume-default="xp-process">← 回履歷</a>
-    <a href="#vmodel"   data-sec="vmodel" data-resume="xp-vmodel">V 模型全生命週期工程與需求追溯管理</a>
+       data-resume-default="xp-process" data-en='&larr; Back to resume'>← 回履歷</a>
+    <a href="#vmodel"   data-sec="vmodel" data-resume="xp-vmodel" data-en='V-Model Lifecycle Engineering and Requirement Traceability'>V 模型全生命週期工程與需求追溯管理</a>
   </div>
 </nav>
 
 <!-- ===== HERO ===== -->
 <section class="pv-hero">
 <div class="wrap">
-  <div class="pv-eyebrow">車規開發流程 · V-Model / ISO 26262 / ASPICE</div>
-  <h1 class="pv-h1">V 模型全生命週期與功能安全工程<br class="nb"><span class="grad">把車規級標準跨域移植到 ROS 2 機器人團隊</span></h1>
+  <div class="pv-eyebrow" data-en='Automotive Development Process &middot; V-Model / ISO 26262 / ASPICE'>車規開發流程 · V-Model / ISO 26262 / ASPICE</div>
+  <h1 class="pv-h1" data-en='V-Model Lifecycle and Functional Safety Engineering<br class="nb"><span class="grad">Carrying automotive-grade standards across into a ROS 2 robotics team</span>'>V 模型全生命週期與功能安全工程<br class="nb"><span class="grad">把車規級標準跨域移植到 ROS 2 機器人團隊</span></h1>
   <div class="pv-points">
-    <p><b>車規級功能安全與追溯鏈實踐</b>：具備完整 <b>V 模型左右臂</b>實戰經驗。2018 年在學校跑車廠客戶的左臂（SRS → SDD → 資料字典 → 模型檢核 → 需求追溯）；2020 年與 <b>Siemens 依 ISO 26262</b> 共同開發量產車道融合模組，做安全需求、<b>ASIL 分解</b>、<b>FMEA / DFA</b>，追溯鏈以 <b>Polarion</b> 管理。</p>
-    <p><b>國際認證稽核與標準跨域移植</b>：2021 年後在 MobileDrive 完成 <b>80h ISO 26262 + 40h ASPICE</b> 正式訓練、<b>擔任 ASPICE 供應商稽核</b>，並參與公司通過 <b>DEKRA ISO 26262 ASIL-D</b> 認證（全 ADAS 系統範疇、團隊共同成果）；2025 年把同一套流程紀律移植到 <b>ROS 2 機器人團隊</b>。</p>
+    <p data-en='<b>Automotive functional safety and traceability in practice</b>: hands-on across <b>both arms of the V</b>. In 2018 I ran the left arm on OEM client programs at university (SRS &rarr; SDD &rarr; data dictionary &rarr; model check &rarr; requirement traceability); in 2020 I co-developed a production lane fusion module with <b>Siemens under ISO 26262</b>, covering safety requirements, <b>ASIL decomposition</b> and <b>FMEA / DFA</b>, with the traceability chain managed in <b>Polarion</b>.'><b>車規級功能安全與追溯鏈實踐</b>：具備完整 <b>V 模型左右臂</b>實戰經驗。2018 年在學校跑車廠客戶的左臂（SRS → SDD → 資料字典 → 模型檢核 → 需求追溯）；2020 年與 <b>Siemens 依 ISO 26262</b> 共同開發量產車道融合模組，做安全需求、<b>ASIL 分解</b>、<b>FMEA / DFA</b>，追溯鏈以 <b>Polarion</b> 管理。</p>
+    <p data-en='<b>Certification audit and carrying the standard across domains</b>: from 2021 at MobileDrive I completed <b>80h ISO 26262 + 40h ASPICE</b> formal training, <b>served as ASPICE supplier auditor</b>, and contributed to the company <b>DEKRA ISO 26262 ASIL-D</b> certification (full ADAS system scope, a team achievement); in 2025 I carried the same process discipline over to a <b>ROS 2 robotics team</b>.'><b>國際認證稽核與標準跨域移植</b>：2021 年後在 MobileDrive 完成 <b>80h ISO 26262 + 40h ASPICE</b> 正式訓練、<b>擔任 ASPICE 供應商稽核</b>，並參與公司通過 <b>DEKRA ISO 26262 ASIL-D</b> 認證（全 ADAS 系統範疇、團隊共同成果）；2025 年把同一套流程紀律移植到 <b>ROS 2 機器人團隊</b>。</p>
   </div>
 
   <div class="pv-stats">
-    <div class="pv-chip"><div class="v m">120 小時</div><div class="l">80h ISO 26262 + 40h ASPICE 正式訓練</div></div>
-    <div class="pv-chip"><div class="v">ASIL-D</div><div class="l">參與公司通過 DEKRA 認證</div></div>
-    <div class="pv-chip"><div class="v">稽核方</div><div class="l">擔任 ASPICE 供應商稽核</div></div>
-    <div class="pv-chip"><div class="v m">4 段</div><div class="l">經歷跑過同一條 V · 2018 → 現在</div></div>
+    <div class="pv-chip"><div class="v m" data-en='120 hours'>120 小時</div><div class="l" data-en='80h ISO 26262 + 40h ASPICE formal training'>80h ISO 26262 + 40h ASPICE 正式訓練</div></div>
+    <div class="pv-chip"><div class="v">ASIL-D</div><div class="l" data-en='contributed to the company DEKRA certification'>參與公司通過 DEKRA 認證</div></div>
+    <div class="pv-chip"><div class="v" data-en='Auditor'>稽核方</div><div class="l" data-en='served as ASPICE supplier auditor'>擔任 ASPICE 供應商稽核</div></div>
+    <div class="pv-chip"><div class="v m" data-en='4 roles'>4 段</div><div class="l" data-en='have run the same V &middot; 2018 &rarr; now'>經歷跑過同一條 V · 2018 → 現在</div></div>
   </div>
 </div>
 </section>
@@ -338,10 +339,10 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);border:1p
 <div class="wrap">
   <div class="unit">
     <div class="unit-head">
-      <div class="unit-title">V 模型全生命週期工程與需求追溯管理<br>貫徹 Automotive SPICE，開發與驗證雙向對應</div>
+      <div class="unit-title" data-en='V-Model Lifecycle Engineering and Requirement Traceability<br>Automotive SPICE end to end, development and validation mapped both ways'>V 模型全生命週期工程與需求追溯管理<br>貫徹 Automotive SPICE，開發與驗證雙向對應</div>
       <div class="unit-points">
-        <p><b>V 模型左右臂雙向對應與驗證</b>：V 模型的核心語意不是「先設計後測試」，而是<b>同一層的開發階段與驗證階段必須互相對應</b>。落實左臂需求逐層展開、右臂逐層驗證回去的架構，每一階段都有對應的驗證證據與閉環機制。</p>
-        <p><b>車規標準流程與追溯鏈建置</b>：結合 <b>Automotive SPICE</b> 規範與需求管理工具建立追溯鏈，每一份驗證證據都要追得回它在證明哪一條需求。下圖方塊上的 <code>SYS.x</code> / <code>SWE.x</code> 是 Automotive SPICE 的製程編號，第二行則是我在該階段實際用過的工具。</p>
+        <p data-en='<b>Both arms of the V, mapped and verified</b>: the point of the V-Model is not "design first, test later" but that <b>the development stage and the validation stage on the same level must correspond to each other</b>. The left arm decomposes requirements level by level and the right arm verifies back up level by level, so every stage has matching verification evidence and a closed loop.'><b>V 模型左右臂雙向對應與驗證</b>：V 模型的核心語意不是「先設計後測試」，而是<b>同一層的開發階段與驗證階段必須互相對應</b>。落實左臂需求逐層展開、右臂逐層驗證回去的架構，每一階段都有對應的驗證證據與閉環機制。</p>
+        <p data-en='<b>Automotive process and traceability chain</b>: built a traceability chain combining the <b>Automotive SPICE</b> framework with requirement management tooling, so every piece of verification evidence traces back to the requirement it proves. In the diagram below, <code>SYS.x</code> / <code>SWE.x</code> are Automotive SPICE process IDs; the second line is the tooling I actually used at that stage.'><b>車規標準流程與追溯鏈建置</b>：結合 <b>Automotive SPICE</b> 規範與需求管理工具建立追溯鏈，每一份驗證證據都要追得回它在證明哪一條需求。下圖方塊上的 <code>SYS.x</code> / <code>SWE.x</code> 是 Automotive SPICE 的製程編號，第二行則是我在該階段實際用過的工具。</p>
       </div>
     </div>
 
@@ -357,19 +358,19 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);border:1p
          ============================================================ -->
     <svg class="pv-svg" viewBox="0 0 1020 580" xmlns="http://www.w3.org/2000/svg" role="img"
          aria-label="V 模型流程圖。左臂由上而下為系統需求分析 SYS.2、系統架構設計 SYS.3、軟體需求分析 SWE.1、軟體架構設計 SWE.2,谷底為軟體單元建構 SWE.3 與軟體單元驗證 SWE.4,右臂由下而上為軟體整合測試 SWE.5、軟體合格測試 SWE.6、系統整合測試 SYS.4、系統合格測試 SYS.5。各層之間以雙向虛線表示需求與驗證的逐層追溯。">
-      <title>V 模型 · 開發與驗證逐層對應</title>
-      <desc>左臂為開發階段、右臂為驗證階段,同一層以雙向虛線相連表示追溯關係;底部為貫穿全流程的標準與規範。</desc>
+      <title data-en='V-Model &middot; development and validation level by level'>V 模型 · 開發與驗證逐層對應</title>
+      <desc data-en='The left arm is the development stage and the right arm the validation stage; each level is joined by a two-way dashed line showing traceability, with the standards that run through the whole flow along the bottom.'>左臂為開發階段、右臂為驗證階段,同一層以雙向虛線相連表示追溯關係;底部為貫穿全流程的標準與規範。</desc>
 
       <!-- 兩條斜臂(方塊之間的縫隙才看得到,所以用淡色寬筆) -->
       <path d="M102 70 L510 470" fill="none" stroke="#dbe9fb" stroke-width="15" stroke-linecap="round"/>
       <path d="M510 470 L918 70" fill="none" stroke="#d3f0e2" stroke-width="15" stroke-linecap="round"/>
 
       <!-- 頂部:兩臂性質 + 追溯工具 -->
-      <text x="102" y="38" font-size="12.5" font-weight="700" fill="#0071e3" text-anchor="middle">開發 · 需求逐層展開</text>
-      <text x="918" y="38" font-size="12.5" font-weight="700" fill="#0a8a5c" text-anchor="middle">驗證 · 逐層驗證回去</text>
+      <text x="102" y="38" font-size="12.5" font-weight="700" fill="#0071e3" text-anchor="middle" data-en='Development &middot; requirements decomposed'>開發 · 需求逐層展開</text>
+      <text x="918" y="38" font-size="12.5" font-weight="700" fill="#0a8a5c" text-anchor="middle" data-en='Validation &middot; verified back up'>驗證 · 逐層驗證回去</text>
       <rect x="447" y="20" width="126" height="23" rx="11.5" fill="#eef5ff" stroke="#0071e3" stroke-width="1"/>
-      <text class="m" x="510" y="35.5" font-size="10" font-weight="700" fill="#0071e3" text-anchor="middle">Polarion 追溯</text>
-      <text x="510" y="58" font-size="10" fill="#86868b" text-anchor="middle">每一條需求都要追得到它的驗證證據</text>
+      <text class="m" x="510" y="35.5" font-size="10" font-weight="700" fill="#0071e3" text-anchor="middle" data-en='Polarion traceability'>Polarion 追溯</text>
+      <text x="510" y="58" font-size="10" fill="#86868b" text-anchor="middle" data-en='every requirement must trace to its verification evidence'>每一條需求都要追得到它的驗證證據</text>
 
       <!-- 逐層對應的雙向虛線 -->
       <g stroke="#9a9aa0" stroke-width="1" fill="none">
@@ -393,14 +394,14 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);border:1p
         <rect x="333" y="347" width="150" height="46" rx="8"/>
       </g>
       <g text-anchor="middle" fill="#fff">
-        <text x="102" y="67"  font-size="12.5" font-weight="700">系統需求分析</text>
-        <text x="204" y="167" font-size="12.5" font-weight="700">系統架構設計</text>
-        <text x="306" y="267" font-size="12.5" font-weight="700">軟體需求分析</text>
-        <text x="408" y="367" font-size="12.5" font-weight="700">軟體架構設計</text>
+        <text x="102" y="67"  font-size="12.5" font-weight="700" data-en='System requirements analysis'>系統需求分析</text>
+        <text x="204" y="167" font-size="12.5" font-weight="700" data-en='System architecture design'>系統架構設計</text>
+        <text x="306" y="267" font-size="12.5" font-weight="700" data-en='Software requirements analysis'>軟體需求分析</text>
+        <text x="408" y="367" font-size="12.5" font-weight="700" data-en='Software architecture design'>軟體架構設計</text>
       </g>
       <g class="m" text-anchor="middle" fill="#ffffff" opacity=".82">
-        <text x="102" y="83"  font-size="8.5">SYS.2 · 安全目標</text>
-        <text x="204" y="183" font-size="8.5">SYS.3 · ASIL 分解</text>
+        <text x="102" y="83"  font-size="8.5" data-en='SYS.2 &middot; Safety goals'>SYS.2 · 安全目標</text>
+        <text x="204" y="183" font-size="8.5" data-en='SYS.3 &middot; ASIL decomposition'>SYS.3 · ASIL 分解</text>
         <text x="306" y="283" font-size="8.5">SWE.1 · SRS</text>
         <text x="408" y="383" font-size="8.5">SWE.2 · SDD</text>
       </g>
@@ -413,14 +414,14 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);border:1p
         <rect x="537" y="347" width="150" height="46" rx="8"/>
       </g>
       <g text-anchor="middle" fill="#fff">
-        <text x="918" y="67"  font-size="12.5" font-weight="700">系統合格測試</text>
-        <text x="816" y="167" font-size="12.5" font-weight="700">系統整合測試</text>
-        <text x="714" y="267" font-size="12.5" font-weight="700">軟體合格測試</text>
-        <text x="612" y="367" font-size="12.5" font-weight="700">軟體整合測試</text>
+        <text x="918" y="67"  font-size="12.5" font-weight="700" data-en='System qualification test'>系統合格測試</text>
+        <text x="816" y="167" font-size="12.5" font-weight="700" data-en='System integration test'>系統整合測試</text>
+        <text x="714" y="267" font-size="12.5" font-weight="700" data-en='Software qualification test'>軟體合格測試</text>
+        <text x="612" y="367" font-size="12.5" font-weight="700" data-en='Software integration test'>軟體整合測試</text>
       </g>
       <g class="m" text-anchor="middle" fill="#ffffff" opacity=".82">
-        <text x="918" y="83"  font-size="8.5">SYS.5 · 實車 FOT</text>
-        <text x="816" y="183" font-size="8.5">SYS.4 · 整車整合</text>
+        <text x="918" y="83"  font-size="8.5" data-en='SYS.5 &middot; Vehicle FOT'>SYS.5 · 實車 FOT</text>
+        <text x="816" y="183" font-size="8.5" data-en='SYS.4 &middot; Vehicle integration'>SYS.4 · 整車整合</text>
         <text x="714" y="283" font-size="8.5">SWE.6 · dSPACE HIL</text>
         <text x="612" y="383" font-size="8.5">SWE.5 · SIL / CIL</text>
       </g>
@@ -430,28 +431,28 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);border:1p
       <rect x="395" y="446" width="111" height="48" rx="8" fill="#0058b0"/>
       <rect x="514" y="446" width="111" height="48" rx="8" fill="#0a7a51"/>
       <g text-anchor="middle" fill="#fff">
-        <text x="450.5" y="467" font-size="12" font-weight="700">軟體單元建構</text>
-        <text x="569.5" y="467" font-size="12" font-weight="700">軟體單元驗證</text>
+        <text x="450.5" y="467" font-size="12" font-weight="700" data-en='Software unit construction'>軟體單元建構</text>
+        <text x="569.5" y="467" font-size="12" font-weight="700" data-en='Software unit verification'>軟體單元驗證</text>
       </g>
       <g class="m" text-anchor="middle" fill="#ffffff" opacity=".82">
-        <text x="450.5" y="483" font-size="8.5">SWE.3 · 實作</text>
-        <text x="569.5" y="483" font-size="8.5">SWE.4 · 單元測試</text>
+        <text x="450.5" y="483" font-size="8.5" data-en='SWE.3 &middot; Implementation'>SWE.3 · 實作</text>
+        <text x="569.5" y="483" font-size="8.5" data-en='SWE.4 &middot; Unit test'>SWE.4 · 單元測試</text>
       </g>
 
       <!-- 底部:貫穿全流程的標準與規範 -->
       <rect x="27" y="518" width="966" height="40" rx="10" fill="#f5f5f7" stroke="#d2d2d7" stroke-width="1"/>
-      <text x="510" y="543" font-size="12" font-weight="600" fill="#6e6e73" text-anchor="middle">貫穿全流程 · ISO 26262 功能安全 &#160;|&#160; ASPICE 流程能力 &#160;|&#160; MAAB 建模規範 &#160;|&#160; 需求雙向可追溯</text>
+      <text x="510" y="543" font-size="12" font-weight="600" fill="#6e6e73" text-anchor="middle" data-en='Throughout &middot; ISO 26262 functional safety &#160;|&#160; ASPICE process capability &#160;|&#160; MAAB modeling guidelines &#160;|&#160; two-way requirement traceability'>貫穿全流程 · ISO 26262 功能安全 &#160;|&#160; ASPICE 流程能力 &#160;|&#160; MAAB 建模規範 &#160;|&#160; 需求雙向可追溯</text>
     </svg>
     </div>
-    <div class="pv-hint">← 左右捲動查看完整流程 →</div>
+    <div class="pv-hint" data-en='&larr; scroll to see the full flow &rarr;'>← 左右捲動查看完整流程 →</div>
 
     <div class="pv-legend">
-      <span class="pv-lg"><i class="dev"></i>開發階段(左臂)</span>
-      <span class="pv-lg"><i class="ver"></i>驗證階段(右臂)</span>
-      <span class="pv-lg"><i class="tr"></i>同層對應與雙向追溯</span>
+      <span class="pv-lg" data-en='<i class="dev"></i>Development (left arm)'><i class="dev"></i>開發階段(左臂)</span>
+      <span class="pv-lg" data-en='<i class="ver"></i>Validation (right arm)'><i class="ver"></i>驗證階段(右臂)</span>
+      <span class="pv-lg" data-en='<i class="tr"></i>Same-level mapping and two-way traceability'><i class="tr"></i>同層對應與雙向追溯</span>
     </div>
 
-    <p class="pv-note" style="text-align:center;max-width:640px">
+    <p class="pv-note" style="text-align:center;max-width:640px" data-en='<code>SYS.x</code> / <code>SWE.x</code> are the standard Automotive SPICE process IDs, marking where each stage sits in the standard; the second line names the tools and work products I actually used or delivered at that stage, matching the table below item by item.'>
       <code>SYS.x</code> / <code>SWE.x</code> 為 Automotive SPICE 的標準製程編號,用來標示各階段在標準中的位置;
       第二行的工具與產物名稱,則是我在該階段實際使用或交付過的東西,逐項對應下面的表格。
     </p>
@@ -463,67 +464,67 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);border:1p
     <table class="pv-tbl">
       <thead>
         <tr>
-          <th style="width:168px">V 模型階段</th>
-          <th class="c1">就學期間 · 產學與實習<span>2018 – 2020 · 聯華聚能 BMS / 華創 EMS / 華創實習 / 碩論</span></th>
-          <th class="c2">FIH ADAS · LFS 車道融合<span>2020.05 – 2021.06 · 與 Siemens 共同開發</span></th>
-          <th class="c3">MobileDrive · ADAS 量產<span>2021.06 – 2025.06 · LFS + TRJ</span></th>
-          <th class="c4">FIH Robotics · 工廠 AMR<span>2025.05 – 現職 · ROS 2</span></th>
+          <th style="width:168px" data-en='V-Model stage'>V 模型階段</th>
+          <th class="c1" data-en='Student years &middot; industry projects and internship<span>2018 &ndash; 2020 &middot; BMS / EMS client programs / HAITEC internship / thesis</span>'>就學期間 · 產學與實習<span>2018 – 2020 · 聯華聚能 BMS / 華創 EMS / 華創實習 / 碩論</span></th>
+          <th class="c2" data-en='FIH ADAS &middot; LFS lane fusion<span>2020.05 &ndash; 2021.06 &middot; co-developed with Siemens</span>'>FIH ADAS · LFS 車道融合<span>2020.05 – 2021.06 · 與 Siemens 共同開發</span></th>
+          <th class="c3" data-en='MobileDrive &middot; ADAS production<span>2021.06 &ndash; 2025.06 &middot; LFS + TRJ</span>'>MobileDrive · ADAS 量產<span>2021.06 – 2025.06 · LFS + TRJ</span></th>
+          <th class="c4" data-en='FIH Robotics &middot; factory AMR<span>2025.05 &ndash; Present &middot; ROS 2</span>'>FIH Robotics · 工廠 AMR<span>2025.05 – 現職 · ROS 2</span></th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <th>系統需求分析<span>SYS.2</span></th>
-          <td class="none"><em>—</em>上層功能需求由客戶端持有</td>
-          <td>依 ISO 26262 完成<b>安全需求定義</b>,與 Siemens ADAS 團隊以英文共同展開</td>
-          <td>需求規格與 OEM 交付需求對齊;流程導入 <b>LFS 車道融合</b>與 <b>TRJ 軌跡規劃</b>兩個量產模組</td>
-          <td>編寫 ROS 2 <b>系統設計規格 SDS</b>,先定義模組行為與輸入輸出,再實作</td>
+          <th data-en='System requirements analysis<span>SYS.2</span>'>系統需求分析<span>SYS.2</span></th>
+          <td class="none" data-en='<em>&mdash;</em>upper-level functional requirements held by the customer'><em>—</em>上層功能需求由客戶端持有</td>
+          <td data-en='Completed <b>safety requirement definition</b> to ISO 26262, developed jointly in English with the Siemens ADAS team'>依 ISO 26262 完成<b>安全需求定義</b>,與 Siemens ADAS 團隊以英文共同展開</td>
+          <td data-en='Aligned requirement specifications with OEM delivery requirements; rolled the process into two production modules, <b>LFS lane fusion</b> and <b>TRJ trajectory planning</b>'>需求規格與 OEM 交付需求對齊;流程導入 <b>LFS 車道融合</b>與 <b>TRJ 軌跡規劃</b>兩個量產模組</td>
+          <td data-en='Wrote the ROS 2 <b>System Design Specification (SDS)</b>, defining module behavior and I/O before implementation'>編寫 ROS 2 <b>系統設計規格 SDS</b>,先定義模組行為與輸入輸出,再實作</td>
         </tr>
         <tr>
-          <th>系統架構設計<span>SYS.3</span></th>
-          <td class="none"><em>—</em></td>
-          <td><b>ASIL 分解</b>、<b>FMEA / DFA</b>、設計審查;涵蓋 LFS 與 OFS 兩系統,我負責 LFS</td>
-          <td>維護<b>架構設計文件</b>與需求／架構／測試規劃的雙向追溯</td>
-          <td>以 <b>Mermaid</b> 維護 topic / node 架構圖並納入版控,介面變更須於 Merge Request 審查</td>
+          <th data-en='System architecture design<span>SYS.3</span>'>系統架構設計<span>SYS.3</span></th>
+          <td class="none" data-en='<em>&mdash;</em>'><em>—</em></td>
+          <td data-en='<b>ASIL decomposition</b>, <b>FMEA / DFA</b> and design review, covering the LFS and OFS systems; I owned LFS'><b>ASIL 分解</b>、<b>FMEA / DFA</b>、設計審查;涵蓋 LFS 與 OFS 兩系統,我負責 LFS</td>
+          <td data-en='Maintained the <b>architecture design document</b> and two-way traceability across requirements, architecture and test planning'>維護<b>架構設計文件</b>與需求／架構／測試規劃的雙向追溯</td>
+          <td data-en='Maintained the topic / node architecture diagram in <b>Mermaid</b> under version control; interface changes must be reviewed in a Merge Request'>以 <b>Mermaid</b> 維護 topic / node 架構圖並納入版控,介面變更須於 Merge Request 審查</td>
         </tr>
         <tr>
-          <th>軟體需求與設計<span>SWE.1 · SWE.2</span></th>
-          <td>聯華聚能 BMS:自上層功能需求展開 <b>SRS → SDD → 資料字典 → IO Name Mapping</b></td>
-          <td>車道融合模組軟體需求與設計(Kalman filter 融合車道線與本車動態,狀態為 <code>C0–C3</code>)</td>
-          <td>兩個量產模組的需求與設計文件產出、設計審查與版本管理</td>
-          <td>SDS 凍結 <b>topic / service / action</b> 命名規則、資料型態、QoS 與節點生命週期</td>
+          <th data-en='Software requirements and design<span>SWE.1 &middot; SWE.2</span>'>軟體需求與設計<span>SWE.1 · SWE.2</span></th>
+          <td data-en='BMS program: decomposed upper-level functional requirements into <b>SRS &rarr; SDD &rarr; data dictionary &rarr; IO name mapping</b>'>聯華聚能 BMS:自上層功能需求展開 <b>SRS → SDD → 資料字典 → IO Name Mapping</b></td>
+          <td data-en='Software requirements and design for the lane fusion module (Kalman filter fusing lane lines with ego dynamics, state <code>C0&ndash;C3</code>)'>車道融合模組軟體需求與設計(Kalman filter 融合車道線與本車動態,狀態為 <code>C0–C3</code>)</td>
+          <td data-en='Requirement and design documents, design review and version management for both production modules'>兩個量產模組的需求與設計文件產出、設計審查與版本管理</td>
+          <td data-en='SDS freezes <b>topic / service / action</b> naming rules, data types, QoS and node lifecycle'>SDS 凍結 <b>topic / service / action</b> 命名規則、資料型態、QoS 與節點生命週期</td>
         </tr>
         <tr>
-          <th>實作<span>SWE.3</span></th>
-          <td>符合 <b>MAAB 規範</b>的 Simulink 模型:BMS 預充／主接觸器時序、EMS 排氣門後壓力與怠速扭矩儲備</td>
-          <td>Simulink 模型化設計;於實車以 <b>INCA</b> 標定 Kalman filter 的 <code>Q / R</code> 雜訊協方差</td>
-          <td>量產實作與 <code>TC277</code> 車規部署;TRJ 通用型軌跡規劃架構</td>
-          <td>把 Simulink 子系統分層概念移植到 <b>Python 物件導向</b>:<code>MapGraph</code> / <code>MissionManager</code> / <code>RouteFSM</code> / <code>NodeGraphPlanner</code></td>
+          <th data-en='Implementation<span>SWE.3</span>'>實作<span>SWE.3</span></th>
+          <td data-en='<b>MAAB-compliant</b> Simulink models: BMS pre-charge and main contactor timing, EMS post-throttle pressure and idle torque reserve'>符合 <b>MAAB 規範</b>的 Simulink 模型:BMS 預充／主接觸器時序、EMS 排氣門後壓力與怠速扭矩儲備</td>
+          <td data-en='Model-based design in Simulink; calibrated the Kalman filter <code>Q / R</code> noise covariance on the vehicle with <b>INCA</b>'>Simulink 模型化設計;於實車以 <b>INCA</b> 標定 Kalman filter 的 <code>Q / R</code> 雜訊協方差</td>
+          <td data-en='Production implementation and automotive deployment on <code>TC277</code>; the TRJ general-purpose trajectory planning architecture'>量產實作與 <code>TC277</code> 車規部署;TRJ 通用型軌跡規劃架構</td>
+          <td data-en='Carried the Simulink subsystem layering idea over to <b>object-oriented Python</b>: <code>MapGraph</code> / <code>MissionManager</code> / <code>RouteFSM</code> / <code>NodeGraphPlanner</code>'>把 Simulink 子系統分層概念移植到 <b>Python 物件導向</b>:<code>MapGraph</code> / <code>MissionManager</code> / <code>RouteFSM</code> / <code>NodeGraphPlanner</code></td>
         </tr>
         <tr>
-          <th>單元與整合測試<span>SWE.4 · SWE.5</span></th>
-          <td>華創 EMS:依 <b>Model Check List 逐項驗收</b>,建置全域資料字典與命名／單位規則</td>
-          <td>MIL / CIL 回報問題重新歸類,讓一套演算法一次對應多個同類問題</td>
-          <td><b>MIL / SIL / CIL</b> 分層驗證;建立<b>場景重播機制</b>重建失效條件執行回歸</td>
-          <td><b>L1</b> 單元測試(pytest / gtest)、<b>L2</b> 子系統整合(定位＋控制閉環);GitLab Project Runner 佈於 <b>Jetson</b> 目標硬體</td>
+          <th data-en='Unit and integration test<span>SWE.4 &middot; SWE.5</span>'>單元與整合測試<span>SWE.4 · SWE.5</span></th>
+          <td data-en='EMS program: <b>accepted item by item against a Model Check List</b>, building a global data dictionary with naming and unit rules'>華創 EMS:依 <b>Model Check List 逐項驗收</b>,建置全域資料字典與命名／單位規則</td>
+          <td data-en='Reclassified issues reported from MIL / CIL so one algorithm change resolves a whole family of them at once'>MIL / CIL 回報問題重新歸類,讓一套演算法一次對應多個同類問題</td>
+          <td data-en='<b>MIL / SIL / CIL</b> layered validation; built a <b>scenario replay mechanism</b> that rebuilds failure conditions and runs regression'><b>MIL / SIL / CIL</b> 分層驗證;建立<b>場景重播機制</b>重建失效條件執行回歸</td>
+          <td data-en='<b>L1</b> unit tests (pytest / gtest) and <b>L2</b> subsystem integration (localization plus control loop); GitLab Project Runner deployed on <b>Jetson</b> target hardware'><b>L1</b> 單元測試(pytest / gtest)、<b>L2</b> 子系統整合(定位＋控制閉環);GitLab Project Runner 佈於 <b>Jetson</b> 目標硬體</td>
         </tr>
         <tr>
-          <th>系統驗證與確效<span>SWE.6 · SYS.4 · SYS.5</span></th>
-          <td><b>dSPACE HIL</b> 與 ARTC 場地實車(以 VBOX 高精度 GPS 為基準);碩論以 BikeSim ＋自建 HIL 雙層驗證</td>
-          <td>實車驗證與標定,<b>導入 2 款量產車型</b></td>
-          <td>dSPACE HIL → 深圳至上海 <b>1,600 km Mini-FOT</b> → <b>5 款量產車 L2</b>;自動失敗擷取工具</td>
-          <td><b>L3</b> 端到端場景測試:Isaac Sim 每晚無人值守 <b>300 個場景</b>,成功率 40% → ~100%;Sim-to-Real <b>3 台實機</b>於廠區運行</td>
+          <th data-en='System verification and validation<span>SWE.6 &middot; SYS.4 &middot; SYS.5</span>'>系統驗證與確效<span>SWE.6 · SYS.4 · SYS.5</span></th>
+          <td data-en='<b>dSPACE HIL</b> and on-vehicle testing at ARTC (benchmarked against a VBOX high-precision GPS); thesis validated in two layers with BikeSim plus a self-built HIL rig'><b>dSPACE HIL</b> 與 ARTC 場地實車(以 VBOX 高精度 GPS 為基準);碩論以 BikeSim ＋自建 HIL 雙層驗證</td>
+          <td data-en='On-vehicle validation and calibration, <b>deployed on 2 production vehicle programs</b>'>實車驗證與標定,<b>導入 2 款量產車型</b></td>
+          <td data-en='dSPACE HIL &rarr; a <b>1,600 km Mini-FOT</b> from Shenzhen to Shanghai &rarr; <b>5 production vehicles at L2</b>; automated failure capture tooling'>dSPACE HIL → 深圳至上海 <b>1,600 km Mini-FOT</b> → <b>5 款量產車 L2</b>;自動失敗擷取工具</td>
+          <td data-en='<b>L3</b> end-to-end scenario tests: <b>300 scenarios</b> unattended in Isaac Sim every night, success rate 40% &rarr; ~100%; Sim-to-Real with <b>3 robots</b> running on the plant floor'><b>L3</b> 端到端場景測試:Isaac Sim 每晚無人值守 <b>300 個場景</b>,成功率 40% → ~100%;Sim-to-Real <b>3 台實機</b>於廠區運行</td>
         </tr>
         <tr>
-          <th>追溯與稽核<span>貫穿全流程</span></th>
-          <td>BMS:需求編號格式 <code>BCU_SRS_CSM_YYY</code> 與 <b>SRS 附錄 B Requirement Matrix</b> 追溯機制</td>
-          <td>需求與追溯鏈以 <b>Polarion</b> 管理,每一條安全需求都要能一路追到對應的驗證證據</td>
-          <td>需求／架構設計／系統測試規劃<b>雙向追溯</b>;擔任 <b>ASPICE 供應商稽核</b>;參與公司通過 <b>DEKRA ISO 26262 ASIL-D</b></td>
-          <td>介面變更須同步更新架構圖並於 MR 審查;訊號規格改由 GitLab CI <b>每天 09:00 自原始碼重解</b>,不再人工維護</td>
+          <th data-en='Traceability and audit<span>throughout</span>'>追溯與稽核<span>貫穿全流程</span></th>
+          <td data-en='BMS: requirement ID format <code>BCU_SRS_CSM_YYY</code> and the <b>SRS Appendix B Requirement Matrix</b> traceability mechanism'>BMS:需求編號格式 <code>BCU_SRS_CSM_YYY</code> 與 <b>SRS 附錄 B Requirement Matrix</b> 追溯機制</td>
+          <td data-en='Requirements and the traceability chain managed in <b>Polarion</b>, so every safety requirement traces all the way to its verification evidence'>需求與追溯鏈以 <b>Polarion</b> 管理,每一條安全需求都要能一路追到對應的驗證證據</td>
+          <td data-en='<b>Two-way traceability</b> across requirements, architecture design and system test planning; served as <b>ASPICE supplier auditor</b>; contributed to the company <b>DEKRA ISO 26262 ASIL-D</b> certification'>需求／架構設計／系統測試規劃<b>雙向追溯</b>;擔任 <b>ASPICE 供應商稽核</b>;參與公司通過 <b>DEKRA ISO 26262 ASIL-D</b></td>
+          <td data-en='Interface changes must update the architecture diagram and pass MR review; signal specifications are now <b>re-derived from source by GitLab CI at 09:00 daily</b> instead of maintained by hand'>介面變更須同步更新架構圖並於 MR 審查;訊號規格改由 GitLab CI <b>每天 09:00 自原始碼重解</b>,不再人工維護</td>
         </tr>
       </tbody>
     </table>
     </div>
-    <div class="pv-hint">← 左右捲動查看四段經歷 →</div>
+    <div class="pv-hint" data-en='&larr; scroll to see all four roles &rarr;'>← 左右捲動查看四段經歷 →</div>
 
   </div>
 </div>
@@ -533,13 +534,14 @@ code{font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);border:1p
 <section class="pv-cta">
 <div class="wrap">
   <div class="pv-btns">
-    <a class="s" href="../home/index.html">回到履歷</a>
-    <a class="p" href="mailto:tkps50803@gmail.com?subject=關於車規開發流程與功能安全經驗">聯絡我</a>
+    <a class="s" href="../home/index.html" data-en='Back to resume'>回到履歷</a>
+    <a class="p" href="mailto:tkps50803@gmail.com?subject=關於車規開發流程與功能安全經驗" data-en='Contact me'>聯絡我</a>
   </div>
 </div>
 </section>
 
 <script src="../assets/nav.js"></script>
+<script src="../assets/i18n.js"></script>
 
 <script>
 /* V 模型那張圖的動畫與圖例篩選 —— 自 04_vmodel.html 原樣搬入 */

@@ -55,6 +55,13 @@
 .pnav .tab-l{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--ink-2);text-decoration:none;padding:7px 11px;border-radius:8px;white-space:nowrap;transition:background .2s,color .2s}
 .pnav .tab-l:hover{color:var(--ink);background:rgba(0,0,0,.05)}
 .pnav .tab-l.cur{color:var(--blue);font-weight:700;background:#eef5ff;cursor:default}
+/* 中 / 英切換鈕(搭配 assets/i18n.js)。外框樣式而非實心:履歷頁旁邊還有一顆
+   實心的下載鈕,主次要分得出來。flex:none —— 左邊的 .tabs 會捲動,少了它會被壓扁。 */
+.pnav-lang{flex:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.04em;
+  color:var(--blue);background:#fff;border:1px solid #cfe2fb;border-radius:980px;
+  padding:6px 12px;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s}
+.pnav-lang:hover{background:#eef5ff;border-color:var(--blue)}
+.pnav-lang:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 
 /* ---------- 第二層:章節快速跳轉 ---------- */
 .chnav{position:sticky;top:52px;z-index:199;background:rgba(255,255,255,.86);backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);border-bottom:1px solid rgba(0,0,0,.06)}

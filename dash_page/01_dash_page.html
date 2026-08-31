@@ -435,15 +435,16 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 
 <nav class="pnav">
   <div class="in">
-    <a href="../home/index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
+    <a href="../home/index.html" class="brand" data-en='Ming-Kai Kan'>甘銘凱 Ming-Kai Kan</a>
     <div class="tabs">
-      <a class="tab-l" href="../home/index.html">履歷</a>
-      <a class="tab-l" href="../lfs_page/lfs01.html">感知融合經驗</a>
-      <a class="tab-l" href="../trj_page/01_trj_page.html">軌跡規劃經驗</a>
-      <span class="tab-l cur">AMR系統整合</span>
-      <a class="tab-l" href="../ibooster_page/01_ibooster.html">底層控制經驗(研究所)</a>
-      <a class="tab-l" href="../process_page/01_process.html">車用法規經驗</a>
+      <a class="tab-l" href="../home/index.html" data-en='Resume'>履歷</a>
+      <a class="tab-l" href="../lfs_page/lfs01.html" data-en='Perception Fusion'>感知融合經驗</a>
+      <a class="tab-l" href="../trj_page/01_trj_page.html" data-en='Trajectory Planning'>軌跡規劃經驗</a>
+      <span class="tab-l cur" data-en='AMR Integration'>AMR系統整合</span>
+      <a class="tab-l" href="../ibooster_page/01_ibooster.html" data-en='Low-Level Control'>底層控制經驗(研究所)</a>
+      <a class="tab-l" href="../process_page/01_process.html" data-en='Automotive Process'>車用法規經驗</a>
     </div>
+    <button type="button" id="lang-btn" class="pnav-lang" aria-label="Switch to English" aria-pressed="false">EN</button>
   </div>
 </nav>
 
@@ -451,7 +452,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 <nav class="chnav" aria-label="章節導覽">
   <div class="in">
     <a class="chnav-back" id="chnav-back" href="../home/index.html#co-fih-robotics"
-       data-resume-default="co-fih-robotics">← 回履歷</a>
+       data-resume-default="co-fih-robotics" data-en='&larr; Back to resume'>← 回履歷</a>
     <a href="#pipeline" data-sec="pipeline">V 模型全端研發與架構主導</a>
     <a href="#flow"    data-sec="flow">文件從人工維護轉為自動維護</a>
     <a href="#sim2real" data-sec="sim2real">Sim-to-Real 系統整合與車規紀律導入</a>
@@ -1655,6 +1656,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 </script>
 
 <script src="../assets/nav.js"></script>
+<script src="../assets/i18n.js"></script>
 
 </body>
 </html>
