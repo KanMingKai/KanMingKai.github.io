@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LFS 車道融合系統 — 讓不完美的感知，也能安全地用</title>
+<title data-en='LFS Lane Fusion System &mdash; using imperfect perception safely'>LFS 車道融合系統 — 讓不完美的感知，也能安全地用</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -403,7 +403,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 
 <nav class="pnav">
   <div class="in">
-    <a href="../index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
+    <a href="../index.html" class="brand" data-en='Ming-Kai Kan'>甘銘凱 Ming-Kai Kan</a>
     <div class="tabs">
       <a class="tab-l" href="../home/index.html" data-en='Resume'>履歷</a>
       <span class="tab-l cur" data-en='Perception Fusion'>感知融合經驗</span>
@@ -420,13 +420,13 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   <div class="in">
     <a class="chnav-back" id="chnav-back" href="../home/index.html#co-fih-adas"
        data-resume-default="co-fih-adas" data-en='&larr; Back to resume'>← 回履歷</a>
-    <a href="#method" data-sec="method">跨團隊主導驗證流程</a>
-    <a href="#influence" data-sec="influence" data-resume="xp-influence">感測器特性分析與建模</a>
-    <a href="#simulation" data-sec="simulation">場景重建與資料驅動開發</a>
-    <a href="#root-cause" data-sec="root-cause">系統化問題分析與歸納</a>
-    <a href="#architecture" data-sec="architecture" data-resume="xp-architecture">洞察痛點與創新發想</a>
-    <a href="#decision-1" data-sec="decision-1" data-resume="xp-decision-1">以演算法取代模型重新訓練</a>
-    <a href="#decision-2" data-sec="decision-2">細節洞察與持續改善</a>
+    <a href="#method" data-sec="method" data-en='Leading Validation Across Teams'>跨團隊主導驗證流程</a>
+    <a href="#influence" data-sec="influence" data-resume="xp-influence" data-en='Sensor Characterization and Modeling'>感測器特性分析與建模</a>
+    <a href="#simulation" data-sec="simulation" data-en='Scenario Reconstruction and Data-Driven Development'>場景重建與資料驅動開發</a>
+    <a href="#root-cause" data-sec="root-cause" data-en='Systematic Problem Analysis and Generalization'>系統化問題分析與歸納</a>
+    <a href="#architecture" data-sec="architecture" data-resume="xp-architecture" data-en='Spotting the Pain Point and Inventing Around It'>洞察痛點與創新發想</a>
+    <a href="#decision-1" data-sec="decision-1" data-resume="xp-decision-1" data-en='An Algorithmic Fix Instead of a Model Retrain'>以演算法取代模型重新訓練</a>
+    <a href="#decision-2" data-sec="decision-2" data-en='Attention to Detail and Continuous Improvement'>細節洞察與持續改善</a>
   </div>
 </nav>
 
@@ -435,11 +435,11 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-title">跨團隊主導驗證流程</div>
+        <div class="unit-title" data-en='Leading Validation Across Teams'>跨團隊主導驗證流程</div>
         <div class="unit-points">
-          <p><b>前期評估與提案</b>：針對車道線融合任務，先以手邊現有數據做小規模驗證評估可行性，再把實驗規劃寫成提案，成功向管理層爭取資源。</p>
-          <p><b>跨團隊協同測試</b>：主導 <span class="nb">100 km</span> 連續路況實車測試，橫向協調驗證部門與標註團隊，建立<b>標準化測試流程</b>，完成主流相機平台（Mobileye EQ3/EQ4、Horizon J2/J3/J5、StradVision）之效能極限測繪。</p>
-          <p><b>組織級技術資產轉化</b>：實測成果不僅是感知融合與軟體優化的關鍵依據，更轉化為<b>模擬環境的相機模型</b>，並確立為內部<b>自研感知團隊的產品驗收標準</b>。</p>
+          <p data-en='<b>Early assessment and proposal</b>: for the lane fusion task, I first ran a small-scale feasibility check on data already in hand, then wrote the experiment plan up as a proposal and won management approval for the resources.'><b>前期評估與提案</b>：針對車道線融合任務，先以手邊現有數據做小規模驗證評估可行性，再把實驗規劃寫成提案，成功向管理層爭取資源。</p>
+          <p data-en='<b>Cross-team testing</b>: led <span class="nb">100 km</span> of continuous on-road vehicle testing, coordinating laterally with the validation department and the annotation team, established a <b>standardized test process</b>, and mapped the performance limits of the mainstream camera platforms (Mobileye EQ3/EQ4, Horizon J2/J3/J5, StradVision).'><b>跨團隊協同測試</b>：主導 <span class="nb">100 km</span> 連續路況實車測試，橫向協調驗證部門與標註團隊，建立<b>標準化測試流程</b>，完成主流相機平台（Mobileye EQ3/EQ4、Horizon J2/J3/J5、StradVision）之效能極限測繪。</p>
+          <p data-en='<b>Turning results into an organizational asset</b>: the measurements were not only the basis for perception fusion and software optimization but were also turned into <b>camera models for the simulation environment</b> and established as the <b>acceptance criteria for the in-house perception team</b>.'><b>組織級技術資產轉化</b>：實測成果不僅是感知融合與軟體優化的關鍵依據，更轉化為<b>模擬環境的相機模型</b>，並確立為內部<b>自研感知團隊的產品驗收標準</b>。</p>
         </div>
       </div>
 
@@ -448,8 +448,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
         <div class="povr-box">
           <div class="povr-c">
             <span class="povr-t">
-              <span>100 km 連續實車紀錄</span>
-              <span class="povr-tn">（示意，非實際路線）</span>
+              <span data-en='100 km of continuous vehicle logging'>100 km 連續實車紀錄</span>
+              <span class="povr-tn" data-en='(illustrative, not the actual route)'>（示意，非實際路線）</span>
             </span>
             <div class="povr-f">
               <iframe src="fot_drive.html" title="實車紀錄路線 — 高速與市區兩種路況收在同一批紀錄裡" loading="lazy"></iframe>
@@ -465,9 +465,9 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 
           <div class="povr-c">
             <span class="povr-t">
-              <span>產生標準化標註流程</span>
-              <span>快速標註 Ground Truth</span>
-              <span class="povr-tn">（示意，非實際標註檔）</span>
+              <span data-en='Produces a standardized annotation workflow'>產生標準化標註流程</span>
+              <span data-en='Rapid Ground Truth annotation'>快速標註 Ground Truth</span>
+              <span class="povr-tn" data-en='(illustrative, not the actual annotation file)'>（示意，非實際標註檔）</span>
             </span>
             <div class="povr-f">
               <iframe src="fot_label.html" title="逐幀人工標註 — 驗證部門三人分段包乾，標成同一份 Excel" loading="lazy"></iframe>
@@ -483,8 +483,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 
           <div class="povr-c">
             <span class="povr-t">
-              <span>最後圖形化呈現感知特性</span>
-              <span class="povr-tn">（示意，非實際數據）</span>
+              <span data-en='Finally, perception characteristics rendered graphically'>最後圖形化呈現感知特性</span>
+              <span class="povr-tn" data-en='(illustrative, not the actual data)'>（示意，非實際數據）</span>
             </span>
             <div class="povr-f">
               <iframe src="fot_analysis.html" title="Mini-FOT 實車資料統計 — 場景分類、下一車道類型、有效視野三張輪播" loading="lazy"></iframe>
@@ -494,14 +494,14 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 
         <div class="povr-uses">
           <a class="povr-u" href="#influence">
-            <span class="povr-uk">用途 01</span>
-            <span class="povr-ut">分析各感知器差異，據此制定感知對策</span>
-            <span class="povr-ugo">看影響力 →</span>
+            <span class="povr-uk" data-en='Use 01'>用途 01</span>
+            <span class="povr-ut" data-en='Analyze the differences between sensors and set perception strategy accordingly'>分析各感知器差異，據此制定感知對策</span>
+            <span class="povr-ugo" data-en='See the impact &rarr;'>看影響力 →</span>
           </a>
           <a class="povr-u" href="#simulation">
-            <span class="povr-uk">用途 02</span>
-            <span class="povr-ut">建出感知模擬的相機模型</span>
-            <span class="povr-ugo">看模擬環境 →</span>
+            <span class="povr-uk" data-en='Use 02'>用途 02</span>
+            <span class="povr-ut" data-en='Build the camera model for perception simulation'>建出感知模擬的相機模型</span>
+            <span class="povr-ugo" data-en='See the simulation setup &rarr;'>看模擬環境 →</span>
           </a>
         </div>
       </div>
@@ -517,11 +517,11 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-title">感測器特性分析與建模</div>
+        <div class="unit-title" data-en='Sensor Characterization and Modeling'>感測器特性分析與建模</div>
         <div class="unit-points">
-          <p><b>痛點突破與資料探勘</b>：面對供應商規格書<b>只寫標稱偵測距離、不寫真實失效邊界</b>的盲點，主動從 <span class="nb">100 km</span> 實車資料按速域與應用場景分層剖析，逆向擬合出各相機的<b>實際性能衰退公式</b>。</p>
-          <p><b>融合策略賦能</b>：依據量化分析結果，為融合層（Fusion Layer）建立科學化的權重切換依據，精準判定不同相機的<b>信賴區間</b>。</p>
-          <p><b>跨平台通用性</b>：成功將此分析框架橫向套用到 <b>4 家供應商</b>的相機，精準量化其性能差異，並直接驅動各自的客製化融合對策落地。</p>
+          <p data-en='<b>Pain point and data mining</b>: supplier datasheets <b>state a nominal detection range but never the real failure boundary</b>, so I took the <span class="nb">100 km</span> of vehicle data apart by speed band and use case and reverse-fitted the <b>actual performance degradation curve</b> for each camera.'><b>痛點突破與資料探勘</b>：面對供應商規格書<b>只寫標稱偵測距離、不寫真實失效邊界</b>的盲點，主動從 <span class="nb">100 km</span> 實車資料按速域與應用場景分層剖析，逆向擬合出各相機的<b>實際性能衰退公式</b>。</p>
+          <p data-en='<b>Enabling the fusion strategy</b>: used those quantified results to give the fusion layer a principled basis for switching weights, pinning down the <b>confidence interval</b> of each camera.'><b>融合策略賦能</b>：依據量化分析結果，為融合層（Fusion Layer）建立科學化的權重切換依據，精準判定不同相機的<b>信賴區間</b>。</p>
+          <p data-en='<b>Portable across platforms</b>: applied the same analysis framework laterally to cameras from <b>4 suppliers</b>, quantified the differences between them precisely, and drove a tailored fusion strategy for each.'><b>跨平台通用性</b>：成功將此分析框架橫向套用到 <b>4 家供應商</b>的相機，精準量化其性能差異，並直接驅動各自的客製化融合對策落地。</p>
         </div>
       </div>
 
@@ -553,11 +553,11 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-title">場景重建與資料驅動開發</div>
+        <div class="unit-title" data-en='Scenario Reconstruction and Data-Driven Development'>場景重建與資料驅動開發</div>
         <div class="unit-points">
-          <p><b>痛點識別與效能瓶頸突破</b>：針對實車路測「<b>偶發性問題難以重現</b>、驗證成本高昂且耗時」的痛點，打破傳統盲目上路測試的低效模式。</p>
-          <p><b>虛擬重現架構設計</b>：利用 Mini-FOT（Field Operational Test）累積的 <span class="nb">1,600 km</span> 實車資料建立<b>相機感知模型</b>，並將真實道路場景與感測數據轉化為<b>可重跑的標準化測資</b>。</p>
-          <p><b>商業與時間成效</b>：實現「先在模擬環境中確認演算法解法有效、再進行實車最終驗證」的開發模式，大幅減少無效的來回車程與測試成本，顯著提升演算法迭代效率。</p>
+          <p data-en='<b>Pain point and throughput bottleneck</b>: on-road testing made <b>intermittent issues hard to reproduce</b> and validation slow and expensive; I broke out of the habit of simply driving more miles.'><b>痛點識別與效能瓶頸突破</b>：針對實車路測「<b>偶發性問題難以重現</b>、驗證成本高昂且耗時」的痛點，打破傳統盲目上路測試的低效模式。</p>
+          <p data-en='<b>Virtual reproduction architecture</b>: used the <span class="nb">1,600 km</span> of vehicle data accumulated in the Mini-FOT (Field Operational Test) to build a <b>camera perception model</b>, turning real road scenes and sensor data into <b>replayable standardized test cases</b>.'><b>虛擬重現架構設計</b>：利用 Mini-FOT（Field Operational Test）累積的 <span class="nb">1,600 km</span> 實車資料建立<b>相機感知模型</b>，並將真實道路場景與感測數據轉化為<b>可重跑的標準化測資</b>。</p>
+          <p data-en='<b>Business and schedule impact</b>: established a workflow of confirming a fix in simulation first and only then validating on the vehicle, cutting out wasted round trips and test cost and sharply raising algorithm iteration speed.'><b>商業與時間成效</b>：實現「先在模擬環境中確認演算法解法有效、再進行實車最終驗證」的開發模式，大幅減少無效的來回車程與測試成本，顯著提升演算法迭代效率。</p>
         </div>
       </div>
 
@@ -573,11 +573,11 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-title">系統化問題分析與歸納</div>
+        <div class="unit-title" data-en='Systematic Problem Analysis and Generalization'>系統化問題分析與歸納</div>
         <div class="unit-points">
-          <p><b>痛點識別與風險防禦</b>：面對多專案、多測試車輛及 <span class="nb">MIL / CIL</span> 多重測試環境下湧現的雜亂問題，拒絕「一個問題一個補丁（One-off Patch）」的鴕鳥做法，防範軟體架構膨脹與失控。</p>
-          <p><b>歸納抽象與演算法設計</b>：將海量問題進行系統化拆解與歸類，找出底層共性，設計出<b>高內聚、低耦合</b>的通用演算法架構。</p>
-          <p><b>成效產出</b>：實現「<b>一套演算法同時覆蓋多類別問題</b>」，在大幅精簡軟體複雜度、維持架構清爽的同時，確保所有測試情境與問題點全數完美覆蓋。</p>
+          <p data-en='<b>Pain point and risk containment</b>: with issues piling up across multiple programs, multiple test vehicles and <span class="nb">MIL / CIL</span> environments, I refused the one-off patch habit that lets software architecture swell out of control.'><b>痛點識別與風險防禦</b>：面對多專案、多測試車輛及 <span class="nb">MIL / CIL</span> 多重測試環境下湧現的雜亂問題，拒絕「一個問題一個補丁（One-off Patch）」的鴕鳥做法，防範軟體架構膨脹與失控。</p>
+          <p data-en='<b>Generalization and algorithm design</b>: decomposed and classified the mass of issues systematically, found what they had in common, and designed a <b>high-cohesion, low-coupling</b> general algorithm architecture.'><b>歸納抽象與演算法設計</b>：將海量問題進行系統化拆解與歸類，找出底層共性，設計出<b>高內聚、低耦合</b>的通用演算法架構。</p>
+          <p data-en='<b>Outcome</b>: <b>one algorithm now covers several classes of issue at once</b>, cutting software complexity and keeping the architecture clean while still covering every test scenario and issue.'><b>成效產出</b>：實現「<b>一套演算法同時覆蓋多類別問題</b>」，在大幅精簡軟體複雜度、維持架構清爽的同時，確保所有測試情境與問題點全數完美覆蓋。</p>
         </div>
       </div>
 
@@ -585,7 +585,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
       <!-- 三個測試場域各自回報現象,收斂成同一份 issue 清單。放在心智圖前面:
            清單是輸入(現象),心智圖是往下追出來的根因。 -->
       <div class="rcfig">
-        <div class="eb">三個測試場域 → 同一份問題清單</div>
+        <div class="eb" data-en='Three test environments &rarr; one shared issue list'>三個測試場域 → 同一份問題清單</div>
         <div class="isrc">
   
           <div class="isrc-c">
@@ -594,7 +594,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <path d="M4 15.4v-2.6l1.9-4.3a2 2 0 0 1 1.8-1.1h8.6a2 2 0 0 1 1.8 1.1L20 12.8v2.6"/>
                 <path d="M4 15.4h16"/><circle cx="8" cy="16.6" r="1.6"/><circle cx="16" cy="16.6" r="1.6"/>
               </svg>
-              道路實車測試 ADAS
+              <span data-en='On-road ADAS vehicle testing'>道路實車測試 ADAS</span>
             </div>
             <svg class="isrc-fig" viewBox="0 0 160 76" role="img" aria-label="市區街景實車測試示意">
               <rect width="160" height="76" fill="#cfe2f2"/>
@@ -619,8 +619,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
               </g>
             </svg>
             <ul class="isrc-b">
-              <li>MiniFOT 測試議題</li>
-              <li>量產前 FOT 測試議題</li>
+              <li data-en='Mini-FOT test issue'>MiniFOT 測試議題</li>
+              <li data-en='Pre-production FOT issue'>量產前 FOT 測試議題</li>
             </ul>
           </div>
   
@@ -630,7 +630,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <rect x="2.8" y="4" width="18.4" height="12.6" rx="2"/>
                 <path d="M8.6 20.4h6.8M12 16.6v3.8"/><path d="M6.4 12.6l2.6-3.2 2.4 2.4 2.4-3.4 2.6 4.2"/>
               </svg>
-              CarSim MIL 測試 ADAS
+              <span data-en='CarSim MIL ADAS testing'>CarSim MIL 測試 ADAS</span>
             </div>
             <svg class="isrc-fig" viewBox="0 0 160 76" role="img" aria-label="CarSim 模擬環境感測器示意">
               <rect width="160" height="76" fill="#8fae70"/>
@@ -651,8 +651,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
               <rect x="78" y="51" width="12" height="5" rx="2" fill="#3b82f6"/>
             </svg>
             <ul class="isrc-b">
-              <li>特定特殊工況</li>
-              <li>法規測試工況</li>
+              <li data-en='Specific edge condition'>特定特殊工況</li>
+              <li data-en='Regulatory test condition'>法規測試工況</li>
             </ul>
           </div>
   
@@ -690,8 +690,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
               <circle cx="53.2" cy="31.2" r="1.2" fill="#eaf3ff"/>
             </svg>
             <ul class="isrc-b">
-              <li>相機校正議題</li>
-              <li>相機感知議題</li>
+              <li data-en='Camera calibration issue'>相機校正議題</li>
+              <li data-en='Camera perception issue'>相機感知議題</li>
             </ul>
           </div>
   
@@ -703,18 +703,18 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <path d="M5.6 4.6h12.8a1.6 1.6 0 0 1 1.6 1.6v13.2a1.6 1.6 0 0 1-1.6 1.6H5.6A1.6 1.6 0 0 1 4 19.4V6.2a1.6 1.6 0 0 1 1.6-1.6Z"/>
                 <path d="M8 9.4h8M8 13h8M8 16.6h5"/>
               </svg>
-              問題統一管理
+              <span data-en='One shared issue tracker'>問題統一管理</span>
             </div>
             <div class="isrc-tools">
               <span class="isrc-tool"><i style="background:#1d6f42"></i>Excel</span>
               <span class="isrc-tool"><i style="background:#0052cc"></i>Jira</span>
             </div>
             <table class="isrc-tb">
-              <thead><tr><th>ID</th><th>來源</th><th>問題描述</th><th>狀態</th><th>優先級</th></tr></thead>
+              <thead><tr><th>ID</th><th data-en='Source'>來源</th><th data-en='Issue'>問題描述</th><th data-en='Status'>狀態</th><th data-en='Priority'>優先級</th></tr></thead>
               <tbody>
-                <tr><td>ISSUE-001</td><td>實車</td><td>MiniFOT 測試議題</td><td>Open</td><td class="hi">High</td></tr>
-                <tr><td>ISSUE-002</td><td>MIL</td><td>特定特殊工況</td><td>Open</td><td class="hi">High</td></tr>
-                <tr><td>ISSUE-003</td><td>CIL</td><td>相機校正議題</td><td>Open</td><td>Medium</td></tr>
+                <tr><td>ISSUE-001</td><td data-en='Vehicle'>實車</td><td data-en='Mini-FOT test issue'>MiniFOT 測試議題</td><td>Open</td><td class="hi">High</td></tr>
+                <tr><td>ISSUE-002</td><td>MIL</td><td data-en='Specific edge condition'>特定特殊工況</td><td>Open</td><td class="hi">High</td></tr>
+                <tr><td>ISSUE-003</td><td>CIL</td><td data-en='Camera calibration issue'>相機校正議題</td><td>Open</td><td>Medium</td></tr>
               </tbody>
             </table>
           </div>
@@ -722,7 +722,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
         </div>
 
         <div class="rcfig-sep">
-          <div class="eb">側向根因拆解 · 現象 → 根因</div>
+          <div class="eb" data-en='Lateral root-cause breakdown &middot; symptom &rarr; root cause'>側向根因拆解 · 現象 → 根因</div>
             <svg viewBox="0 0 720 208" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="側向議題從三個現象拆解到七個根因的樹狀圖">
               <defs>
                 <linearGradient id="rootg" x1="0" y1="0" x2="1" y2="1">
@@ -751,42 +751,42 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 
               <!-- ROOT -->
               <rect x="14" y="81" width="120" height="46" rx="13" fill="url(#rootg)"/>
-              <text x="74" y="100" text-anchor="middle" font-size="14.5" font-weight="700" fill="#fff">側向議題</text>
-              <text x="74" y="116" text-anchor="middle" font-size="9.5" fill="#fff" opacity=".82">橫向控制表現</text>
+              <text x="74" y="100" text-anchor="middle" font-size="14.5" font-weight="700" fill="#fff" data-en='Lateral issues'>側向議題</text>
+              <text x="74" y="116" text-anchor="middle" font-size="9.5" fill="#fff" opacity=".82" data-en='lateral control behavior'>橫向控制表現</text>
 
               <!-- 現象:方向盤左右甩動 -->
               <rect x="250" y="14" width="150" height="32" rx="10" fill="#eef4ff" stroke="#cfe1ff" stroke-width="1.2"/>
-              <text x="325" y="35" text-anchor="middle" font-size="13" font-weight="700" fill="#0071e3">方向盤左右甩動</text>
+              <text x="325" y="35" text-anchor="middle" font-size="13" font-weight="700" fill="#0071e3" data-en='Steering wheel oscillation'>方向盤左右甩動</text>
 
               <!-- 現象:汽車偏邊行駛 -->
               <rect x="250" y="74" width="150" height="32" rx="10" fill="#fff7ed" stroke="#fde3c8" stroke-width="1.2"/>
-              <text x="325" y="95" text-anchor="middle" font-size="13" font-weight="700" fill="#b45309">汽車偏邊行駛</text>
+              <text x="325" y="95" text-anchor="middle" font-size="13" font-weight="700" fill="#b45309" data-en='Vehicle drifts to one side'>汽車偏邊行駛</text>
 
               <!-- 現象:車道線缺失 -->
               <rect x="250" y="148" width="150" height="32" rx="10" fill="#ecfdf5" stroke="#86efac" stroke-width="1.2"/>
-              <text x="325" y="169" text-anchor="middle" font-size="13" font-weight="700" fill="#0a8a5c">車道線缺失</text>
+              <text x="325" y="169" text-anchor="middle" font-size="13" font-weight="700" fill="#0a8a5c" data-en='Lane lines missing'>車道線缺失</text>
 
               <!-- 根因 -->
               <rect x="470" y="4" width="236" height="24" rx="8" fill="#fff" stroke="#cfe1ff" stroke-width="1.2"/>
-              <text x="488" y="20" font-size="12.5" font-weight="700" fill="#1d1d1f">車道線尾端左右甩動</text>
+              <text x="488" y="20" font-size="12.5" font-weight="700" fill="#1d1d1f" data-en='Lane-line tail swings side to side'>車道線尾端左右甩動</text>
               <!-- 根因 -->
               <rect x="470" y="32" width="236" height="24" rx="8" fill="#fff" stroke="#cfe1ff" stroke-width="1.2"/>
-              <text x="488" y="48" font-size="12.5" font-weight="700" fill="#1d1d1f">軌跡銜接不夠平滑</text>
+              <text x="488" y="48" font-size="12.5" font-weight="700" fill="#1d1d1f" data-en='Trajectory joins are not smooth enough'>軌跡銜接不夠平滑</text>
               <!-- 根因 -->
               <rect x="470" y="64" width="236" height="24" rx="8" fill="#fff" stroke="#fde3c8" stroke-width="1.2"/>
-              <text x="488" y="80" font-size="12.5" font-weight="700" fill="#1d1d1f">車輛參數不夠精準（方向盤）</text>
+              <text x="488" y="80" font-size="12.5" font-weight="700" fill="#1d1d1f" data-en='Vehicle parameters not precise enough (steering)'>車輛參數不夠精準（方向盤）</text>
               <!-- 根因 -->
               <rect x="470" y="92" width="236" height="24" rx="8" fill="#fff" stroke="#fde3c8" stroke-width="1.2"/>
-              <text x="488" y="108" font-size="12.5" font-weight="700" fill="#1d1d1f">車道線有 C1 bias</text>
+              <text x="488" y="108" font-size="12.5" font-weight="700" fill="#1d1d1f" data-en='Lane lines carry C1 bias'>車道線有 C1 bias</text>
               <!-- 根因 -->
               <rect x="470" y="124" width="236" height="24" rx="8" fill="#fff" stroke="#86efac" stroke-width="1.2"/>
-              <text x="488" y="140" font-size="12.5" font-weight="700" fill="#1d1d1f">路口 / 隧道短暫失明</text>
+              <text x="488" y="140" font-size="12.5" font-weight="700" fill="#1d1d1f" data-en='Brief blindness at junctions / tunnels'>路口 / 隧道短暫失明</text>
               <!-- 根因 -->
               <rect x="470" y="152" width="236" height="24" rx="8" fill="#fff" stroke="#86efac" stroke-width="1.2"/>
-              <text x="488" y="168" font-size="12.5" font-weight="700" fill="#1d1d1f">前車 / 護欄遮擋</text>
+              <text x="488" y="168" font-size="12.5" font-weight="700" fill="#1d1d1f" data-en='Occlusion by lead vehicle / guardrail'>前車 / 護欄遮擋</text>
               <!-- 根因 -->
               <rect x="470" y="180" width="236" height="24" rx="8" fill="#fff" stroke="#86efac" stroke-width="1.2"/>
-              <text x="488" y="196" font-size="12.5" font-weight="700" fill="#1d1d1f">新舊線交替跳動</text>
+              <text x="488" y="196" font-size="12.5" font-weight="700" fill="#1d1d1f" data-en='Old and new markings alternate and jump'>新舊線交替跳動</text>
             </svg>
         </div>
       </div>
@@ -803,11 +803,11 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
              講的是三柱架構。柱子一深度那段移除後,整節只剩 C1 Bias 這條線,
              標題再談三根柱子就對不上內容,所以改成 C1 Bias 自己的題目。
              (根因章那兩句「三柱架構」的預告後來也一併刪了,全頁已無此說法) -->
-        <div class="unit-title">洞察痛點與創新發想</div>
+        <div class="unit-title" data-en='Spotting the Pain Point and Inventing Around It'>洞察痛點與創新發想</div>
         <div class="unit-points">
-          <p><b>洞察痛點與創新發想</b>：針對 ADAS 相機校正偏差問題，提出「以本車歷史軌跡作為動態量測基準」的創新思維，開發出高精度的車道線偏差驗證腳本。</p>
-          <p><b>推動研發標準化</b>：該工具因高精確度被 V&amp;V Team 採納為標準驗證工具，並在團隊中穩定沿用三年。</p>
-          <p><b>技術轉化與商業影響</b>：2023 年成功解決量產前 FOT 階段的產線殘留偏差痛點，推動內部將驗證工具轉化為量產即時補償邏輯（On-board Software）並隨車出廠，<b>補償率 86.81%</b>、導入 <b>3 款量產車型</b>，徹底根絕車道偏差客訴，達成零客訴紀錄。</p>
+          <p data-en='<b>Spotting the pain point and inventing around it</b>: for ADAS camera calibration bias, proposed using <b>the vehicle own driven trajectory as a dynamic measurement reference</b> and built a high-precision lane-line bias validation script from it.'><b>洞察痛點與創新發想</b>：針對 ADAS 相機校正偏差問題，提出「以本車歷史軌跡作為動態量測基準」的創新思維，開發出高精度的車道線偏差驗證腳本。</p>
+          <p data-en='<b>Driving standardization</b>: the tool was accurate enough that the V&amp;V team adopted it as their standard validation tool and used it for three years.'><b>推動研發標準化</b>：該工具因高精確度被 V&amp;V Team 採納為標準驗證工具，並在團隊中穩定沿用三年。</p>
+          <p data-en='<b>Technology transfer and business impact</b>: in 2023 it solved the residual production-line bias found during pre-production FOT; I drove the internal decision to turn the validation tool into on-board real-time compensation logic shipped with the vehicle, reaching <b>86.81% compensation</b> across <b>3 production vehicle programs</b> and eliminating lane bias complaints entirely.'><b>技術轉化與商業影響</b>：2023 年成功解決量產前 FOT 階段的產線殘留偏差痛點，推動內部將驗證工具轉化為量產即時補償邏輯（On-board Software）並隨車出廠，<b>補償率 86.81%</b>、導入 <b>3 款量產車型</b>，徹底根絕車道偏差客訴，達成零客訴紀錄。</p>
         </div>
       </div>
 
@@ -815,7 +815,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
            到 2023 變成每台車都在跑的模組;下面的動畫接著演「補償後長什麼樣」。
            先來歷、後實測,所以時間軸排在動畫上面。 -->
       <div class="dtl">
-        <div class="eb">開發歷程 · 從通勤觀察到量產標配</div>
+        <div class="eb" data-en='Development path &middot; from a commute observation to a production standard'>開發歷程 · 從通勤觀察到量產標配</div>
         <div class="dtl-track">
 
           <div class="dtl-n">
@@ -827,8 +827,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <path d="M12 1.6v1.4M4.6 5.1 5.6 6.1M19.4 5.1 18.4 6.1M2.5 12h1.4M20.1 12h1.4"/>
               </svg>
             </div>
-            <div class="dtl-t">靈感發想</div>
-            <div class="dtl-d">日常通勤途中，注意到車道線偏移與校正問題。</div>
+            <div class="dtl-t" data-en='Where the idea came from'>靈感發想</div>
+            <div class="dtl-d" data-en='Noticed lane-line offset and calibration issues on my daily commute.'>日常通勤途中，注意到車道線偏移與校正問題。</div>
           </div>
 
           <!-- 「完成開發」與「驗證有效」併成這一格。圖示留放大鏡+波形(檢測訊號),
@@ -840,8 +840,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <path d="M7 10.6h1.7l1.3-2.6 1.7 4.4 1.1-1.8h1.6"/>
               </svg>
             </div>
-            <div class="dtl-t">作為校正即時驗證工具</div>
-            <div class="dtl-d">作為 V&amp;V Team 校正後的即時驗證工具，估測精準受肯定，成為該團隊標準驗證工具並沿用三年。</div>
+            <div class="dtl-t" data-en='Used as a real-time calibration check'>作為校正即時驗證工具</div>
+            <div class="dtl-d" data-en='Used by the V&amp;V team as a real-time check after calibration; its accuracy was recognized and it became their standard validation tool for three years.'>作為 V&amp;V Team 校正後的即時驗證工具，估測精準受肯定，成為該團隊標準驗證工具並沿用三年。</div>
           </div>
 
           <div class="dtl-n">
@@ -853,8 +853,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <circle cx="7.6" cy="16.9" r="1.7"/><circle cx="16.4" cy="16.9" r="1.7"/>
               </svg>
             </div>
-            <div class="dtl-t">導入量產車</div>
-            <div class="dtl-d">CMC 量產前 FOT 發現產線校正仍有殘留偏差，本方案轉為量產邏輯部署上車。</div>
+            <div class="dtl-t" data-en='Into production vehicles'>導入量產車</div>
+            <div class="dtl-d" data-en='The CMC pre-production FOT found residual bias left by end-of-line calibration, so the approach was turned into production logic and deployed on the vehicle.'>CMC 量產前 FOT 發現產線校正仍有殘留偏差，本方案轉為量產邏輯部署上車。</div>
           </div>
 
           <div class="dtl-n">
@@ -864,8 +864,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <path d="M6.2 12h2.3l1.5-3.4 2.5 6.8 1.5-3.4h2.3"/>
               </svg>
             </div>
-            <div class="dtl-t">即時補償</div>
-            <div class="dtl-d">實際行駛中線上估算並補償車道偏差。</div>
+            <div class="dtl-t" data-en='Real-time compensation'>即時補償</div>
+            <div class="dtl-d" data-en='Estimates and compensates lane bias online while driving.'>實際行駛中線上估算並補償車道偏差。</div>
           </div>
 
           <div class="dtl-n">
@@ -877,8 +877,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <rect x="15.4" y="6.4" width="3.2" height="14" rx="1"/>
               </svg>
             </div>
-            <div class="dtl-t">量產穩定性提升</div>
-            <div class="dtl-d">車道線偵測穩定性與系統整體強健性顯著提升。</div>
+            <div class="dtl-t" data-en='Production stability improved'>量產穩定性提升</div>
+            <div class="dtl-d" data-en='Lane-line detection stability and overall system robustness improved markedly.'>車道線偵測穩定性與系統整體強健性顯著提升。</div>
           </div>
 
         </div>
@@ -901,17 +901,17 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-title">用演算法對策<br>取代高成本<span class="nb">(USD 470–625K)</span>及高工時<span class="nb">(半年)</span>的模型重新訓練</div>
+        <div class="unit-title" data-en='An algorithmic fix<br>in place of a costly <span class="nb">(USD 470&ndash;625K)</span> and slow <span class="nb">(six months)</span> perception model retrain'>用演算法對策<br>取代高成本<span class="nb">(USD 470–625K)</span>及高工時<span class="nb">(半年)</span>的模型重新訓練</div>
         <div class="unit-points">
-          <p><b>痛點識別與成本防禦</b>：感知模型因 View Range 過短，高階項（C₂、C₃）在遠端被過度外推，引發<b>車道線尾端甩動</b>並影響橫向控制穩定度。成功阻斷供應商提出的「重訓感知模型」高成本方案（報價 <span class="nb">USD 470–625K</span>）。</p>
-          <p><b>創新演算法設計</b>：提出「<b>動態降階擬合</b>」對策，依有效 View Range 自適應調整多項式階數（短距 <span class="nb">C₀–C₁</span>、中距 <span class="nb">C₀–C₂</span>、全距維持 <span class="nb">C₀–C₃</span>）。</p>
-          <p><b>商業與技術成效</b>：不動感知韌體、不加硬體，以近乎零成本的軟體後處理消除尾端甩動、提升橫向控制穩定度，<b>硬體成本為零</b>，並以自研對策取代該筆重開發報價；經主管指定為量產標準解法。</p>
+          <p data-en='<b>Pain point and cost containment</b>: because the perception model view range was too short, the high-order terms (C&#8322;, C&#8323;) were over-extrapolated at distance, causing <b>lane-line tail swing</b> that undermined lateral control stability. Headed off the supplier proposal to retrain the perception model (quoted at <span class="nb">USD 470&ndash;625K</span>).'><b>痛點識別與成本防禦</b>：感知模型因 View Range 過短，高階項（C₂、C₃）在遠端被過度外推，引發<b>車道線尾端甩動</b>並影響橫向控制穩定度。成功阻斷供應商提出的「重訓感知模型」高成本方案（報價 <span class="nb">USD 470–625K</span>）。</p>
+          <p data-en='<b>Algorithm design</b>: proposed <b>dynamic order reduction</b>, adapting the polynomial order to the effective view range (<span class="nb">C&#8320;&ndash;C&#8321;</span> at short range, <span class="nb">C&#8320;&ndash;C&#8322;</span> at medium, full <span class="nb">C&#8320;&ndash;C&#8323;</span> at full range).'><b>創新演算法設計</b>：提出「<b>動態降階擬合</b>」對策，依有效 View Range 自適應調整多項式階數（短距 <span class="nb">C₀–C₁</span>、中距 <span class="nb">C₀–C₂</span>、全距維持 <span class="nb">C₀–C₃</span>）。</p>
+          <p data-en='<b>Business and technical impact</b>: without touching perception firmware or adding hardware, near-zero-cost software post-processing removed the tail swing and improved lateral control stability at <b>zero hardware cost</b>, replacing that redevelopment quote with an in-house fix; my manager designated it the standard production solution.'><b>商業與技術成效</b>：不動感知韌體、不加硬體，以近乎零成本的軟體後處理消除尾端甩動、提升橫向控制穩定度，<b>硬體成本為零</b>，並以自研對策取代該筆重開發報價；經主管指定為量產標準解法。</p>
         </div>
       </div>
       <!-- 決策流程 + 動畫,合成一張卡(排版比照 #architecture 與 #decision-2)。
            02 那格底下掛一個琥珀色的代價標註,把「不走這條路」的理由當場秀出來。 -->
       <div class="dtl" style="margin-top:26px">
-        <div class="eb">Lane Degrade · 從報價單到幾行數學</div>
+        <div class="eb" data-en='Lane Degrade &middot; from a supplier quote to a few lines of math'>Lane Degrade · 從報價單到幾行數學</div>
         <div class="dtl-track dtl-track--6">
 
           <div class="dtl-n">
@@ -921,7 +921,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <circle cx="10.8" cy="10.8" r="6.6"/><path d="M15.6 15.6 20.8 20.8"/>
               </svg>
             </div>
-            <div class="dtl-t">問題發現</div>
+            <div class="dtl-t" data-en='Issue found'>問題發現</div>
           </div>
 
           <div class="dtl-n">
@@ -933,7 +933,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <path d="M8.8 11.4h6.4M8.8 14.8h4.4"/>
               </svg>
             </div>
-            <div class="dtl-t">正規解法：重訓感知模型</div>
+            <div class="dtl-t" data-en='The textbook fix: retrain the perception model'>正規解法：重訓感知模型</div>
             <div class="dtl-note">
               <div class="dtl-note-r">
                 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -947,7 +947,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                   <path d="M4.4 2.2h7.2M4.4 13.8h7.2"/>
                   <path d="M5.4 2.2v2.3L8 7.2l2.6-2.7V2.2M5.4 13.8v-2.3L8 8.8l2.6 2.7v2.3"/>
                 </svg>
-                <span>需要數個月時程</span>
+                <span data-en='takes several months'>需要數個月時程</span>
               </div>
             </div>
           </div>
@@ -961,7 +961,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <path d="M12 1.6v1.4M4.6 5.1 5.6 6.1M19.4 5.1 18.4 6.1M2.5 12h1.4M20.1 12h1.4"/>
               </svg>
             </div>
-            <div class="dtl-t">重新思考：我們真正需要的是？</div>
+            <div class="dtl-t" data-en='Rethinking: what do we actually need?'>重新思考：我們真正需要的是？</div>
           </div>
 
           <div class="dtl-n">
@@ -972,7 +972,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <path d="M12 2.6v2.6M12 18.8v2.6M21.4 12h-2.6M5.2 12H2.6M18.6 5.4 16.8 7.2M7.2 16.8l-1.8 1.8M18.6 18.6 16.8 16.8M7.2 7.2 5.4 5.4"/>
               </svg>
             </div>
-            <div class="dtl-t">我的解法：在融合層動手</div>
+            <div class="dtl-t" data-en='My fix: work at the fusion layer'>我的解法：在融合層動手</div>
             <div class="dtl-note dtl-note--ok">
               <div class="dtl-note-r">
                 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -986,7 +986,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                   <path d="M4.4 2.2h7.2M4.4 13.8h7.2"/>
                   <path d="M5.4 2.2v2.3L8 7.2l2.6-2.7V2.2M5.4 13.8v-2.3L8 8.8l2.6 2.7v2.3"/>
                 </svg>
-                <span>僅需 1 週的測試</span>
+                <span data-en='only 1 week of testing'>僅需 1 週的測試</span>
               </div>
             </div>
           </div>
@@ -1000,7 +1000,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <path d="M14.8 8.2h3.6v3.6"/>
               </svg>
             </div>
-            <div class="dtl-t">驗證效果</div>
+            <div class="dtl-t" data-en='Validated'>驗證效果</div>
           </div>
 
           <div class="dtl-n">
@@ -1010,7 +1010,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.8"/><circle cx="12" cy="12" r="1.3"/>
               </svg>
             </div>
-            <div class="dtl-t">成果與導入</div>
+            <div class="dtl-t" data-en='Result and rollout'>成果與導入</div>
           </div>
 
         </div>
@@ -1030,10 +1030,10 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 
       <!-- HERO -->
       <div class="unit-head">
-        <div class="unit-title">細節洞察與持續改善</div>
+        <div class="unit-title" data-en='Attention to Detail and Continuous Improvement'>細節洞察與持續改善</div>
         <div class="unit-points">
-          <p><b>保持懷疑與驗證</b>：面對不合常理的結果，沒有盲目相信既有權威或大眾慣例，而是回頭檢視底層邏輯。</p>
-          <p><b>深度拆解與排查</b>：逐層追蹤公式的運算細節、邊界條件（Edge Cases）或輸入變數，最終精準定位出盲點或漏洞。</p>
+          <p data-en='<b>Staying skeptical and verifying</b>: faced with a result that did not add up, I did not defer to existing authority or common practice but went back to the underlying logic.'><b>保持懷疑與驗證</b>：面對不合常理的結果，沒有盲目相信既有權威或大眾慣例，而是回頭檢視底層邏輯。</p>
+          <p data-en='<b>Deep breakdown and investigation</b>: traced the formula computation, boundary conditions (edge cases) and input variables layer by layer until the blind spot was pinned down exactly.'><b>深度拆解與排查</b>：逐層追蹤公式的運算細節、邊界條件（Edge Cases）或輸入變數，最終精準定位出盲點或漏洞。</p>
         </div>
       </div>
 
@@ -1041,7 +1041,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
            原流程有 7 格,依指示拿掉「問題回報與確認」與「效果與價值」兩格,
            剩下的重新編號成 01–05(留 01,02,04,05,06 的跳號會看起來像漏排)。 -->
       <div class="dtl" style="margin-top:26px">
-        <div class="eb">道路半徑公式 · 問題發現與優化流程</div>
+        <div class="eb" data-en='Road radius formula &middot; how the issue surfaced and was fixed'>道路半徑公式 · 問題發現與優化流程</div>
         <div class="dtl-track">
 
           <div class="dtl-n">
@@ -1051,8 +1051,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <circle cx="12" cy="12" r="8.6"/><path d="M12 6.8V12l3.4 2"/>
               </svg>
             </div>
-            <div class="dtl-t">長期使用</div>
-            <div class="dtl-d">道路半徑公式已使用多年，在各種場景下運作穩定，未曾出現明顯問題。</div>
+            <div class="dtl-t" data-en='In long-term use'>長期使用</div>
+            <div class="dtl-d" data-en='The road radius formula had been in use for years, stable across scenarios with no visible problem.'>道路半徑公式已使用多年，在各種場景下運作穩定，未曾出現明顯問題。</div>
           </div>
 
           <div class="dtl-n">
@@ -1065,8 +1065,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <circle cx="9.7" cy="15.2" r="1.1"/><circle cx="14.3" cy="15.2" r="1.1"/>
               </svg>
             </div>
-            <div class="dtl-t">LKA 測試發現問題</div>
-            <div class="dtl-d">在 LKA 測試中發現，當車道線夾角較大時，道路半徑誤差會隨之變大，影響系統表現。</div>
+            <div class="dtl-t" data-en='Issue surfaced in LKA testing'>LKA 測試發現問題</div>
+            <div class="dtl-d" data-en='LKA testing showed that road radius error grew with the lane-line included angle, degrading system performance.'>在 LKA 測試中發現，當車道線夾角較大時，道路半徑誤差會隨之變大，影響系統表現。</div>
           </div>
 
           <div class="dtl-n">
@@ -1077,8 +1077,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <path d="M8.1 10.8a2.7 2.7 0 1 0 5.4 0 2.7 2.7 0 1 0-5.4 0"/>
               </svg>
             </div>
-            <div class="dtl-t">根因分析與驗證</div>
-            <div class="dtl-d">查找相關資料，並以三點畫圓等方式驗證原公式的誤差來源，確認問題在大夾角時更明顯。</div>
+            <div class="dtl-t" data-en='Root-cause analysis and verification'>根因分析與驗證</div>
+            <div class="dtl-d" data-en='Researched the topic and verified the error source of the original formula using a three-point circle among other methods, confirming it worsens at large angles.'>查找相關資料，並以三點畫圓等方式驗證原公式的誤差來源，確認問題在大夾角時更明顯。</div>
           </div>
 
           <div class="dtl-n">
@@ -1089,8 +1089,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <path d="M14.6 6.4 17.6 9.4"/>
               </svg>
             </div>
-            <div class="dtl-t">修正公式並驗證</div>
-            <div class="dtl-d">修正道路半徑計算公式，並以大量場景與實車數據驗證，確保誤差大幅降低。</div>
+            <div class="dtl-t" data-en='Corrected the formula and verified it'>修正公式並驗證</div>
+            <div class="dtl-d" data-en='Corrected the road radius formula and validated it against many scenarios and real vehicle data, cutting the error substantially.'>修正道路半徑計算公式，並以大量場景與實車數據驗證，確保誤差大幅降低。</div>
           </div>
 
           <div class="dtl-n">
@@ -1103,8 +1103,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
                 <path d="M15.2 14.4c.5-.2 1.1-.3 1.7-.3 2.3 0 3.7 1.5 3.7 3.5"/>
               </svg>
             </div>
-            <div class="dtl-t">推廣與導入</div>
-            <div class="dtl-d">將修正後公式整合至共用模組，並導入所有 ADAS 功能，確保一致性與穩定性。</div>
+            <div class="dtl-t" data-en='Rolled out'>推廣與導入</div>
+            <div class="dtl-d" data-en='Integrated the corrected formula into the shared module and rolled it into every ADAS feature for consistency and stability.'>將修正後公式整合至共用模組，並導入所有 ADAS 功能，確保一致性與穩定性。</div>
           </div>
 
         </div>
@@ -1122,8 +1122,8 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 <section class="cta">
   <div class="wrap">
     <div class="cta-btns">
-      <a class="s" href="../home/index.html">回到履歷</a>
-      <a class="p" href="mailto:tkps50803@gmail.com?subject=關於 LFS 車道融合系統">聯絡我</a>
+      <a class="s" href="../home/index.html" data-en='Back to resume'>回到履歷</a>
+      <a class="p" href="mailto:tkps50803@gmail.com?subject=關於 LFS 車道融合系統" data-en='Contact me'>聯絡我</a>
     </div>
   </div>
 </section>

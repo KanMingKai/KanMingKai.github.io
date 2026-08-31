@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TRJ 共用軌跡規劃模組 — 架構整合</title>
+<title data-en='TRJ Shared Trajectory Planning Module &mdash; Architecture Integration'>TRJ 共用軌跡規劃模組 — 架構整合</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -412,13 +412,13 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   <div class="in">
     <a class="chnav-back" id="chnav-back" href="../home/index.html#xp-trj"
        data-resume-default="xp-trj" data-en='&larr; Back to resume'>← 回履歷</a>
-    <a href="#problem"       data-sec="problem">主導 ADAS 核心演算法架構升級</a>
-    <a href="#methods"       data-sec="methods">技術規格定義與架構創新</a>
-    <a href="#analogy"       data-sec="analogy">跨領域創新借鏡</a>
-    <a href="#design"        data-sec="design">問題拆解與架構收斂</a>
-    <a href="#rollout"       data-sec="rollout">從自用功能到團隊共用 library</a>
-    <a href="#functions"     data-sec="functions">一套軌跡規劃涵蓋所有側向功能</a>
-    <a href="#platforms"     data-sec="platforms" data-resume="xp-platforms">滿足五種載具平台的控制轉接</a>
+    <a href="#problem"       data-sec="problem" data-en='Leading the ADAS Core Algorithm Architecture Upgrade'>主導 ADAS 核心演算法架構升級</a>
+    <a href="#methods"       data-sec="methods" data-en='Specification Definition and Architectural Innovation'>技術規格定義與架構創新</a>
+    <a href="#analogy"       data-sec="analogy" data-en='Cross-Domain Borrowing'>跨領域創新借鏡</a>
+    <a href="#design"        data-sec="design" data-en='Problem Decomposition and Architecture Convergence'>問題拆解與架構收斂</a>
+    <a href="#rollout"       data-sec="rollout" data-en='From a Personal Tool to a Shared Library'>從自用功能到團隊共用 library</a>
+    <a href="#functions"     data-sec="functions" data-en='One Planner for Every Lateral Feature'>一套軌跡規劃涵蓋所有側向功能</a>
+    <a href="#platforms"     data-sec="platforms" data-resume="xp-platforms" data-en='Adapted to Five Vehicle Platforms'>滿足五種載具平台的控制轉接</a>
   </div>
 </nav>
 
@@ -427,72 +427,72 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-title">主導 ADAS 核心演算法架構升級，突破量產專案四大核心限制</div>
+        <div class="unit-title" data-en='Leading the upgrade of the core ADAS algorithm architecture, breaking through the four constraints of a production program'>主導 ADAS 核心演算法架構升級，突破量產專案四大核心限制</div>
         <div class="unit-points">
-          <p>突破自動駕駛量產的四大維度瓶頸（<b>算力極限</b>、<b>控制穩定度</b>、<b>系統可解釋性</b>、<b>專案時程</b>），打破傳統研發中「顧此失彼」的權衡妥協：要省算力就犧牲平順，要好解釋就犧牲彈性。</p>
-          <p>透過創新的<b>三段式系統化解法</b>，在不增加硬體成本的前提下同時實現極低算力消耗、方向盤平順性、可解釋的決策邏輯，以及匹配量產專案週期的開發效率。底下四張卡是這四個限制，以及最後量到的結果。</p>
+          <p data-en='Broke through the four bottlenecks of production autonomous driving (<b>compute budget</b>, <b>control stability</b>, <b>system explainability</b>, <b>program schedule</b>) and the traditional trade-off that one is always paid for with another: save compute and you lose smoothness, gain explainability and you lose flexibility.'>突破自動駕駛量產的四大維度瓶頸（<b>算力極限</b>、<b>控制穩定度</b>、<b>系統可解釋性</b>、<b>專案時程</b>），打破傳統研發中「顧此失彼」的權衡妥協：要省算力就犧牲平順，要好解釋就犧牲彈性。</p>
+          <p data-en='An original <b>three-segment systematic solution</b> delivered very low compute, steering smoothness, explainable decision logic and a development pace that fits a production program, all without adding hardware cost. The four cards below are those four constraints and the numbers finally measured.'>透過創新的<b>三段式系統化解法</b>，在不增加硬體成本的前提下同時實現極低算力消耗、方向盤平順性、可解釋的決策邏輯，以及匹配量產專案週期的開發效率。底下四張卡是這四個限制，以及最後量到的結果。</p>
         </div>
       </div>
       <div class="cons">
         <div class="cons-c">
-          <div class="cons-n">限制 01</div>
-          <b>單週期算得完</b>
-          <span>跟感知、決策、控制共用同一顆 MCU。算不完不是慢一點，是掉幀。</span>
+          <div class="cons-n" data-en='Constraint 01'>限制 01</div>
+          <b data-en='Must finish within one cycle'>單週期算得完</b>
+          <span data-en='It shares one MCU with perception, decision and control. Not finishing does not mean slightly slower, it means dropped frames.'>跟感知、決策、控制共用同一顆 MCU。算不完不是慢一點，是掉幀。</span>
           <div class="cons-r">
-            <span class="mc-badge mc-badge--hw">硬體效率</span>
+            <span class="mc-badge mc-badge--hw" data-en='Hardware efficiency'>硬體效率</span>
             <span class="mc-before">100%</span>
             <span class="mc-dnarrow">↓</span>
             <span class="mc-after-val grad">37%</span>
-            <span class="mc-label-text">TC277 運算資源佔用</span>
+            <span class="mc-label-text" data-en='TC277 compute utilization'>TC277 運算資源佔用</span>
           </div>
         </div>
         <div class="cons-c">
-          <div class="cons-n">限制 02</div>
-          <b>方向盤不能抖</b>
-          <span>銜接處一跳動，駕駛就不再信任系統。這是能不能接手的關鍵，不是體感問題。</span>
+          <div class="cons-n" data-en='Constraint 02'>限制 02</div>
+          <b data-en='The steering must not jitter'>方向盤不能抖</b>
+          <span data-en='One jump at a join and the driver stops trusting the system. This decides whether they hand over control; it is not a comfort issue.'>銜接處一跳動，駕駛就不再信任系統。這是能不能接手的關鍵，不是體感問題。</span>
           <div class="cons-r">
-            <span class="mc-badge mc-badge--safety">安全品質</span>
-            <span class="mc-before">20+次</span>
+            <span class="mc-badge mc-badge--safety" data-en='Safety quality'>安全品質</span>
+            <span class="mc-before" data-en='20+'>20+次</span>
             <span class="mc-dnarrow">↓</span>
-            <span class="mc-after-val grad">&lt;3次</span>
-            <span class="mc-label-text">100km 接手次數</span>
+            <span class="mc-after-val grad" data-en='&lt;3'>&lt;3次</span>
+            <span class="mc-label-text" data-en='takeovers per 100 km'>100km 接手次數</span>
           </div>
         </div>
         <div class="cons-c">
-          <div class="cons-n">限制 03</div>
-          <b>出事要能解釋</b>
-          <span>每一段輸出都要追得回輸入。說不清「為什麼是這條線」，過不了審查。</span>
+          <div class="cons-n" data-en='Constraint 03'>限制 03</div>
+          <b data-en='It must be explainable when something goes wrong'>出事要能解釋</b>
+          <span data-en='Every output segment must trace back to its input. If you cannot say why this particular path was chosen, it does not pass review.'>每一段輸出都要追得回輸入。說不清「為什麼是這條線」，過不了審查。</span>
           <div class="cons-r">
-            <span class="mc-badge mc-badge--fs">功能安全</span>
-            <span class="mc-before">權重</span>
+            <span class="mc-badge mc-badge--fs" data-en='Functional safety'>功能安全</span>
+            <span class="mc-before" data-en='weights'>權重</span>
             <span class="mc-dnarrow">↓</span>
-            <span class="mc-after-val grad">係數</span>
-            <span class="mc-label-text">軌跡的決定依據</span>
+            <span class="mc-after-val grad" data-en='coefficients'>係數</span>
+            <span class="mc-label-text" data-en='what determines the trajectory'>軌跡的決定依據</span>
           </div>
         </div>
         <div class="cons-c">
-          <div class="cons-n">限制 04</div>
-          <b>新功能要跟得上</b>
-          <span>規格更新很快，客戶臨時要的功能得在專案週期內做完，又不能為了快而不穩。</span>
+          <div class="cons-n" data-en='Constraint 04'>限制 04</div>
+          <b data-en='New features must keep pace'>新功能要跟得上</b>
+          <span data-en='Specifications change fast; a feature the customer asks for late still has to land within the program, and speed cannot cost stability.'>規格更新很快，客戶臨時要的功能得在專案週期內做完，又不能為了快而不穩。</span>
           <div class="cons-r">
-            <span class="mc-badge mc-badge--dev">開發速度</span>
-            <span class="mc-before">4個月+</span>
+            <span class="mc-badge mc-badge--dev" data-en='Development speed'>開發速度</span>
+            <span class="mc-before" data-en='4 months+'>4個月+</span>
             <span class="mc-dnarrow">↓</span>
-            <span class="mc-after-val grad">2~3天</span>
-            <span class="mc-label-text">新功能開發週期</span>
+            <span class="mc-after-val grad" data-en='2~3 days'>2~3天</span>
+            <span class="mc-label-text" data-en='new feature development cycle'>新功能開發週期</span>
           </div>
         </div>
       </div>
-      <div class="l1-trust"><span class="dot"></span>車用嵌入式晶片 · 實路測試驗證</div>
+      <div class="l1-trust" data-en='<span class="dot"></span>Automotive embedded MCU &middot; validated on real roads'><span class="dot"></span>車用嵌入式晶片 · 實路測試驗證</div>
       <div style="height:1px;background:var(--line);max-width:760px;margin:36px auto 0"></div>
       <div class="scale" style="margin-top:32px">
         <div class="scale-c">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" style="margin-bottom:8px"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-          <div class="num">9</div><div class="lbl">側向功能</div><div class="ex">RMA・co-Drive 等</div>
+          <div class="num">9</div><div class="lbl" data-en='lateral features'>側向功能</div><div class="ex" data-en='RMA, co-Drive and others'>RMA・co-Drive 等</div>
         </div>
         <div class="scale-c">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" style="margin-bottom:8px"><path d="M3 16 L5 9 H19 L21 16"/><rect x="3" y="16" width="18" height="4" rx="1"/><circle cx="7" cy="20" r="1.4" fill="#0071e3"/><circle cx="17" cy="20" r="1.4" fill="#0071e3"/></svg>
-          <div class="num">5</div><div class="lbl">車型平台</div><div class="ex">轎車・SUV・貨車・皮卡・聯結車</div>
+          <div class="num">5</div><div class="lbl" data-en='vehicle platforms'>車型平台</div><div class="ex" data-en='sedan, SUV, truck, pickup, articulated truck'>轎車・SUV・貨車・皮卡・聯結車</div>
         </div>
         <!-- 原本是「2 MCU 平台」,配琥珀色當成負擔;現在講的是同一份 code 撐住上面兩個數字,
              屬於正面事實,所以跟前兩格一樣走藍色,不再用警示色。
@@ -500,7 +500,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
              雙 MCU 平台的資訊目前只剩 #platforms 那一節。 -->
         <div class="scale-c">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px"><path d="M8.5 7.5 4 12l4.5 4.5M15.5 7.5 20 12l-4.5 4.5"/></svg>
-          <div class="num">1</div><div class="lbl">套算法</div><div class="ex">9 個功能・5 種車型共用同一份 code</div>
+          <div class="num">1</div><div class="lbl" data-en='algorithm'>套算法</div><div class="ex" data-en='9 features and 5 vehicle types share one codebase'>9 個功能・5 種車型共用同一份 code</div>
         </div>
       </div>
     </div>
@@ -512,21 +512,21 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-title">技術規格定義與架構創新</div>
-        <p class="unit-lead">主導 ADAS 橫向軌跡規劃演算法之<b>極限對比</b>與<b>架構重定義</b>。</p>
+        <div class="unit-title" data-en='Specification Definition and Architectural Innovation'>技術規格定義與架構創新</div>
+        <p class="unit-lead" data-en='Led the <b>limit benchmarking</b> and <b>architectural redefinition</b> of the ADAS lateral trajectory planning algorithm.'>主導 ADAS 橫向軌跡規劃演算法之<b>極限對比</b>與<b>架構重定義</b>。</p>
       </div>
       <table class="ctab">
         <thead>
           <tr>
             <th class="k"></th>
             <th>MPPI<small>Model Predictive Path Integral</small></th>
-            <th>S-L 方法<small>Frenet 座標 · 先 d(s) 再查表</small></th>
-            <th class="pick">三段式<span class="pick-b">採用</span><small>Line → Curve → Line</small></th>
+            <th data-en='S-L method<small>Frenet frame &middot; d(s) first, then a lookup</small>'>S-L 方法<small>Frenet 座標 · 先 d(s) 再查表</small></th>
+            <th class="pick" data-en='Three-segment<span class="pick-b">ADOPTED</span><small>Line &rarr; Curve &rarr; Line</small>'>三段式<span class="pick-b" data-en='ADOPTED'>採用</span><small>Line → Curve → Line</small></th>
           </tr>
         </thead>
         <tbody>
           <tr class="figrow">
-            <th class="k">換道軌跡<small>3.5 m · 示意圖</small></th>
+            <th class="k" data-en='Lane-change trajectory<small>3.5 m &middot; illustrative</small>'>換道軌跡<small>3.5 m · 示意圖</small></th>
             <td class="dim" data-m="MPPI">
               <figure class="fig">
                 <svg viewBox="52 -8 216 248" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MPPI:從本車位置隨機採樣大量軌跡，加權平均後的輸出仍有轉折">
@@ -568,7 +568,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
                   <rect x="196" y="196" width="24" height="36" rx="7" fill="#fff" stroke="#6e6e73" stroke-width="1.5"/>
                   <rect x="200" y="202" width="16" height="10" rx="3" fill="#e5e5ea"/>
                   <rect x="100" y="30" width="24" height="36" rx="7" fill="none" stroke="#a1a1a6" stroke-width="1.3" stroke-dasharray="4 4"/>
-                  <text x="94" y="52" text-anchor="end" font-size="10" fill="#86868b" font-family="var(--sans)">目標</text>
+                  <text x="94" y="52" text-anchor="end" font-size="10" fill="#86868b" font-family="var(--sans)" data-en='Target'>目標</text>
                 </svg>
               </figure>
             </td>
@@ -602,7 +602,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
                   <rect x="196" y="196" width="24" height="36" rx="7" fill="#fff" stroke="#6e6e73" stroke-width="1.5"/>
                   <rect x="200" y="202" width="16" height="10" rx="3" fill="#e5e5ea"/>
                   <rect x="100" y="30" width="24" height="36" rx="7" fill="none" stroke="#a1a1a6" stroke-width="1.3" stroke-dasharray="4 4"/>
-                  <text x="94" y="52" text-anchor="end" font-size="10" fill="#86868b" font-family="var(--sans)">目標</text>
+                  <text x="94" y="52" text-anchor="end" font-size="10" fill="#86868b" font-family="var(--sans)" data-en='Target'>目標</text>
                 </svg>
               </figure>
             </td>
@@ -624,84 +624,84 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
                   <path d="M112,98 L112,66"  fill="none" stroke="#b45309" stroke-width="3.2" stroke-linecap="round"/>
                   <circle cx="208" cy="158" r="3.6" fill="#fff" stroke="#1d1d1f" stroke-width="1.6"/>
                   <circle cx="112" cy="98"  r="3.6" fill="#fff" stroke="#1d1d1f" stroke-width="1.6"/>
-                  <text x="252" y="180" text-anchor="end" font-size="10" fill="#0a8a5c" font-family="var(--sans)" font-weight="700">段 1</text>
-                  <text x="252" y="132" text-anchor="end" font-size="10" fill="#0071e3" font-family="var(--sans)" font-weight="700">段 2</text>
-                  <text x="106" y="86"  text-anchor="end" font-size="10" fill="#b45309" font-family="var(--sans)" font-weight="700">段 3</text>
+                  <text x="252" y="180" text-anchor="end" font-size="10" fill="#0a8a5c" font-family="var(--sans)" font-weight="700" data-en='Seg 1'>段 1</text>
+                  <text x="252" y="132" text-anchor="end" font-size="10" fill="#0071e3" font-family="var(--sans)" font-weight="700" data-en='Seg 2'>段 2</text>
+                  <text x="106" y="86"  text-anchor="end" font-size="10" fill="#b45309" font-family="var(--sans)" font-weight="700" data-en='Seg 3'>段 3</text>
                   <rect x="196" y="196" width="24" height="36" rx="7" fill="#fff" stroke="#6e6e73" stroke-width="1.5"/>
                   <rect x="200" y="202" width="16" height="10" rx="3" fill="#e5e5ea"/>
                   <rect x="100" y="30" width="24" height="36" rx="7" fill="none" stroke="#a1a1a6" stroke-width="1.3" stroke-dasharray="4 4"/>
-                  <text x="94" y="52" text-anchor="end" font-size="10" fill="#86868b" font-family="var(--sans)">目標</text>
+                  <text x="94" y="52" text-anchor="end" font-size="10" fill="#86868b" font-family="var(--sans)" data-en='Target'>目標</text>
                 </svg>
               </figure>
             </td>
           </tr>
           <tr>
-            <th class="k">運算量</th>
+            <th class="k" data-en='Compute load'>運算量</th>
             <td class="dim" data-m="MPPI"><div>
               <div class="lv">&gt;100%</div>
               <!-- TC397 三個字從註腳搬進格子裡:註腳有 900 字,沒人會讀到那裡,
                    而少了基準,「>100%」在任何有 GPU 的場域都會被直接反駁 -->
-              <span class="why">上千次 rollout，TC397 單週期算不完</span>
+              <span class="why" data-en='thousands of rollouts; TC397 cannot finish one cycle'>上千次 rollout，TC397 單週期算不完</span>
             </div></td>
             <td data-m="S-L"><div>
               <div class="lv lv--a">100%</div>
-              <span class="why">取樣數固定，要平順就得加密</span>
+              <span class="why" data-en='fixed sample count; smoothness costs more samples'>取樣數固定，要平順就得加密</span>
             </div></td>
             <td class="pick" data-m="三段式"><div>
               <div class="lv lv--g">37%</div>
-              <span class="why">距離參數化，單點查詢 O(1)</span>
+              <span class="why" data-en='parameterized by distance; O(1) single-point lookup'>距離參數化，單點查詢 O(1)</span>
             </div></td>
           </tr>
           <tr>
-            <th class="k">軌跡平順性</th>
+            <th class="k" data-en='Trajectory smoothness'>軌跡平順性</th>
             <td class="dim" data-m="MPPI"><div>
-              <div class="lv">低</div>
-              <span class="why">每幀取樣不同，方向盤會甩動</span>
+              <div class="lv" data-en='Low'>低</div>
+              <span class="why" data-en='samples differ frame to frame, so the steering swings'>每幀取樣不同，方向盤會甩動</span>
             </div></td>
             <td data-m="S-L"><div>
-              <div class="lv lv--a">中</div>
-              <span class="why">點間是直線，轉折處曲率跳變</span>
+              <div class="lv lv--a" data-en='Medium'>中</div>
+              <span class="why" data-en='straight lines between points; curvature jumps at the joins'>點間是直線，轉折處曲率跳變</span>
             </div></td>
             <td class="pick" data-m="三段式"><div>
-              <div class="lv lv--g">高</div>
-              <span class="why">C0 + C1 連續，全段無斷點</span>
+              <div class="lv lv--g" data-en='High'>高</div>
+              <span class="why" data-en='C0 and C1 continuous; no break anywhere along the path'>C0 + C1 連續，全段無斷點</span>
             </div></td>
           </tr>
           <tr>
-            <th class="k">可解釋性</th>
+            <th class="k" data-en='Explainability'>可解釋性</th>
             <td class="dim" data-m="MPPI"><div>
-              <div class="lv">極低</div>
-              <span class="why">統計結果，無法逐段說明</span>
+              <div class="lv" data-en='Very low'>極低</div>
+              <span class="why" data-en='a statistical result that cannot be explained segment by segment'>統計結果，無法逐段說明</span>
             </div></td>
             <td class="dim" data-m="S-L"><div>
-              <div class="lv">高</div>
-              <span class="why">每個點對得回 d(s) 上的一段</span>
+              <div class="lv" data-en='High'>高</div>
+              <span class="why" data-en='every point maps back to a segment of d(s)'>每個點對得回 d(s) 上的一段</span>
             </div></td>
             <td class="pick dim" data-m="三段式"><div>
-              <div class="lv">高</div>
-              <span class="why">三個輸入數字決定整條線</span>
+              <div class="lv" data-en='High'>高</div>
+              <span class="why" data-en='three input numbers determine the whole curve'>三個輸入數字決定整條線</span>
             </div></td>
           </tr>
           <!-- 前四列談軌跡本身,這一列談它讓團隊付出什麼 —— 放最後,是因為
                它是前四項的後果:介面只剩三個數字,別人才接得上去。 -->
           <tr>
-            <th class="k">開發新功能週期</th>
+            <th class="k" data-en='New feature cycle'>開發新功能週期</th>
             <td class="dim" data-m="MPPI"><div>
-              <div class="lv">未知</div>
-              <span class="why">未採用，無可比數據</span>
+              <div class="lv" data-en='Unknown'>未知</div>
+              <span class="why" data-en='not adopted; no comparable data'>未採用，無可比數據</span>
             </div></td>
             <td data-m="S-L"><div>
-              <div class="lv lv--a">4 個月</div>
-              <span class="why">每項功能各自調教，無法共用</span>
+              <div class="lv lv--a" data-en='4 months'>4 個月</div>
+              <span class="why" data-en='each feature tuned on its own; nothing is shared'>每項功能各自調教，無法共用</span>
             </div></td>
             <td class="pick" data-m="三段式"><div>
-              <div class="lv lv--g">2~3 天</div>
-              <span class="why">介面三個數字，同事自己接</span>
+              <div class="lv lv--g" data-en='2~3 days'>2~3 天</div>
+              <span class="why" data-en='a three-number interface colleagues integrate themselves'>介面三個數字，同事自己接</span>
             </div></td>
           </tr>
         </tbody>
       </table>
-      <p class="ctab-note">顏色只表示「這件事在量產上是好是壞」，不表示方法本身好壞，所以同一個方法會同時出現綠色與紅色，那正是它的取捨。三張軌跡圖為示意圖，幾何為說明用途，非實測軌跡。運算量為同一顆 TC397、同一組側向功能下的相對佔用，以 S-L 版本為 100% 基準；&gt;100% 表示單週期內算不完。平順性與可解釋性為工程評估等級，非量測值；開發週期為專案實際經驗值，MPPI 未進入開發，故無數據。</p>
+      <p class="ctab-note" data-en='Colour indicates only whether something is good or bad for production, not whether the method itself is good, which is why one method shows both green and red: that is its trade-off. The three trajectory diagrams are illustrative geometry, not measured paths. Compute load is relative utilization on the same TC397 with the same set of lateral features, with the S-L version as the 100% baseline; &gt;100% means it cannot finish within one cycle. Smoothness and explainability are engineering assessments, not measurements; the development cycle is the actual figure from the program.'>顏色只表示「這件事在量產上是好是壞」，不表示方法本身好壞，所以同一個方法會同時出現綠色與紅色，那正是它的取捨。三張軌跡圖為示意圖，幾何為說明用途，非實測軌跡。運算量為同一顆 TC397、同一組側向功能下的相對佔用，以 S-L 版本為 100% 基準；&gt;100% 表示單週期內算不完。平順性與可解釋性為工程評估等級，非量測值；開發週期為專案實際經驗值，MPPI 未進入開發，故無數據。</p>
     </div>
   </div>
 </section>
@@ -718,18 +718,18 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-title">跨領域創新<br>借鏡機器手臂數學模型突破車載軌跡規劃瓶頸</div>
+        <div class="unit-title" data-en='Cross-domain innovation<br>Borrowing the robotic-arm mathematical model to break the automotive trajectory planning bottleneck'>跨領域創新<br>借鏡機器手臂數學模型突破車載軌跡規劃瓶頸</div>
         <div class="unit-points">
-          <p><b>跨領域技術遷移與架構創新</b>：ADAS 既有的軌跡規劃方法沒有一個能同時滿足前面那四個限制。把問題抽到只剩<b>輸入、輸出與邊界條件</b>，再去別的領域找結構相同的題目，最後把工業界「機器手臂控制」的平滑軌跡生成模型引進 ADAS。</p>
-          <p><b>規避試錯成本與高效破局</b>：換道與機械手臂抓取在邊界條件上有數學共性：<b>都是用起點、終點的位置與斜率定義一段平滑軌跡</b>。邊界條件對得上，那邊已被驗證的解法就能直接搬，不必從零推導；新功能開發自 <b>4 個月</b>縮短至 <b>2~3 天</b>。</p>
-          <p><b>打造量產級控制架構</b>：以非典型解法同時達成低算力消耗、控制平順性與系統可解釋性，效果比預期好得多。</p>
+          <p data-en='<b>Cross-domain transfer and architectural innovation</b>: none of the existing ADAS trajectory planning methods could satisfy all four constraints at once. I abstracted the problem down to <b>inputs, outputs and boundary conditions</b>, went looking for the same structure in other fields, and brought the smooth trajectory generation model used in industrial <b>robotic arm control</b> into ADAS.'><b>跨領域技術遷移與架構創新</b>：ADAS 既有的軌跡規劃方法沒有一個能同時滿足前面那四個限制。把問題抽到只剩<b>輸入、輸出與邊界條件</b>，再去別的領域找結構相同的題目，最後把工業界「機器手臂控制」的平滑軌跡生成模型引進 ADAS。</p>
+          <p data-en='<b>Avoiding trial-and-error cost</b>: a lane change and a robotic-arm pick share the same mathematics at the boundary: <b>both define a smooth trajectory from the position and slope at a start point and an end point</b>. Once the boundary conditions match, a solution already proven there transfers directly with no derivation from scratch; new feature development fell from <b>4 months</b> to <b>2~3 days</b>.'><b>規避試錯成本與高效破局</b>：換道與機械手臂抓取在邊界條件上有數學共性：<b>都是用起點、終點的位置與斜率定義一段平滑軌跡</b>。邊界條件對得上，那邊已被驗證的解法就能直接搬，不必從零推導；新功能開發自 <b data-en='4 months'>4 個月</b>縮短至 <b data-en='2~3 days'>2~3 天</b>。</p>
+          <p data-en='<b>A production-grade control architecture</b>: an unconventional solution delivered low compute, control smoothness and system explainability together, and worked considerably better than expected.'><b>打造量產級控制架構</b>：以非典型解法同時達成低算力消耗、控制平順性與系統可解釋性，效果比預期好得多。</p>
         </div>
       </div>
 
 
       <iframe class="arm-trj-embed" src="01_ArmTrjOneScene.html" loading="lazy" title="從機械手臂聯想到 trj 軌跡設計" style="margin-top:20px"></iframe>
 
-      <p style="font-size:13.5px;color:var(--ink-2);line-height:1.7;max-width:560px;margin:20px auto 0;text-align:center">這個類比讓我確定：trj 不需要為 9 項功能各自設計演算法，用同一套邊界條件思維，就能同時描述「偏移到新位置」跟「銜接一條變動路徑」這兩種行為。</p>
+      <p style="font-size:13.5px;color:var(--ink-2);line-height:1.7;max-width:560px;margin:20px auto 0;text-align:center" data-en='The analogy settled it: trj does not need a separate algorithm per feature. One way of thinking about boundary conditions describes both "offset to a new position" and "join a changing path".'>這個類比讓我確定：trj 不需要為 9 項功能各自設計演算法，用同一套邊界條件思維，就能同時描述「偏移到新位置」跟「銜接一條變動路徑」這兩種行為。</p>
     </div>
   </div>
 </section>
@@ -742,10 +742,10 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   <div class="tdo">
 
     <div class="unit-head">
-      <div class="unit-title">問題拆解與架構收斂<br>從 1,600 km 實測觀察到三參數三段式軌跡規劃</div>
+      <div class="unit-title" data-en='Problem decomposition and architecture convergence<br>From 1,600 km of field observation to a three-parameter, three-segment planner'>問題拆解與架構收斂<br>從 1,600 km 實測觀察到三參數三段式軌跡規劃</div>
       <div class="unit-points">
-        <p><b>實測觀察與系統化歸納</b>：根因找到之後第一件事不是動手寫，而是回頭看真實路況。針對 <b>9 項橫向功能</b>需求，以 <span class="nb">1,600 km</span> 實測數據（Mini-FOT）逐段觀察，依「<b>目標路徑與當前航向是否平行</b>」把繁雜場景歸納為<b>平行偏移</b>與<b>非平行銜接</b>兩大類。</p>
-        <p><b>問題抽象化與核心參數提煉</b>：兩類行為再收斂為「<b>偏移量、銜接起點、銜接終點</b>」三個參數，據此設計出以 <b>poly4</b> 平滑銜接的<b>三段式軌跡規劃架構</b>。</p>
+        <p data-en='<b>Field observation and systematic generalization</b>: once the root cause was found, the first move was not to write code but to go back and look at real traffic. Across the requirements of <b>9 lateral features</b>, I reviewed <span class="nb">1,600 km</span> of field data (Mini-FOT) segment by segment and grouped the messy scenarios into two classes by <b>whether the target path is parallel to the current heading</b>: <b>parallel offset</b> and <b>non-parallel joining</b>.'><b>實測觀察與系統化歸納</b>：根因找到之後第一件事不是動手寫，而是回頭看真實路況。針對 <b>9 項橫向功能</b>需求，以 <span class="nb">1,600 km</span> 實測數據（Mini-FOT）逐段觀察，依「<b>目標路徑與當前航向是否平行</b>」把繁雜場景歸納為<b>平行偏移</b>與<b>非平行銜接</b>兩大類。</p>
+        <p data-en='<b>Abstraction and core parameters</b>: those two behaviors then converged onto three parameters, <b>offset, join start and join end</b>, from which I designed the <b>three-segment trajectory planning architecture</b> smoothly joined with a <b>poly4</b>.'><b>問題抽象化與核心參數提煉</b>：兩類行為再收斂為「<b>偏移量、銜接起點、銜接終點</b>」三個參數，據此設計出以 <b>poly4</b> 平滑銜接的<b>三段式軌跡規劃架構</b>。</p>
       </div>
     </div>
 
@@ -786,10 +786,10 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 
       <!-- ── 四個階段標頭。欄中心:107 / 341 / 603 / 815 ── -->
       <g font-size="12" font-weight="700" fill="#0071e3" text-anchor="middle" letter-spacing="0.04em">
-        <text x="107" y="26">STEP 1 · 觀察</text>
-        <text x="341" y="26">STEP 2 · 歸納</text>
-        <text x="603" y="26">STEP 3 · 抽象</text>
-        <text x="815" y="26">STEP 4 · 軌跡規劃</text>
+        <text x="107" y="26" data-en='STEP 1 &middot; Observe'>STEP 1 · 觀察</text>
+        <text x="341" y="26" data-en='STEP 2 &middot; Generalize'>STEP 2 · 歸納</text>
+        <text x="603" y="26" data-en='STEP 3 &middot; Abstract'>STEP 3 · 抽象</text>
+        <text x="815" y="26" data-en='STEP 4 &middot; Plan'>STEP 4 · 軌跡規劃</text>
       </g>
       <g stroke="#e3e3e8" stroke-width="1.5">
         <line x1="63"  y1="36" x2="151" y2="36"/>
@@ -801,7 +801,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
       <!-- ── STEP 1:1600km FOT(含路線圖) ── -->
       <rect x="14" y="92" width="186" height="264" rx="14" fill="#fff" stroke="#d2d2d7" stroke-width="1.5"/>
       <text x="107" y="130" text-anchor="middle" font-size="16" font-weight="700" fill="#1d1d1f">1600km FOT</text>
-      <text x="107" y="152" text-anchor="middle" font-size="11.5" font-weight="600" fill="#3a3a3e">觀察 ADAS 側向功能</text>
+      <text x="107" y="152" text-anchor="middle" font-size="11.5" font-weight="600" fill="#3a3a3e" data-en='Observing ADAS lateral features'>觀察 ADAS 側向功能</text>
 
       <!-- 路線圖:原生 300×148,縮到 162 寬。圖內字級與線寬先放大,
            乘上 0.54 之後才會是正常大小 -->
@@ -822,14 +822,14 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
               fill="none" stroke="#0071e3" stroke-width="4" stroke-linecap="round"/>
         <use href="#tdoPin" x="40" y="90" width="24" height="33" color="#0071e3"/>
         <use href="#tdoPin" x="241" y="4"  width="24" height="33" color="#0071e3"/>
-        <text x="32"  y="86" font-size="20" font-weight="600" fill="#1d1d1f">深圳</text>
-        <text x="236" y="6"  font-size="20" font-weight="600" fill="#1d1d1f" text-anchor="end">上海</text>
+        <text x="32"  y="86" font-size="20" font-weight="600" fill="#1d1d1f" data-en='Shenzhen'>深圳</text>
+        <text x="236" y="6"  font-size="20" font-weight="600" fill="#1d1d1f" text-anchor="end" data-en='Shanghai'>上海</text>
         <text x="150" y="64" font-size="26" font-weight="700" fill="#0071e3" text-anchor="middle"
               stroke="#f2f4f7" stroke-width="5" paint-order="stroke">1,600 km</text>
       </g>
 
-      <text x="107" y="290" text-anchor="middle" font-size="10.5" fill="#86868b">深圳 → 上海 1,600 km</text>
-      <text x="107" y="308" text-anchor="middle" font-size="10.5" fill="#86868b">Mini-FOT 紀錄</text>
+      <text x="107" y="290" text-anchor="middle" font-size="10.5" fill="#86868b" data-en='Shenzhen &rarr; Shanghai, 1,600 km'>深圳 → 上海 1,600 km</text>
+      <text x="107" y="308" text-anchor="middle" font-size="10.5" fill="#86868b" data-en='Mini-FOT logs'>Mini-FOT 紀錄</text>
 
       <!-- ── 分流。線一律中性灰:兩類的差別靠標題與示意圖講,不靠顏色 ── -->
       <g fill="none" stroke="#c7ccd1" stroke-width="2">
@@ -839,27 +839,27 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 
       <!-- ── STEP 2:兩類行為 ── -->
       <rect x="248" y="64" width="186" height="150" rx="14" fill="#fff" stroke="#d2d2d7" stroke-width="1.5"/>
-      <text x="341" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#1d1d1f">偏移類（平行）</text>
-      <text x="341" y="112" text-anchor="middle" font-size="10" fill="#6e6e73">目標路徑與當前航向平行，</text>
-      <text x="341" y="127" text-anchor="middle" font-size="10" fill="#6e6e73">只差一個橫向偏移</text>
+      <text x="341" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#1d1d1f" data-en='Offset type (parallel)'>偏移類（平行）</text>
+      <text x="341" y="112" text-anchor="middle" font-size="10" fill="#6e6e73" data-en='target path is parallel to the current heading,'>目標路徑與當前航向平行，</text>
+      <text x="341" y="127" text-anchor="middle" font-size="10" fill="#6e6e73" data-en='differing only by a lateral offset'>只差一個橫向偏移</text>
       <!-- 每類只留一個代表例子。示意圖原生 100×40,scale 1.2 → 120×48,置中於 341 -->
       <g transform="translate(281,137) scale(1.2)">
         <line x1="2" y1="20" x2="98" y2="20" stroke="#dcdfe4" stroke-width="1.4" stroke-dasharray="5 4"/>
         <use href="#tdoCar" x="2" y="24" width="26" height="14" color="#8b9099"/>
         <path d="M34,31 C52,31 54,10 72,10 H88" fill="none" stroke="#0071e3" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#tdoArrBlue)"/>
       </g>
-      <text x="341" y="203" text-anchor="middle" font-size="10" fill="#86868b">變換車道</text>
+      <text x="341" y="203" text-anchor="middle" font-size="10" fill="#86868b" data-en='Lane change'>變換車道</text>
 
       <rect x="248" y="234" width="186" height="150" rx="14" fill="#fff" stroke="#d2d2d7" stroke-width="1.5"/>
-      <text x="341" y="262" text-anchor="middle" font-size="14" font-weight="700" fill="#1d1d1f">銜接類（非平行）</text>
-      <text x="341" y="282" text-anchor="middle" font-size="10" fill="#6e6e73">目標路徑與當前航向不平行，</text>
-      <text x="341" y="297" text-anchor="middle" font-size="10" fill="#6e6e73">需要持續貼合</text>
+      <text x="341" y="262" text-anchor="middle" font-size="14" font-weight="700" fill="#1d1d1f" data-en='Joining type (non-parallel)'>銜接類（非平行）</text>
+      <text x="341" y="282" text-anchor="middle" font-size="10" fill="#6e6e73" data-en='target path is not parallel to the current heading,'>目標路徑與當前航向不平行，</text>
+      <text x="341" y="297" text-anchor="middle" font-size="10" fill="#6e6e73" data-en='so it must keep tracking'>需要持續貼合</text>
       <g transform="translate(281,307) scale(1.2)">
         <path d="M2,10 C30,10 60,7 98,4" fill="none" stroke="#c7ccd1" stroke-width="1.6"/>
         <path d="M38,9 C58,13 66,25 98,33" fill="none" stroke="#0071e3" stroke-width="2" stroke-dasharray="4 3"/>
         <use href="#tdoCar" x="58" y="13" width="24" height="13" color="#8b9099" transform="rotate(16 70 19)"/>
       </g>
-      <text x="341" y="373" text-anchor="middle" font-size="10" fill="#86868b">上下匝道</text>
+      <text x="341" y="373" text-anchor="middle" font-size="10" fill="#86868b" data-en='On/off ramp'>上下匝道</text>
 
       <!-- ── 匯流 ── -->
       <g fill="none" stroke="#c7ccd1" stroke-width="2">
@@ -876,18 +876,18 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
       </g>
 
       <rect x="510" y="104" width="186" height="72" rx="14" fill="#fff" stroke="#d2d2d7" stroke-width="1.5"/>
-      <text x="603" y="130" text-anchor="middle" font-size="14" font-weight="700" fill="#1d1d1f">偏移量</text>
-      <text x="603" y="148" text-anchor="middle" font-size="10" fill="#86868b">公尺（m）</text>
-      <text x="603" y="164" text-anchor="middle" font-size="10" fill="#86868b">例：co-Drive 0.5m</text>
+      <text x="603" y="130" text-anchor="middle" font-size="14" font-weight="700" fill="#1d1d1f" data-en='Offset'>偏移量</text>
+      <text x="603" y="148" text-anchor="middle" font-size="10" fill="#86868b" data-en='meters (m)'>公尺（m）</text>
+      <text x="603" y="164" text-anchor="middle" font-size="10" fill="#86868b" data-en='e.g. co-Drive 0.5 m'>例：co-Drive 0.5m</text>
 
       <rect x="510" y="188" width="186" height="72" rx="14" fill="#fff" stroke="#d2d2d7" stroke-width="1.5"/>
-      <text x="603" y="220" text-anchor="middle" font-size="14" font-weight="700" fill="#1d1d1f">銜接起點</text>
+      <text x="603" y="220" text-anchor="middle" font-size="14" font-weight="700" fill="#1d1d1f" data-en='Join start'>銜接起點</text>
       <text x="603" y="240" text-anchor="middle" font-size="10.5" fill="#86868b">s ∈ [0,1]</text>
 
       <rect x="510" y="272" width="186" height="72" rx="14" fill="#fff" stroke="#d2d2d7" stroke-width="1.5"/>
-      <text x="603" y="298" text-anchor="middle" font-size="14" font-weight="700" fill="#1d1d1f">銜接終點</text>
+      <text x="603" y="298" text-anchor="middle" font-size="14" font-weight="700" fill="#1d1d1f" data-en='Join end'>銜接終點</text>
       <text x="603" y="316" text-anchor="middle" font-size="10.5" fill="#86868b">s ∈ [0,1]</text>
-      <text x="603" y="332" text-anchor="middle" font-size="10" fill="#86868b">例：RMA 1.2m 偏移</text>
+      <text x="603" y="332" text-anchor="middle" font-size="10" fill="#86868b" data-en='e.g. RMA 1.2 m offset'>例：RMA 1.2m 偏移</text>
 
       <!-- ============================================================
            STEP 4:軌跡規劃。三個數字各拉一條箭頭進來。
@@ -901,8 +901,8 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
       </g>
 
       <rect x="722" y="92" width="186" height="264" rx="14" fill="#fff" stroke="#d2d2d7" stroke-width="1.5"/>
-      <text x="815" y="124" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1d1d1f">三段式軌跡</text>
-      <text x="815" y="141" text-anchor="middle" font-size="9.5" fill="#86868b">中間用 poly4 平滑銜接</text>
+      <text x="815" y="124" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1d1d1f" data-en='Three-segment trajectory'>三段式軌跡</text>
+      <text x="815" y="141" text-anchor="middle" font-size="9.5" fill="#86868b" data-en='joined smoothly by a poly4 in the middle'>中間用 poly4 平滑銜接</text>
 
       <!-- 兩條參考線:原本的橫向位置 / 偏移後的位置 -->
       <g stroke="#dcdfe4" stroke-width="1.3" stroke-dasharray="5 4">
@@ -937,10 +937,10 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
       </g>
     </svg>
     </div>
-    <div class="tdo-hint">← 左右滑動查看完整圖 →</div>
+    <div class="tdo-hint" data-en='&larr; swipe to see the full diagram &rarr;'>← 左右滑動查看完整圖 →</div>
 
-    <p class="tdo-kicker">不管是偏移類還是銜接類，都只需要<span class="tdo-em-b">偏移量</span>、<span class="tdo-em-b">銜接起點</span>、<span class="tdo-em-b">銜接終點</span>，三個數字，就能描述所有 9 項功能的軌跡需求。</p>
-    <p class="tdo-note">圖中軌跡與地圖路線為示意，用於說明分類邏輯，非實測資料。</p>
+    <p class="tdo-kicker" data-en='Whether it is an offset case or a joining case, three numbers, <span class="tdo-em-b">offset</span>, <span class="tdo-em-b">join start</span> and <span class="tdo-em-b">join end</span>, describe the trajectory requirements of all 9 features.'>不管是偏移類還是銜接類，都只需要<span class="tdo-em-b" data-en='offset'>偏移量</span>、<span class="tdo-em-b" data-en='join start'>銜接起點</span>、<span class="tdo-em-b" data-en='join end'>銜接終點</span>，三個數字，就能描述所有 9 項功能的軌跡需求。</p>
+    <p class="tdo-note" data-en='The trajectories and map route shown are illustrative, used to explain the classification logic, not measured data.'>圖中軌跡與地圖路線為示意，用於說明分類邏輯，非實測資料。</p>
   </div>
 </section>
 
@@ -950,13 +950,13 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   <div class="lib">
 
     <div class="unit-head">
-      <div class="unit-title">從開發給自己功能使用，到變成 library 給團隊共用<br>並縮短 4 個月的新功能開發時間</div>
+      <div class="unit-title" data-en='From a tool built for my own feature to a library the whole team shares<br>cutting new feature development by 4 months'>從開發給自己功能使用，到變成 library 給團隊共用<br>並縮短 4 個月的新功能開發時間</div>
       <div class="unit-points">
-        <p><b>演算法解耦與漸進式防禦驗證</b>：秉持單一核心邏輯設計，依序完成「<b>單車隨機邊界條件注入</b>（Robustness Testing）、<b>多功能整合衝突排除</b>、<b>標準化 API 介面開立</b>」三階段迭代，確保底層架構的穩定與擴展性。</p>
-        <p><b>軟體資產化與研發效能</b>：將個人驗證工具升級為團隊級基礎建設（Library），<b>核心程式碼零改動複用</b>，降低跨團隊溝通與維護成本；新功能開發週期自 <b>4 個月</b>縮短至 <b>2~3 天</b>。</p>
+        <p data-en='<b>Decoupling and progressive hardening</b>: keeping a single core logic, I iterated in three stages, <b>random boundary condition injection on one vehicle</b> (robustness testing), <b>conflict resolution across integrated features</b>, and <b>a standardized API</b>, so the underlying architecture stays stable and extensible.'><b>演算法解耦與漸進式防禦驗證</b>：秉持單一核心邏輯設計，依序完成「<b>單車隨機邊界條件注入</b>（Robustness Testing）、<b>多功能整合衝突排除</b>、<b>標準化 API 介面開立</b>」三階段迭代，確保底層架構的穩定與擴展性。</p>
+        <p data-en='<b>Software as an asset</b>: what began as a personal validation tool became team-level infrastructure (a library) reused <b>with zero changes to the core code</b>, lowering cross-team communication and maintenance cost; new feature development fell from <b>4 months</b> to <b>2~3 days</b>.'><b>軟體資產化與研發效能</b>：將個人驗證工具升級為團隊級基礎建設（Library），<b>核心程式碼零改動複用</b>，降低跨團隊溝通與維護成本；新功能開發週期自 <b data-en='4 months'>4 個月</b>縮短至 <b data-en='2~3 days'>2~3 天</b>。</p>
       </div>
     </div>
-    <p class="lib-lead" style="margin-bottom:12px">中間那塊<b style="color:var(--ink);font-weight:700">藍色的核心</b>從頭到尾是同一份 code，變的只是外面包了什麼。</p>
+    <p class="lib-lead" style="margin-bottom:12px" data-en='The piece in the middle, <b style="color:var(--ink);font-weight:700">the blue core</b>, is the same code from end to end; only the wrapper changes.'>中間那塊<b style="color:var(--ink);font-weight:700">藍色的核心</b>從頭到尾是同一份 code，變的只是外面包了什麼。</p>
     <div class="pif-stage" id="pifStage" data-scene="0">
       <div class="pif-scroll">
       <!-- 人像貼著功能盒放，上方不留空，viewBox 從 y=40 起算把空白收掉 -->
@@ -1038,7 +1038,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
         <!-- ══════════ 永遠都在：Interface → Trajectory Planning ══════════ -->
         <g>
           <path class="pif-ln pif-ln--out" d="M399.5,248 V288"/>
-          <text x="412" y="273" font-size="11.5" font-weight="700" fill="#16a34a">偏移量 / 起點 / 終點</text>
+          <text x="412" y="273" font-size="11.5" font-weight="700" fill="#16a34a" data-en='offset / start / end'>偏移量 / 起點 / 終點</text>
         </g>
 
         <!-- Interface 本體（第一鏡就在最終位置，後面兩鏡不再移動）
@@ -1048,7 +1048,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
           <rect x="310" y="194" width="180" height="52" rx="12" fill="url(#pifIfaceGrad)" opacity="0.1"/>
           <rect class="pif-box--hero" x="310" y="194" width="180" height="52" rx="12" fill="none" stroke="url(#pifIfaceGrad)"/>
           <text x="400" y="217" text-anchor="middle" font-size="12.5" font-weight="700" fill="#16a34a" letter-spacing="0.3">INTERFACE</text>
-          <text x="400" y="233" text-anchor="middle" font-size="9.5" fill="#16a34a" font-weight="600">trj 對外唯一入口</text>
+          <text x="400" y="233" text-anchor="middle" font-size="9.5" fill="#16a34a" font-weight="600" data-en='the single entry point into trj'>trj 對外唯一入口</text>
         </g>
 
         <!-- ══════════ SCENE 2：自己的兩個功能 ══════════ -->
@@ -1101,7 +1101,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
     </div>
 
     <!-- 這張圖現在沒有手機版 fallback，窄畫面靠橫向捲動，所以提示不再限定桌機 -->
-    <div class="scroll-hint">← 左右滑動查看完整圖 →</div>
+    <div class="scroll-hint" data-en='&larr; swipe to see the full diagram &rarr;'>← 左右滑動查看完整圖 →</div>
   </div>
 </section>
 
@@ -1113,39 +1113,39 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-title">一套軌跡規劃涵蓋所有 ADAS 側向功能</div>
+        <div class="unit-title" data-en='One trajectory planner covering every ADAS lateral feature'>一套軌跡規劃涵蓋所有 ADAS 側向功能</div>
       </div>
       <div class="demo-stage">
         <div class="demo-panel on" id="d1">
           <iframe class="veh-embed" src="01_LetralFunction.html" loading="lazy" title="RMA + co-Drive demo"></iframe>
           <div class="demo-ph">
-            <h3>進階側向功能整合</h3>
-            <p>RMA 完成大幅換道後，co-Drive 接手執行微小側偏修正，再平順回歸車道中心。兩套演算法透過 trj 共用介面無縫銜接，銜接點零跳變，已展示給 10+ 家車廠，獲得高度評價。</p>
-            <span class="tag">多功能銜接 · 零跳變</span>
+            <h3 data-en='Advanced lateral feature integration'>進階側向功能整合</h3>
+            <p data-en='After RMA completes a large lane change, co-Drive takes over with a small lateral correction and returns smoothly to the lane center. The two algorithms hand over seamlessly through the shared trj interface with zero jump at the join. Demonstrated to 10+ OEMs and very well received.'>RMA 完成大幅換道後，co-Drive 接手執行微小側偏修正，再平順回歸車道中心。兩套演算法透過 trj 共用介面無縫銜接，銜接點零跳變，已展示給 10+ 家車廠，獲得高度評價。</p>
+            <span class="tag" data-en='multi-feature handover &middot; zero jumps'>多功能銜接 · 零跳變</span>
           </div>
         </div>
         <div class="demo-panel" id="d2">
           <iframe class="veh-embed" data-src="01_co-Drive.html" loading="lazy" title="co-Drive demo"></iframe>
           <div class="demo-ph">
-            <h3>協同駕駛輔助</h3>
-            <p>前方偵測到大型車輛時，系統自動側偏讓出超車空間，完成後平順回歸車道中心。已獲 OEM 客戶高度評價並量產上市。</p>
-            <span class="tag">量產功能 · 側偏修正</span>
+            <h3 data-en='Cooperative driving assistance'>協同駕駛輔助</h3>
+            <p data-en='When a large vehicle is detected ahead, the system offsets automatically to open passing space and then returns smoothly to the lane center. Very well received by OEM customers and shipped in production.'>前方偵測到大型車輛時，系統自動側偏讓出超車空間，完成後平順回歸車道中心。已獲 OEM 客戶高度評價並量產上市。</p>
+            <span class="tag" data-en='production feature &middot; lateral offset correction'>量產功能 · 側偏修正</span>
           </div>
         </div>
         <div class="demo-panel" id="d3">
           <iframe class="veh-embed" data-src="01_EmergencyCorridio.html" loading="lazy" title="Emergency Corridor demo"></iframe>
           <div class="demo-ph">
-            <h3>緊急通道讓道</h3>
-            <p>後方救護車逼近時，ego 車迅速靠邊讓出緊急通道。針對歐洲法規特別開發，2 天完成程式碼，5 天完成實車驗證。與換道場景共用同一套 trj 規格，展示模組的複用性。</p>
-            <span class="tag">2天開發 · 5天實車驗證</span>
+            <h3 data-en='Emergency corridor yielding'>緊急通道讓道</h3>
+            <p data-en='When an ambulance approaches from behind, the ego vehicle moves aside quickly to open an emergency corridor. Developed specifically for European regulation: 2 days to write, 5 days to validate on vehicle. It shares the same trj specification as the lane-change scenario, which is the point about reuse.'>後方救護車逼近時，ego 車迅速靠邊讓出緊急通道。針對歐洲法規特別開發，2 天完成程式碼，5 天完成實車驗證。與換道場景共用同一套 trj 規格，展示模組的複用性。</p>
+            <span class="tag" data-en='2 days to build &middot; 5 days to validate on vehicle'>2天開發 · 5天實車驗證</span>
           </div>
         </div>
         <div class="demo-panel" id="d4">
           <iframe class="veh-embed" data-src="01_FrontVehicleTrajectory.html" loading="lazy" title="前車軌跡預測 demo"></iframe>
           <div class="demo-ph">
-            <h3>前車軌跡預測</h3>
-            <p>即時追蹤前方 CIPV 的側向行駛軌跡，擬合三段式曲線預測其未來路徑，提供後續決策依據。使用 trj 模組的曲線建構能力進行平滑擬合，已展示給 20+ 家車廠，現行量產於轎車與貨車。</p>
-            <span class="tag">曲線建構 · 量產驗證</span>
+            <h3 data-en='Lead vehicle trajectory prediction'>前車軌跡預測</h3>
+            <p data-en='Tracks the lateral path of the CIPV ahead in real time and fits a three-segment curve to predict where it is going, feeding downstream decisions. The smooth fit uses the curve construction in the trj module. Demonstrated to 20+ OEMs and now in production on sedans and trucks.'>即時追蹤前方 CIPV 的側向行駛軌跡，擬合三段式曲線預測其未來路徑，提供後續決策依據。使用 trj 模組的曲線建構能力進行平滑擬合，已展示給 20+ 家車廠，現行量產於轎車與貨車。</p>
+            <span class="tag" data-en='curve construction &middot; validated in production'>曲線建構 · 量產驗證</span>
           </div>
         </div>
         <div class="demo-tabs">
@@ -1164,7 +1164,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   <div class="wrap">
     <div class="unit" style="margin-bottom:clamp(28px,3.5vw,40px)">
       <div class="unit-head">
-        <div class="unit-title">一套軌跡規劃，滿足五種載具平台的控制轉接</div>
+        <div class="unit-title" data-en='One trajectory planner, adapted to the controls of five vehicle platforms'>一套軌跡規劃，滿足五種載具平台的控制轉接</div>
       </div>
     </div>
 
@@ -1178,8 +1178,8 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 <section class="band-alt cta">
   <div class="wrap">
     <div class="cta-btns">
-      <a class="s" href="../home/index.html">回到履歷</a>
-      <a class="p" href="mailto:tkps50803@gmail.com?subject=關於 TRJ 共用軌跡規劃模組">聯絡我</a>
+      <a class="s" href="../home/index.html" data-en='Back to resume'>回到履歷</a>
+      <a class="p" href="mailto:tkps50803@gmail.com?subject=關於 TRJ 共用軌跡規劃模組" data-en='Contact me'>聯絡我</a>
     </div>
   </div>
 </section>
