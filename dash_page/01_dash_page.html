@@ -452,10 +452,10 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   <div class="in">
     <a class="chnav-back" id="chnav-back" href="../home/index.html#co-fih-robotics"
        data-resume-default="co-fih-robotics">← 回履歷</a>
-    <a href="#pipeline" data-sec="pipeline">開發流程</a>
-    <a href="#flow"    data-sec="flow">自動維護</a>
-    <a href="#sim2real" data-sec="sim2real">落地驗證</a>
-    <a href="#sim247"  data-sec="sim247">24/7 驗證</a>
+    <a href="#pipeline" data-sec="pipeline">V 模型全端研發與架構主導</a>
+    <a href="#flow"    data-sec="flow">文件從人工維護轉為自動維護</a>
+    <a href="#sim2real" data-sec="sim2real">Sim-to-Real 系統整合與車規紀律導入</a>
+    <a href="#sim247"  data-sec="sim247">研發效能優化與自動化驗證閉環</a>
   </div>
 </nav>
 
@@ -469,7 +469,6 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-tag">DEV PIPELINE · V 模型</div>
         <div class="unit-title">V 模型全端研發與架構主導<br>端到端系統規劃、自動化 Topic 驗證與閉環測試</div>
         <div class="unit-points">
           <p><b>系統架構主導與規格定義</b>：主導機器人系統的架構層規劃，包含<b>節點職責定義</b>、<b>Topic / Msg</b> 與 <b>Action / Service</b> 介面設計；AI 負責的是最底層的實作，每一層要驗什麼、介面長什麼樣，仍然得先由人定義。</p>
@@ -702,7 +701,6 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-tag">DATA FLOW · 核心</div>
         <!-- 標題講的是「制度」而不是「兩條資料流」:兩條流是手段,
              下面那張圖自己會說;標題要扛的是這一節真正的主張 ——
              把車用那套規格紀律搬過來,並且把維護的人拿掉。 -->
@@ -956,7 +954,6 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-tag">SIM-TO-REAL · 落地</div>
         <div class="unit-title">Sim-to-Real 系統整合與車規紀律導入<br>把 ADAS 的驗證標準跨域移植，擊破 AMR 實機落地瓶頸</div>
         <div class="unit-points">
           <p><b>精準診斷 Sim-to-Real 系統級痛點</b>：AMR 在模擬環境裡收斂得很漂亮，搬上真機才發現問題不在演算法。跳脫演算法除錯的迷思，定位出三件系統整合與物理限制的問題：<b>舊速度指令卡在 ROS 2 佇列裡，煞停慢半拍</b>、<b>當下看不到軌跡走得對不對</b>、<b>里程計回報的距離對不上實際位移</b>。三個都不是規劃器算錯，是「來不及」、「看不見」與「對不準」。</p>
@@ -1163,7 +1160,6 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-tag">ISAAC SIM · 24/7</div>
         <div class="unit-title">研發效能優化與自動化驗證閉環<br>Isaac Sim 日夜壓力測試管線，零人工等待的迭代</div>
         <div class="unit-points">
           <p><b>自動化測試管線與日夜循環架構</b>：上一節的「模擬先行」要划得來，前提是它不佔用人的時間。驗證因此被排成一天的循環：<b>白天</b>設計測試案例、跑常規驗證；<b>夜間</b>自動化壓力測試接手，在 Isaac Sim 裡跑 <b>100~200 種任務組合</b>去挑戰極限；<b>早晨</b>報告已彙整完成。</p>
@@ -1622,7 +1618,6 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
         </div>
       </div>
     </figure>
-    <p class="isc-note">左邊是一天的循環（白天 → 夜間 → 早晨），右邊是這個循環換來的四件事。</p>
   </div>
 </section>
 

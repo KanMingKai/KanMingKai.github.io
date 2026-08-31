@@ -58,7 +58,7 @@
 
 /* ---------- 第二層:章節快速跳轉 ---------- */
 .chnav{position:sticky;top:52px;z-index:199;background:rgba(255,255,255,.86);backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);border-bottom:1px solid rgba(0,0,0,.06)}
-.chnav .in{max-width:980px;margin:0 auto;padding:10px 22px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.chnav .in{max-width:980px;margin:0 auto;padding:10px 22px;display:flex;flex-wrap:wrap;gap:8px}
 .chnav .in::-webkit-scrollbar{display:none}
 .chnav a{flex:none;font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--ink-2);text-decoration:none;padding:6px 13px;border-radius:980px;border:1px solid var(--line);white-space:nowrap;transition:color .15s ease,border-color .15s ease,background .15s ease}
 .chnav a:hover{color:var(--ink);border-color:var(--ink-3)}
@@ -88,11 +88,12 @@
   .pnav .tab-l{padding:6px 5px}
 }
 
-/* 錨點不要被兩層固定列蓋住(52px + chnav 約 45px) */
-section[id]{scroll-margin-top:108px}
+/* 錨點不要被兩層固定列蓋住。chnav 現在會換行(2~3 列),高度不再固定,
+   所以改用 nav.js 量到的實際高度 --chnav-h;JS 沒載入時退回原本的 108px。 */
+section[id]{scroll-margin-top:calc(52px + var(--chnav-h, 51px) + 5px)}
 /* 履歷頁的經歷項目與公司區塊也會被當成錨點(各專案頁的「回履歷」指過來),
    它們不是 <section>,所以上面那條吃不到,要各自補一份。 */
-.xp[id],.co[id]{scroll-margin-top:108px}
+.xp[id],.co[id]{scroll-margin-top:calc(52px + var(--chnav-h, 51px) + 5px)}
 
 /* ---------- .chnav 裡的「回履歷」 ----------
    位置刻意放在最左邊、章節籤之前:

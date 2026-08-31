@@ -765,11 +765,11 @@ section{padding:clamp(56px,9vw,104px) 0}
   <div class="in">
     <a class="chnav-back" id="chnav-back" href="../home/index.html#co-ncsist"
        data-resume-default="co-ncsist">← 回履歷</a>
-    <a href="#teardown"  data-sec="teardown">iBooster 逆向工程</a>
-    <a href="#ehb"       data-sec="ehb">EHB 液壓模組</a>
-    <a href="#platform"  data-sec="platform">電控煞車平台</a>
-    <a href="#ncsist"    data-sec="ncsist" data-resume="co-ncsist">中科院 機車 ABS</a>
-    <a href="#thesis"    data-sec="thesis">畢業論文 電磁閥式 ABS</a>
+    <a href="#teardown"  data-sec="teardown">i-booster 逆向工程與煞車線控化</a>
+    <a href="#ehb"       data-sec="ehb">EHB 液壓解構與分輪動態調壓</a>
+    <a href="#platform"  data-sec="platform">線控煞車平台與雙模組協同控制</a>
+    <a href="#ncsist"    data-sec="ncsist" data-resume="co-ncsist">機車 ABS 無感測器滑差控制與狀態估測</a>
+    <a href="#thesis"    data-sec="thesis">碩士論文 &middot; 參數估測與路面識別模糊控制</a>
   </div>
 </nav>
 <!-- ============ 讓 i-booster 可以被控制、也逆向推導出內部的結構 ============ -->
@@ -777,7 +777,6 @@ section{padding:clamp(56px,9vw,104px) 0}
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-tag">IBOOSTER · 電液壓煞車平台逆向工程</div>
         <div class="unit-title">Bosch i-booster 逆向工程與車用煞車線控化</div>
         <div class="unit-points">
           <p><b>硬體逆向工程與系統建模</b>：針對自駕車<b>缺乏電控煞車介面</b>的產業痛點（轉向與油門都能下命令，只有煞車還是駕駛的一隻腳），主導 Bosch <b>i-booster</b> 實物拆解與逆向工程，量測機構、辨識參數並建立動態控制模型，克服傳統 <b>ABS 液壓模組</b>閥以開關方式作動、<b>無法線性控壓</b>的缺陷。下面的機構圖與所有參數，依據都是這台被拆開的實物。</p>
@@ -1164,7 +1163,6 @@ section{padding:clamp(56px,9vw,104px) 0}
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-tag">EHB · 電液壓煞車模組</div>
         <div class="unit-title">EHB 液壓解構與分輪動態調壓<br>突破全迴路建壓限制，實現 ABS 與 AEB 減速度控制</div>
         <div class="unit-points">
           <p><b>液壓系統逆向解構與架構設計</b>：i-booster 只能推總泵柱塞，建的是「<b>整條迴路一起上</b>」的壓力；要做 ABS 或 AEB 這種<b>四個輪各自要多少</b>的控制，就得在總泵與分泵之間再插一顆能分輪調壓的模組。拆解 EHB 後掌握其硬體本質：<b>對角雙迴路</b>、每輪一組<b>進／出液閥</b>、共用一組<b>雙活塞油泵</b>。</p>
@@ -1526,7 +1524,6 @@ section{padding:clamp(56px,9vw,104px) 0}
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-tag">PLATFORM · 電控煞車平台</div>
         <div class="unit-title">線控煞車平台逆向工程與雙模組協同控制<br>破解 i-booster 與 EHB 原廠黑箱，成功部署 ITRI 與 ACER 自駕載具</div>
         <div class="unit-points">
           <p><b>硬體逆向工程與自研控制器開發</b>：拆解 i-booster 與 EHB 兩顆量產模組並<b>拔除原廠控制器</b>，自行設計控制板與驅動電路，直接控制內部的 <b>PMSM 馬達</b>與 <b>12 顆電磁閥</b>；上層只要從 <b>CAN</b> 送一個煞車命令，車就會自己踩下去。</p>
@@ -1647,7 +1644,6 @@ section{padding:clamp(56px,9vw,104px) 0}
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-tag">NCSIST · 機車 ABS 比例式液壓模組</div>
         <div class="unit-title">機車 ABS 無感測器滑差控制與狀態估測<br>克服無絕對車速感測的極限，帶領團隊完成閉迴路控制落地</div>
         <div class="unit-points">
           <p><b>無感測器狀態估測架構設計</b>：ABS 的本質是<b>閉迴路滑差控制</b>，而滑差需要<b>絕對車速</b>，量產機車上沒有任何一顆感測器量得到它。難處與 i-booster 剛好相反：i-booster 是「東西在手上、但被封死」，機車是<b>「東西是開的、但那顆感測器根本不存在」</b>。主導核心演算法開發，以數學模型突破這道物理瓶頸，建立動態車速與滑差的估測鏈。</p>
@@ -1935,7 +1931,6 @@ section{padding:clamp(56px,9vw,104px) 0}
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-tag">碩士論文 · 電磁閥式 ABS 系統</div>
         <div class="unit-title">應用適應性參數估測器與路面識別於機車防鎖死煞車系統之模糊控制</div>
         <!-- 導言改為論文摘要的精簡版(原摘要約 330 字,這裡壓到約 230 字,
              保留四個節拍:估測器 → 兩個目標值 → 模糊控制與模式切換 → 兩段驗證)。

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>甘銘凱 · 履歷 — 工廠 AMR 導航與量產 ADAS 軌跡規劃</title>
+<title data-en='Ming-Kai Kan &middot; Resume &mdash; Factory AMR Navigation and Production ADAS Trajectory Planning'>甘銘凱 · 履歷 — 工廠 AMR 導航與量產 ADAS 軌跡規劃</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -62,6 +62,7 @@ h1 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:tex
 .xp-c .xp-sum{font-size:13.5px;color:var(--ink);font-weight:600;line-height:1.6;margin-top:6px}
 .xp-c .xp-sum .hl{color:var(--blue-d)}
 .xp-c .xp-detail{margin-top:9px;padding-left:11px;border-left:2px solid #e6e6ea}
+.xp-c .xp-detail li b.lead{color:var(--blue)}
 .xp-c p{font-size:13px;color:var(--ink-2);line-height:1.7;margin-top:7px}
 .xp-c code{font-family:var(--mono);font-size:11.5px;background:var(--bg-alt);border:1px solid #e8e8ec;border-radius:4px;padding:1px 5px;color:var(--ink)}
 .xp-c .out{color:var(--ink);font-weight:600}
@@ -96,6 +97,23 @@ h1 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:tex
 .rez-role{font-size:clamp(15px,2vw,18px);color:var(--ink-2);margin-top:10px;font-weight:600}
 .rez-contact{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}
 .rc{font-size:12.5px;color:var(--ink-2);border:1px solid var(--line);border-radius:9px;padding:6px 12px;background:#fff}
+/* 導覽列右上的下載鈕。.pnav .in 是 flex + space-between,加進來就會靠右;
+   flex:none 是必要的 —— 旁邊的 .tabs 會捲動,沒有它按鈕會被壓扁。 */
+.pnav-dl{flex:none;display:inline-flex;align-items:center;gap:5px;font-family:var(--sans);
+  font-size:12.5px;font-weight:700;color:#fff;background:var(--blue);border:1px solid var(--blue);
+  border-radius:980px;padding:6px 13px;text-decoration:none;white-space:nowrap;
+  transition:background .15s,border-color .15s}
+.pnav-dl:hover{background:var(--blue-d);border-color:var(--blue-d)}
+.pnav-dl:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+/* 語言鈕。刻意做成外框樣式:同一區有兩顆實心鈕會分不出主次,
+   下載才是主要動作,語言切換是次要的。 */
+.pnav-lang{flex:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.04em;
+  color:var(--blue);background:#fff;border:1px solid #cfe2fb;border-radius:980px;
+  padding:6px 12px;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s}
+.pnav-lang:hover{background:#eef5ff;border-color:var(--blue)}
+.pnav-lang:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+/* 窄螢幕:六格頁籤本來就排不下,文字收起來只留箭頭,把寬度讓給頁籤 */
+@media(max-width:820px){ .pnav-dl .t{display:none} .pnav-dl{padding:6px 10px} }
 .rc.ph{color:#b0b0b5;border-style:dashed}
 .todo{display:inline-block;margin-left:8px;font-size:11px;color:#8a6d1f;background:#fff8e8;border:1px solid #f2e2b8;border-radius:5px;padding:1px 7px}
 .jump{color:var(--blue);text-decoration:none;font-weight:600;margin-left:6px}
@@ -105,6 +123,20 @@ h1 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:tex
    section 與 .lead 保留這一份(它們本來就覆蓋掉前面那份,是實際生效的值) */
 section{padding:clamp(56px,9vw,104px) 0}
 .sec-head{max-width:900px;margin:0 auto clamp(28px,5vw,40px)}
+
+/* 專業摘要。文字來源:v9 的同名段落。位置刻意在四張數字卡「之下」——
+   讀者是先掃後讀,四個數字先讓人停下來,摘要才有人願意讀;倒過來的話
+   會變成穿過六條散文才看得到證據(這一版試過,又拿掉了)。
+   第一條(8 年 / 6 年量產)是真正的摘要,用 .sum-lead 拉大;其餘五條是
+   分領域索引,字級壓到 13、圓點用淡藍小點,讀起來像目錄而不是跟下面
+   各段經歷同級的內容。 */
+.sum{margin:clamp(22px,3vw,28px) 0 0;padding-top:clamp(20px,2.6vw,24px);border-top:1px solid #ededf0}
+.sum-lead{font-size:15px;color:var(--ink-2);line-height:1.8}
+.sum-lead b{color:var(--ink);font-weight:600}
+.sum-list{margin-top:15px;display:grid;gap:9px}
+.sum-list p{font-size:13px;color:var(--ink-2);line-height:1.75;padding-left:15px;position:relative}
+.sum-list p::before{content:"";position:absolute;left:0;top:9px;width:5px;height:5px;border-radius:50%;background:#c8d6e8}
+.sum-list b{color:var(--ink);font-weight:600}
 
 h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;line-height:1.22}
 h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
@@ -280,39 +312,42 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
      本頁是「履歷」,所以履歷這格帶 .cur;其餘三格連到各專案頁。 -->
 <nav class="pnav">
   <div class="in">
-    <a href="index.html" class="brand">甘銘凱 Ming-Kai Kan</a>
+    <a href="index.html" class="brand" data-en='Ming-Kai Kan'>甘銘凱 Ming-Kai Kan</a>
     <div class="tabs">
-      <span class="tab-l cur">履歷</span>
-      <a class="tab-l" href="../lfs_page/lfs01.html">感知融合經驗</a>
-      <a class="tab-l" href="../trj_page/01_trj_page.html">軌跡規劃經驗</a>
-      <a class="tab-l" href="../dash_page/01_dash_page.html">AMR系統整合</a>
-      <a class="tab-l" href="../ibooster_page/01_ibooster.html">底層控制經驗(研究所)</a>
-      <a class="tab-l" href="../process_page/01_process.html">車用法規經驗</a>
+      <span class="tab-l cur" data-en='Resume'>履歷</span>
+      <a class="tab-l" href="../lfs_page/lfs01.html" data-en='Perception Fusion'>感知融合經驗</a>
+      <a class="tab-l" href="../trj_page/01_trj_page.html" data-en='Trajectory Planning'>軌跡規劃經驗</a>
+      <a class="tab-l" href="../dash_page/01_dash_page.html" data-en='AMR Integration'>AMR系統整合</a>
+      <a class="tab-l" href="../ibooster_page/01_ibooster.html" data-en='Low-Level Control'>底層控制經驗(研究所)</a>
+      <a class="tab-l" href="../process_page/01_process.html" data-en='Automotive Process'>車用法規經驗</a>
     </div>
+    <button type="button" id="lang-btn" class="pnav-lang" aria-label="Switch to English" aria-pressed="false">EN</button>
+    <a class="pnav-dl" href="../Ming-Kai_Kan_Resume_EN.pdf" download="Ming-Kai_Kan_Resume_EN.pdf"
+       aria-label="下載履歷 PDF"><span class="t" data-en='Download Resume PDF'>下載履歷 PDF</span><span aria-hidden="true">&darr;</span></a>
   </div>
 </nav>
 
 <!-- 章節快速跳轉。data-sec 必須等於對應 <section> 的 id,捲動高亮才會生效。 -->
 <nav class="chnav" aria-label="章節導覽">
   <div class="in">
-    <a href="#experience" data-sec="experience">工作經歷</a>
-    <a href="#learning"   data-sec="learning">學習能力</a>
-    <a href="#patents"    data-sec="patents">發明專利</a>
-    <a href="#skills"     data-sec="skills">技能</a>
+    <a href="#experience" data-sec="experience" data-en='Experience'>工作經歷</a>
+    <a href="#learning"   data-sec="learning" data-en='Education'>求學經歷</a>
+    <a href="#patents"    data-sec="patents" data-en='Patents'>發明專利</a>
+    <a href="#skills"     data-sec="skills" data-en='Skills'>技能</a>
   </div>
 </nav>
 
 <section style="padding-bottom:clamp(24px,3.5vw,36px)">
 <div class="wrap">
   <div class="rez reveal">
-    <h1 class="rez-name">甘銘凱<span class="en">Ming-Kai Kan</span></h1>
-    <div class="rez-role">機器人控制與軟體工程師 · 工廠 AMR 導航與量產 ADAS 軌跡規劃</div>
-    <div class="rez-seek">Seeking Robotics / Autonomous Systems roles · 可配合 6 個月內海外出差</div>
+    <h1 class="rez-name" data-en='Ming-Kai Kan'>甘銘凱<span class="en">Ming-Kai Kan</span></h1>
+    <div class="rez-role" data-en='Robotics Control &amp; Software Engineer &middot; Factory AMR Navigation &amp; Production ADAS Trajectory Planning'>機器人控制與軟體工程師 · 工廠 AMR 導航與量產 ADAS 軌跡規劃</div>
+    <div class="rez-seek" data-en='Seeking Robotics / Autonomous Systems roles &middot; Open to overseas assignments of up to 6 months'>Seeking Robotics / Autonomous Systems roles · 可配合 6 個月內海外出差</div>
     <div class="rez-contact">
       <a class="rc" href="mailto:tkps50803@gmail.com" style="text-decoration:none">✉ tkps50803@gmail.com</a>
       <a class="rc" href="https://www.linkedin.com/in/kanmingkai" target="_blank" rel="noopener" style="text-decoration:none">in linkedin.com/in/kanmingkai</a>
       <a class="rc" href="https://github.com/KanMingKai/KanMingKai.github.io" target="_blank" rel="noopener" style="text-decoration:none">github.com/KanMingKai/KanMingKai.github.io</a>
-      <span class="rc">台灣</span>
+      <span class="rc" data-en='Taiwan'>台灣</span>
     </div>
     <!-- 關鍵字列的唯一事實來源是 材料/甘銘凱0827_v9.docx 的「電腦技能」八個分類,
          順序也照那份走:機器人 → 車輛 → 控制估測 → 語言 → 平台匯流排 → 驗證 → 部署 → 流程。
@@ -322,7 +357,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
          · MPC —— docx 是拿 MPC/MPPI 當「主流做法」來對比自己不走那條路,列成技能會被追問到自打嘴巴。 -->
     <div class="rez-kw" aria-label="關鍵字">
       <span class="kw-lab">Keywords</span>
-      <span class="kw-list">AMR · ROS 2 / Nav2 · Isaac Sim · Sim-to-Real · SLAM · Motion Planning · Jetson Orin / Thor · ADAS · TJA · L2 量產交付 · 車道線感知融合 · 軌跡規劃 · Kalman Filter · 系統鑑別 · 遞迴最小平方法 · PMSM / FOC 電流環 · MATLAB / Simulink · Python · 嵌入式 C(Simulink 產碼) · TC277 / TC397 · TI C2000 · CAN / CAN FD · dSPACE · MIL / SIL / CIL / HIL / FOT · Vector CANalyzer · INCA · GitLab CI/CD · Docker · ISO 26262 · ASPICE · Polarion · 功能安全</span>
+      <span class="kw-list" data-en='AMR &middot; ROS 2 / Nav2 &middot; Isaac Sim &middot; Sim-to-Real &middot; SLAM &middot; Motion Planning &middot; Jetson Orin / Thor &middot; ADAS &middot; TJA &middot; L2 Production Delivery &middot; Lane Perception Fusion &middot; Trajectory Planning &middot; Kalman Filter &middot; System Identification &middot; Recursive Least Squares &middot; PMSM / FOC Current Loop &middot; MATLAB / Simulink &middot; Python &middot; Embedded C (Simulink codegen) &middot; TC277 / TC397 &middot; TI C2000 &middot; CAN / CAN FD &middot; dSPACE &middot; MIL / SIL / CIL / HIL / FOT &middot; Vector CANalyzer &middot; INCA &middot; GitLab CI/CD &middot; Docker &middot; ISO 26262 &middot; ASPICE &middot; Polarion &middot; Functional Safety'>AMR · ROS 2 / Nav2 · Isaac Sim · Sim-to-Real · SLAM · Motion Planning · Jetson Orin / Thor · ADAS · TJA · L2 量產交付 · 車道線感知融合 · 軌跡規劃 · Kalman Filter · 系統鑑別 · 遞迴最小平方法 · PMSM / FOC 電流環 · MATLAB / Simulink · Python · 嵌入式 C(Simulink 產碼) · TC277 / TC397 · TI C2000 · CAN / CAN FD · dSPACE · MIL / SIL / CIL / HIL / FOT · Vector CANalyzer · INCA · GitLab CI/CD · Docker · ISO 26262 · ASPICE · Polarion · 功能安全</span>
     </div>
 
     <!-- 人格特質。文字來源是 材料/甘銘凱0827_v9.docx 的同名段落,四則照抄,只動一處:
@@ -332,12 +367,12 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
          位置放在 Keywords 之下、工作經歷之上:它替下面四段經歷定調,先讀完
          這四句再往下看,每一段經歷都會對應得上其中一句。 -->
     <div class="rez-traits">
-      <span class="tr-lab">人格特質</span>
+      <span class="tr-lab" data-en='Professional Attributes'>人格特質</span>
       <div class="tr-grid">
-        <p class="tr"><b>能夠跳脫問題框架</b>感知供應商評估要重新開發模組才能解決的車道遠端抖動,改由下游 ADAS 系統以多項式降階處理:以自研軟體取代供應商 <span class="tr-n">USD 470–625K</span> 的重開發報價,硬體成本為零。</p>
-        <p class="tr"><b>不受專業框架所限制</b>車用橫向軌跡規劃長期以 MPPI 或 MPC 為主流,運算量大,邊界情境下的行為也不容易保證一致。我把<span class="tr-n">機器手臂的軌跡規劃邏輯</span>搬進 ADAS,運算量降到運作穩定範圍,方向盤控制行為更穩定,而且同一套邏輯可以覆蓋所有橫向功能。</p>
-        <p class="tr"><b>擁有高系統架構演進與重構能力</b>面對客戶各異的需求,以需求的共通性拆解為優先,再決定納入既有共用模組或重整架構,而不是持續補丁。ADAS 全系統 <span class="tr-n">9 項橫向功能</span>整併為單一共用模組,開發與驗證時程一起壓縮,缺陷修一次全系統受益。</p>
-        <p class="tr"><b>善於視覺化協作與跨職能溝通</b>演算法內部狀態、控制輸出與感測資料即時視覺化,包含 LiDAR 點雲疊圖、即時地圖渲染、路徑規劃與狀態機轉移。除錯不必靠感覺試參數,<span class="tr-n">問題多半在畫面上就定位完成</span>,跨職能討論時對方也看得懂在爭什麼。</p>
+        <p class="tr" data-en='<b>Able to reframe the problem</b>A lane-line far-range jitter issue that the perception supplier assessed as requiring a new module was instead handled downstream in the ADAS system through polynomial order reduction: in-house software replaced the supplier <span class="tr-n">USD 470&ndash;625K</span> redevelopment quote, at zero hardware cost.'><b>能夠跳脫問題框架</b>感知供應商評估要重新開發模組才能解決的車道遠端抖動,改由下游 ADAS 系統以多項式降階處理:以自研軟體取代供應商 <span class="tr-n">USD 470–625K</span> 的重開發報價,硬體成本為零。</p>
+        <p class="tr" data-en='<b>Not bound by domain convention</b>Automotive lateral trajectory planning has long been dominated by MPPI and MPC, which are computationally heavy and hard to keep behaviorally consistent in edge scenarios. I brought <span class="tr-n">trajectory planning logic from robotic arms</span> into ADAS, bringing computation load down into a stable operating range, making steering control behavior more consistent, and allowing one set of logic to cover every lateral feature.'><b>不受專業框架所限制</b>車用橫向軌跡規劃長期以 MPPI 或 MPC 為主流,運算量大,邊界情境下的行為也不容易保證一致。我把<span class="tr-n">機器手臂的軌跡規劃邏輯</span>搬進 ADAS,運算量降到運作穩定範圍,方向盤控制行為更穩定,而且同一套邏輯可以覆蓋所有橫向功能。</p>
+        <p class="tr" data-en='<b>Strong architecture evolution and refactoring capability</b>Facing differing customer requirements, the priority is to decompose them by what they have in common and then decide whether to absorb them into the existing shared module or restructure the architecture, instead of continuing to patch. <span class="tr-n">9 lateral features</span> across the ADAS system were consolidated into a single shared module; development and validation schedules compressed together, and one defect fix benefits the entire system.'><b>擁有高系統架構演進與重構能力</b>面對客戶各異的需求,以需求的共通性拆解為優先,再決定納入既有共用模組或重整架構,而不是持續補丁。ADAS 全系統 <span class="tr-n">9 項橫向功能</span>整併為單一共用模組,開發與驗證時程一起壓縮,缺陷修一次全系統受益。</p>
+        <p class="tr" data-en='<b>Effective at visual collaboration and cross-functional communication</b>Real-time visualization of algorithm internal state, control output and sensor data, including LiDAR point cloud overlays, live map rendering, path planning and state machine transitions. Debugging does not rely on tuning parameters by feel; <span class="tr-n">most issues are located the moment they appear on screen</span>, and in cross-functional discussions the other side can see what is being argued about.'><b>善於視覺化協作與跨職能溝通</b>演算法內部狀態、控制輸出與感測資料即時視覺化,包含 LiDAR 點雲疊圖、即時地圖渲染、路徑規劃與狀態機轉移。除錯不必靠感覺試參數,<span class="tr-n">問題多半在畫面上就定位完成</span>,跨職能討論時對方也看得懂在爭什麼。</p>
       </div>
     </div>
 
@@ -348,23 +383,30 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 <section id="experience" style="padding-top:clamp(28px,4vw,44px)">
 <div class="wrap">
   <div class="sec-head reveal">
-    <h2 class="eyebrow">工作經歷 · Experience</h2>
-    <!-- 這一塊沒有導言段,是試過之後的結論,不是漏寫。
-         v9 的專業摘要曾經整段搬進來過(lead 一句 + 分領域五條),後來全部移除:
-         五條各自對應下面一段工作經歷、專利那條有獨立的 #patents 區,純重複;
-         lead 那句「8 年控制系統開發經驗…」則與抬頭的職稱、Keywords、人格特質
-         講的是同一件事,讀者得穿過三層自我介紹才讀得到證據。
-         現在的順序是「數字 → 技能矩陣 → 各段經歷」:讀者是先掃、後讀,
-         四個數字擺在最前面,在首屏就看得到證據。
+    <h2 class="eyebrow" data-en='Work Experience'>工作經歷 · Experience</h2>
+    <!-- 順序是「數字 → 專業摘要 → 各段經歷」:讀者是先掃、後讀,四個數字擺在
+         最前面,在首屏就看得到證據,摘要接在數字之下當展開說明。
+         摘要曾經放在數字卡「上面」,那一版要穿過六條散文才看得到證據,已改掉。
          四張都是數字 —— 原本第一張「ADAS → AMR」是標籤不是數字,已移除。
          ★ 470–625K 是供應商「評估階段的報價」,不是核下來的預算,
            所以寫「以自研取代」而不是「省下」—— 後者在面試被追問
            「這筆預算核了嗎」會站不住。 -->
     <div class="stats">
-      <div class="chip"><div class="v m">5 款</div><div class="l">量產車 · L2 上路</div></div>
-      <div class="chip"><div class="v m">2~3 天</div><div class="l">新功能開發(原 4 個月)</div></div>
-      <div class="chip"><div class="v m">$470–625K</div><div class="l">供應商報價 · 以自研取代</div></div>
-      <div class="chip"><div class="v m">4 項</div><div class="l">發明專利 · 3 已獲證</div></div>
+      <div class="chip"><div class="v m" data-en='5'>5 款</div><div class="l" data-en='production vehicles &middot; L2 on the road'>量產車 · L2 上路</div></div>
+      <div class="chip"><div class="v m" data-en='2~3 days'>2~3 天</div><div class="l" data-en='new feature development (was 4 months)'>新功能開發(原 4 個月)</div></div>
+      <div class="chip"><div class="v m">$470–625K</div><div class="l" data-en='supplier quote &middot; replaced in-house'>供應商報價 · 以自研取代</div></div>
+      <div class="chip"><div class="v m" data-en='4'>4 項</div><div class="l" data-en='invention patents &middot; 3 granted'>發明專利 · 3 已獲證</div></div>
+    </div>
+
+    <div class="sum">
+      <p class="sum-lead" data-en='<b>8 years in control system development, 6 of them on production programs</b>, spanning robotics control and vehicle control: motor control tuning for <b>PMSM actuators</b>, <b>lateral trajectory planning and control on production vehicles</b>, and Isaac Sim Sim-to-Real for <b>factory AMRs</b> running on live production lines.'><b>8 年控制系統開發經驗,其中 6 年做量產</b>,橫跨機器人控制與車輛控制:包含 <b>PMSM 致動器</b>的馬達控制調校、<b>量產車的橫向軌跡規劃與控制</b>,以及在產線實際運行的<b>工廠 AMR</b> 之 Isaac Sim Sim-to-Real。</p>
+      <div class="sum-list">
+        <p data-en='<b>Servo and actuator control</b>: tuned the field-oriented current loop controller parameters on a TI C2000 DSP using the id / iq step response as the criterion, identified actuator dynamics, and ran recursive least squares at a 10 ms cycle on the vehicle. Found a Simulink code generation defect during implementation and, after confirming it with the MATLAB distributor, rewrote the control computation in fixed-point Q format.'><b>伺服與致動器控制</b>:在 TI C2000 DSP 上以 id / iq 步階響應為依據,調校磁場導向控制的電流控制迴圈控制器參數,鑑別致動器動態,並於實車上以 10 ms 週期執行遞迴最小平方法。實作過程中找出 Simulink 產碼缺陷,與 MathWorks 代理商確認後,改以定點 Q 格式重寫控制運算。</p>
+        <p data-en='<b>Sim-to-Real and ROS 2 deployment</b>: the native Nav2 global planner still could not fit the unstructured plant floor after parameter tuning, so it was replaced with an in-house graph-node global planner. Built an unattended overnight regression test in Isaac Sim covering 300 goal points; station task success rate rose from 40% to 99% on the same baseline batch, after which test difficulty was progressively tightened, and 3 robots were deployed on the plant floor.'><b>Sim-to-Real 與 ROS 2 落地</b>:原生 Nav2 全域規劃器經參數調校後仍無法適配非結構化廠區,改以自研圖節點式全域規劃器取代。建立 300 組目標點的 Isaac Sim 夜間無人值守回歸測試,站點任務成功率於同批基準下自 40% 提升至 99%,其後持續加嚴測試難度,並完成廠區實機 3 台部署。</p>
+        <p data-en='<b>Vehicle control and trajectory planning architecture</b>: led the convergence of the ADAS lateral trajectory planning architecture, unifying planning and control modules that had been implemented separately and redesigning them into a low-complexity, low-computation, highly reusable shared module that meets ISO 26262 requirements for verifiability and complexity control. 9 lateral features converged into a single shared module; TC277 computation load dropped from 100% to 37%; new feature development went from 4 months to 2~3 days and validation from 1 year to 1 month.'><b>車輛控制與軌跡規劃架構</b>:主導 ADAS 橫向軌跡規劃架構收斂,統一原本分散的規劃與控制模組,重新設計為低複雜度、低運算量、高複用的共用模組,符合 ISO 26262 對可驗證性與複雜度控制的要求。9 項橫向功能收斂至單一共用模組、TC277 運算量由 100% 降至 37%,新功能開發由 4 個月縮短至 2~3 天、驗證由 1 年縮短至 1 個月。</p>
+        <p data-en='<b>Functional safety implementation</b>: carried ISO 26262 from standard clauses through to production code, establishing complete requirement traceability and a verification evidence chain across 2 production modules. Delivered to 4 OEM customers and 5 production vehicle programs.'><b>功能安全實作</b>:將 ISO 26262 從標準條文落到量產程式碼,於 2 個量產模組建立完整需求追溯與驗證證據鏈。成功交付 4 家整車客戶、落地 5 款量產車。</p>
+        <p data-en='<b>Turning production-line engineering problems into patents</b>: 4 invention patents filed, 3 granted; originator of the concept on 2 of them (1 as sole inventor, 1 as first inventor).'><b>把產線工程問題轉成專利</b>:申請 4 項發明專利、3 項獲證,其中 2 項為構想提出者(單獨發明人 1、第一發明人 1)。</p>
+      </div>
     </div>
 
   </div>
@@ -377,9 +419,9 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 <div class="wrap">
   <div class="co reveal" id="co-fih-robotics">
     <div class="co-head">
-      <span class="co-name">富智康 FIH · Robotics<span class="co-grp">鴻海集團</span></span>
-      <span class="co-period">2025.05 – 現職</span>
-      <span class="co-title">資深工程師 · 工廠 AMR 導航</span>
+      <span class="co-name" data-en='FIH &middot; Robotics<span class="co-grp">Foxconn Group</span>'>富智康 FIH · Robotics<span class="co-grp">鴻海集團</span></span>
+      <span class="co-period" data-en='2025.05 &ndash; Present'>2025.05 – 現職</span>
+      <span class="co-title" data-en='Senior Engineer &middot; Factory AMR Navigation'>資深工程師 · 工廠 AMR 導航</span>
     </div>
     <!-- 這一段的內容以 材料/甘銘凱0827_v9.docx 的 FIH Robotics 條目為準。
          兩件事跟舊版不同,改之前先看這裡:
@@ -388,7 +430,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
             (見上面 .stats 的註解:寫「以自研取代」而不是「省下」)。
          2. 補上「接近晶圓廠、不是倉儲」。讀者看到工廠 AMR 的第一個聯想是倉儲 AGV,
             這句是把兩者切開的關鍵,v9 有、舊版整段沒有等價內容。 -->
-    <p class="co-scope">鴻海集團機器人事業體,開發面向自家廠區之<b>自主移動機器人(AMR)</b>。運作環境<b>接近晶圓廠,不是倉儲</b>:人機混流、無固定導引路徑、連續換班運轉,並以<b>站點停靠的重複精度</b>作為驗收標準。負責導航軟體並訂定跨 <b>3 組</b>(大腦 / 上身 / 調度系統)的介面約定,<b>70~80% 時間投入實作</b>。<code>Python</code> · <code>ROS 2 / Nav2</code> · <code>Isaac Sim</code>。</p>
+    <p class="co-scope" data-en='Robotics business unit of the Foxconn Group, developing autonomous mobile robots (AMRs) for the group own plants. The operating environment is closer to a semiconductor fab than a warehouse: mixed human and robot traffic, no fixed guide paths, continuous shift operation, with station-docking repeatability as the acceptance criterion. I own the navigation software and define the interface contracts across 3 groups (brain / upper body / fleet management), with 70~80% of my time spent on hands-on implementation. <code>Python</code> &middot; <code>ROS 2 / Nav2</code> &middot; <code>Isaac Sim</code>.'>鴻海集團機器人事業體,開發面向自家廠區之<b>自主移動機器人(AMR)</b>。運作環境<b>接近晶圓廠,不是倉儲</b>:人機混流、無固定導引路徑、連續換班運轉,並以<b>站點停靠的重複精度</b>作為驗收標準。負責導航軟體並訂定跨 <b>3 組</b>(大腦 / 上身 / 調度系統)的介面約定,<b>70~80% 時間投入實作</b>。<code>Python</code> · <code>ROS 2 / Nav2</code> · <code>Isaac Sim</code>。</p>
 
     <!-- 四塊對應 v9「主要貢獻」的四條,一條一塊。
          先前是四塊沒錯,但對應關係錯位:v9 第 2 條(Sim-to-Real)被拆成兩塊、
@@ -403,29 +445,27 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
            擺在介面管理那塊比擺在驗證流程那塊合理)
          RS485 落差保留:那段 v9 沒有,是網站這邊最具體的 sim-to-real 證據。 -->
     <div class="xp">
-      <div class="xp-m"><div class="big sm">有圖 / 無圖</div><div class="unit">單一導航架構</div></div>
+      <div class="xp-m"><div class="big sm" data-en='Mapped / Unmapped'>有圖 / 無圖</div><div class="unit" data-en='one navigation architecture'>單一導航架構</div></div>
       <div class="xp-c">
-        <h4>自研全域導航規劃架構,取代 Nav2 原生規劃器</h4>
-        <p class="xp-sum">沿用 <span class="hl">ADAS 橫向架構收斂</span>的做法,以一套架構同時支援<span class="hl">有圖、無圖雙模式</span>,涵蓋站點拓樸導航與自由導航</p>
+        <h4 data-en='Single Navigation Architecture with Dual-Mode Switching for Plant AMRs'>廠區 AMR 單一導航架構與雙模切換設計</h4>
         <div class="xp-detail">
         <ul>
-          <li><code>Nav2</code> 原生全域規劃器<b>經參數調校後仍無法適配非結構化廠區</b>,改以<b>自研圖節點式全域規劃器</b>取代:針對廠區路網拓撲與站點任務語意設計,可避障、繞路,不受限於預設固定路線;模組依單一職責拆為 <code>MapGraph</code> / <code>MissionManager</code> / <code>RouteFSM</code> / <code>NodeGraphPlanner</code></li>
-          <li>已建圖區域走<b>站點拓樸規劃</b>搭配地圖定位;未建圖區域改用<b>區域成本地圖規劃</b>避障前進,定位也切換為不依賴先驗地圖,<span class="out">非結構化廠區與地圖尚未覆蓋的地方都能作業</span></li>
+          <li data-en='<b class="lead">High-Dynamic Environment Challenge</b>: For a plant environment closer to a semiconductor fab than a warehouse (mixed human and robot traffic, no fixed guide paths, continuous shift operation, with station-docking repeatability as the acceptance criterion), owned core navigation software development and the interface contracts across 3 groups (brain, upper body, fleet management), with 70~80% of my time spent on hands-on implementation'><b class="lead">高動態環境挑戰</b>:針對類似<b>晶圓廠</b>之高複雜工廠環境(人機混流、無固定導引路徑、連續換班運轉,並以<b>站點停靠重複精度</b>為嚴格驗收標準),負責<b>導航軟體核心開發</b>與跨 <b>3 組</b>(大腦、上身、調度系統)介面約定,<span class="out">實作時間佔 70~80%</span></li>
+          <li data-en='<b class="lead">Mapped / Unmapped Dual-Mode Architecture</b>: Applying the same architecture-convergence approach used for ADAS lateral control, a single navigation architecture natively supports both modes: mapped areas use station-topology planning with map-based localization; unmapped and unstructured areas switch dynamically to local cost-map planning with localization that does not depend on a prior map, so the robot keeps operating where the map does not yet reach'><b class="lead">有圖 / 無圖雙模架構</b>:沿用 ADAS 橫向架構收斂邏輯,以<b>單一套導航架構</b>原生支援雙模式,於已建圖區域採用<b>站點拓樸與地圖定位</b>(有圖模式);於未建圖及非結構化區域動態切換至<b>區域成本地圖</b>與<b>不依賴先驗地圖之定位</b>(無圖模式),<span class="out">確保未覆蓋區域也能自主應變</span></li>
         </ul>
         </div>
       </div>
     </div>
 
     <div class="xp">
-      <div class="xp-m"><div class="big">40&rarr;99<span style="font-size:12px">%</span></div><div class="unit">站點任務成功率 · 3 台實機</div></div>
+      <div class="xp-m"><div class="big">40&rarr;99<span style="font-size:12px">%</span></div><div class="unit" data-en='station task success rate &middot; 3 robots'>站點任務成功率 · 3 台實機</div></div>
       <div class="xp-c">
-        <h4>Isaac Sim 無人值守測試框架與實機部署</h4>
-        <p class="xp-sum">批次自動產生 <span class="hl">300 組站點任務</span>,自動分類失敗原因並產出成功率報表,演算法<span class="hl">每天迭代一輪</span>;同批基準下成功率一個月內自 <span class="hl">40% 提升至 99%</span>,完成廠區實機 <span class="hl">3 台</span>部署</p>
+        <h4 data-en='Sim-to-Real Iteration Loop &amp; AMR Station-Task Optimization'>Sim-to-Real 迭代機制與 AMR 站點任務優化</h4>
         <div class="xp-detail">
         <ul>
-          <li>導航卡住多為偶發且難以重現,改以<b>自 SLAM 地圖自動採樣可通行目標</b>量產測試場景,單批 300 組、隨機種子可固定以便前後比較;測試<b>整夜無人值守</b>:系統自行判定完成、卡住或逾時,卡住先退避脫困,仍失敗則遠端重啟模擬器與整個導航堆疊後自動重試</li>
-          <li>同批 300 組基準下,成功率一個月內自 <b>40%</b> 提升至 <b>99%</b>(<b>297/300</b>);其餘 3 組僅未達時間門檻、路徑本身正確。其後持續<b>加嚴測試難度</b>,不停在這個數字上</li>
-          <li>搭配<b>圖形化介面即時呈現控制輸出</b>,模擬與實機的落差在畫面上就看得出來:<b>RS485 序列通訊不具即時性</b>,實機命令經序列匯流排下發存在延遲與週期抖動,<span class="out">相同命令下實機行走距離大於模擬</span>,須從控制時序與命令下發端修正</li>
+          <li data-en='<b class="lead">Automated Overnight Test Loop</b>: Built an unattended Isaac Sim test framework that batch-generates 300 station tasks, classifies failure causes and produces data reports, letting the algorithm iterate once per day'><b class="lead">自動化夜間測試迴圈</b>:建立 <b>Isaac Sim</b> 夜間自動測試機制,批次自動產生 <b>300 組站點任務</b>、分類失敗原因並產出數據報表,<span class="out">實現演算法每日快速迭代</span></li>
+          <li data-en='<b class="lead">Visualizing the Sim-to-Real Behavior Gap</b>: A graphical interface renders control output in real time, making the gap between simulation and the real robot visible on screen and sharply reducing debugging and tuning time'><b class="lead">行為落差視覺化</b>:即時呈現控制輸出數據,將<b>模擬與實機的行為落差具象化</b>,<span class="out">大幅縮短問題排查與調校時間</span></li>
+          <li data-en='<b class="lead">Quantified Results</b>: Raised goal-point success rate from 40% to 99% within one month (297/300 on the same baseline batch; the remaining 3 only missed the time threshold, with correct paths), and deployed 3 robots on the plant floor'><b class="lead">量化成果</b>:在<b>一個月內</b>將目標點成功率從 <b>40%</b> 提升至 <b>99%</b>(同批基準下 <b>297/300</b>,其餘 3 組僅超時但路徑正確),<span class="out">並順利完成 3 台廠區實機部署</span></li>
         </ul>
         </div>
       </div>
@@ -435,28 +475,26 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
          data-resume="xp-vmodel" 回連到這裡,check.py 的「履歷⇄專案頁雙向連結」會檢查。
          原本指向該頁的 #transfer(把 V 搬上機器人),該節已移除,改指 #vmodel。 -->
     <div class="xp" id="xp-vmodel">
-      <div class="xp-m"><div class="big sm">L1&ndash;L3</div><div class="unit">目標硬體上驗證</div><a class="xp-brief" href="../process_page/01_process.html#vmodel">看流程怎麼搬過來<span class="ic" aria-hidden="true">&rarr;</span></a></div>
+      <div class="xp-m"><div class="big sm">L1&ndash;L3</div><div class="unit" data-en='validated on target hardware'>目標硬體上驗證</div><a class="xp-brief" href="../process_page/01_process.html#vmodel" data-en='How the process moved over<span class="ic" aria-hidden="true">&rarr;</span>'>看流程怎麼搬過來<span class="ic" aria-hidden="true">&rarr;</span></a></div>
       <div class="xp-c">
-        <h4>依 V-Model 的分層驗證流程建置</h4>
-        <p class="xp-sum">切分 <span class="hl">L1 單元 / L2 整合 / L3 系統</span>三層;<span class="hl">Runner 部署於 Jetson</span>,L1、L2 直接在 ARM 目標硬體上跑</p>
+        <h4 data-en='V-Model Validation Running on Target Hardware'>基於 V-Model 的硬體目標層級驗證架構</h4>
         <div class="xp-detail">
         <ul>
-          <li>測試分級為 <b>L1 單元</b>(pytest / gtest)、<b>L2 整合</b>(如定位 + 控制閉環)、<b>L3 系統</b>端到端場景,對應車用 MIL / SIL / HIL 的分層邏輯</li>
-          <li>於公司自架 GitLab 建置 <b>Project Runner</b> 並部署於 <b>Jetson</b>,<span class="out">不經 x86 開發機模擬</span>:平台相依的行為差異與資源限制<b>在提交當下就被攔下</b>,不會累積到實機整合階段才浮現</li>
+          <li data-en='<b class="lead">Tiers Mapped to Automotive MIL / SIL / HIL</b>: Split validation into L1 unit (pytest / gtest), L2 integration (localization and control loop) and L3 system end-to-end scenarios following a V-Model architecture, mirroring the automotive MIL / SIL / HIL tiers'><b class="lead">分層對應車規驗證</b>:依 V-Model 架構切分 <b>L1 單元</b>(pytest / gtest)、<b>L2 整合</b>(定位與控制閉環)及 <b>L3 系統</b>端到端場景,<span class="out">對應車用 MIL / SIL / HIL 分層邏輯</span></li>
+          <li data-en='<b class="lead">On-Target Runner Catches Defects Early</b>: Built a Project Runner on a self-hosted GitLab and ran L1 and L2 directly on the target hardware (Jetson), eliminating x86 development-machine simulation entirely and catching platform-dependent differences and resource limits at commit time'><b class="lead">實機 Runner 早期攔錯</b>:於自架 GitLab 建置 <b>Project Runner</b>,直接在目標硬體(<b>Jetson</b>)上執行 <b>L1 與 L2</b>,全面摒除 x86 開發機模擬,<span class="out">在提交當下即時攔截平台相依差異與資源限制問題</span></li>
         </ul>
         </div>
       </div>
     </div>
 
     <div class="xp">
-      <div class="xp-m"><div class="big sm">零人工維護</div><div class="unit">跨組介面清單 · CI 每日產出</div></div>
+      <div class="xp-m"><div class="big sm" data-en='Zero manual upkeep'>零人工維護</div><div class="unit" data-en='cross-group interface list &middot; generated daily by CI'>跨組介面清單 · CI 每日產出</div></div>
       <div class="xp-c">
-        <h4>以自動化取代人工維護的跨組介面管理</h4>
-        <p class="xp-sum">由 CI 自動掃描產出<span class="hl">全系統介面清單</span>,每日更新,三組之間以此為<span class="hl">單一事實來源</span></p>
+        <h4 data-en='Automated Cross-Group Interface Management &amp; Documentation'>自動化跨組介面管理與文件化</h4>
         <div class="xp-detail">
         <ul>
-          <li>CI 自動掃描並產出全系統 <b>topic / message 定義、資料格式與發布訂閱關係</b>清單,每日更新,<span class="out">取代人工維護的介面文件</span>;介面在寫程式之前先以 <code>ROS 2</code> <b>系統設計規格(SDS)</b>凍結成合約</li>
-          <li>架構圖同樣以 <b>Mermaid</b> 與程式碼放同一儲存庫、跟著版本一起走,驗證團隊依圖確認實際控制流程,<span class="out">不必逐行追原始碼</span></li>
+          <li data-en='<b class="lead">Contract-First Interface Design</b>: Before any code is written, cross-group topic and message relationships are frozen into a contract as a ROS 2 System Design Specification (SDS), establishing a single source of truth'><b class="lead">合約式介面設計</b>:在寫程式前將跨組別 <b>Topic 與訊息關聯</b>以 <code>ROS 2</code> <b>系統設計規格(SDS)</b>凍結為合約,<span class="out">落實單一事實來源(Single Source of Truth)</span></li>
+          <li data-en='<b class="lead">Daily CI-Generated Interface List</b>: CI rescans and regenerates the interface list every day, fully replacing manually maintained documents; architecture diagrams are kept in Mermaid under the same version control as the code, streamlining control-flow review for the validation team'><b class="lead">CI 每日自動產出</b>:由 <b>CI 流程</b>每日重新掃描產出介面清單,<span class="out">全面取代人工維護文件</span>;並導入與程式碼<b>同版控管的 Mermaid 架構圖</b>,優化驗證團隊的控制流程審查效率</li>
         </ul>
         </div>
       </div>
@@ -469,67 +507,62 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 <div class="wrap">
   <div class="co reveal" id="co-mobiledrive">
     <div class="co-head">
-      <span class="co-name">富智捷 MobileDrive<span class="co-grp">鴻海集團 × Stellantis 合資</span></span>
+      <span class="co-name" data-en='MobileDrive<span class="co-grp">Foxconn &times; Stellantis JV</span>'>富智捷 MobileDrive<span class="co-grp">鴻海集團 × Stellantis 合資</span></span>
       <span class="co-period">2021.06 – 2025.06</span>
-      <span class="co-title">資深工程師 · ADAS · TJA 系統技術負責人</span>
+      <span class="co-title" data-en='Senior Engineer &middot; ADAS &middot; Technical Lead, Traffic Jam Assist (TJA) System'>資深工程師 · ADAS · TJA 系統技術負責人</span>
     </div>
-    <p class="co-scope">橫向系統技術負責人,涵蓋<b>圖資融合、車道線感知融合、軌跡規劃與橫向控制</b>,職掌自架構設計、演算法實作、量產交付到車規流程導入,並擔任整車客戶、感知供應商與圖資供應商的主要技術窗口。<b>L2 量產交付 4 家整車客戶</b>(BYD 比亞迪、CMC 中華汽車、Lexgen 納智捷、Windrose 葦渡)、落地 <b>5 款量產車</b>;另向 <b>6 家</b>一線車廠與 Tier 1 現場展示 <b>L2.9</b> 高速公路自駕能力。</p>
+    <p class="co-scope" data-en='Technical lead for the lateral system, covering <b>map data fusion, lane-line perception fusion, trajectory planning and lateral control</b>, from architecture design and algorithm implementation through production delivery to automotive process adoption, and serving as the primary technical point of contact for OEM customers, perception suppliers and map data suppliers. <b>L2 production delivery to 4 OEM customers</b> (BYD, CMC, Luxgen, Windrose) and <b>5 production vehicle programs</b>; demonstrated <b>L2.9</b> highway autonomy on site to <b>6</b> OEMs and Tier 1 suppliers.'>橫向系統技術負責人,涵蓋<b>圖資融合、車道線感知融合、軌跡規劃與橫向控制</b>,職掌自架構設計、演算法實作、量產交付到車規流程導入,並擔任整車客戶、感知供應商與圖資供應商的主要技術窗口。<b>L2 量產交付 4 家整車客戶</b>(BYD 比亞迪、CMC 中華汽車、Luxgen 納智捷、Windrose 葦渡)、落地 <b>5 款量產車</b>;另向 <b>6 家</b>一線車廠與 Tier 1 現場展示 <b>L2.9</b> 高速公路自駕能力。</p>
 
     <div class="xp" id="xp-trj">
-      <div class="xp-m"><div class="big">2~3 天</div><div class="unit">原 4 個月</div><a class="xp-brief" href="../trj_page/01_trj_page.html">查看簡述<span class="ic" aria-hidden="true">&rarr;</span></a></div>
+      <div class="xp-m"><div class="big" data-en='2~3 days'>2~3 天</div><div class="unit" data-en='new feature cycle &middot; was 4 months'>新功能開發週期 &middot; 原 4 個月</div><a class="xp-brief" href="../trj_page/01_trj_page.html" data-en='View details<span class="ic" aria-hidden="true">&rarr;</span>'>查看簡述<span class="ic" aria-hidden="true">&rarr;</span></a></div>
       <div class="xp-c">
-        <h4>通用於所有自動駕駛的軌跡規劃架構設計</h4>
-        <p class="xp-sum">主導架構收斂:開發週期 <span class="hl">4 個月 &rarr; 2~3 天</span>、<span class="hl">TC277</span> 運算量降至原 <span class="hl">37%</span></p>
+        <h4 data-en='Trajectory Planning Architecture Common to All ADAS Lateral Features'>通用於所有自動駕駛的軌跡規劃架構設計</h4>
         <div class="xp-detail">
         <ul>
-          <li><b>用減法設計</b>:各橫向功能各自為政,是系統複雜度與潛在風險的<b>結構性來源</b>。由<b>人類駕駛行為回推</b>,將全系統橫向操作極簡為<b>沿參考線</b>與<b>相對偏移</b>兩種原型,並以<b>四階多項式</b>建構<b>三段式軌跡生成器</b>統一團隊原本分散的規劃模組,從結構上消除冗餘邏輯</li>
-          <li><b>降低成本,縮短 Time-to-market</b>:收斂成共用模組(library)之後,<span class="out">新增功能只需定義參考線與偏移量</span>,重複邏輯一併從系統移出,<b>TC277</b> 上的運算量剩下原本的 <b>37%</b>;開發週期從 <b>4 個月</b>縮到 <b>2~3 天</b>,驗證週期從 <b>1 年</b>縮到 <b>1 個月</b></li>
-          <li><b>契合 ISO 精神,模組高度複用</b>:將 TRJ 建立為高度複用的共用模組,成功導入 <b>9 項橫向功能</b>,其中 <b>6 項由我獨立落地</b>,另 <b>3 項由同事各以約 2 天接入</b>完成初版軟體開發與測試。所有功能共用同一套規劃邏輯,每項功能的驗證都在驗證同一套邏輯,<b>系統性失效(Systematic Failures)的風險隨之減少</b></li>
+          <li data-en='<b class="lead">Architecture Refactoring and Reduction</b>: Reasoning back from human driving behavior, every lateral maneuver in the system was reduced to two prototypes, "along the reference line" and "relative offset", and a three-segment trajectory generator was built from fourth-order polynomials, unifying planning modules that the team had previously implemented separately'><b class="lead">架構重構與減量</b>:由<b>人類駕駛行為回歸推演</b>,將全系統橫向操作極簡化為<b>「沿參考線」</b>與<b>「相對偏移」</b>兩大原型,並以<b>四階多項式</b>建構<b>三段式軌跡生成器</b>,<span class="out">統一團隊原本分散的規劃模組</span></li>
+          <li data-en='<b class="lead">Performance and Development-Cycle Breakthrough</b>: Cut new-feature development from 4 months to 2~3 days (validation from 1 year to 1 month) and brought TC277 computation load down to 37% of the original'><b class="lead">效能與開發週期突破</b>:成功將<b>開發週期</b>從 <b>4 個月</b>縮短至 <b>2~3 天</b>(驗證週期從 <b>1 年</b>縮至 <b>1 個月</b>),<b>TC277</b> 晶片上的<span class="out">運算量大幅降至原本的 37%</span></li>
+          <li data-en='<b class="lead">High Reusability and Quality Improvement</b>: Built a highly modular shared library into which 9 lateral features were integrated (6 delivered independently, 3 integrated by colleagues in about 2 days each); all features share one set of logic, structurally eliminating systematic failure risk'><b class="lead">高複用性與品質提升</b>:建立<b>高度模組化工具</b>,成功導入 <b>9 項橫向功能</b>(其中 <b>6 項獨立落地</b>,<b>3 項由同事各以約 2 天快速接入</b>),所有功能共用同一套邏輯,<span class="out">從結構上消除系統性失效(Systematic Failures)風險</span></li>
         </ul>
         </div>
       </div>
     </div>
 
     <div class="xp" id="xp-l29">
-      <div class="xp-m"><div class="big sm">展示給 6 家客戶</div><div class="unit">赴中國現場調適 並成功展示 L2.9</div></div>
+      <div class="xp-m"><div class="big sm" data-en='6 customers'>6 家客戶</div><div class="unit" data-en='on-site tuning in China and a successful L2.9 demonstration'>赴中國現場調適 並成功展示 L2.9</div></div>
       <div class="xp-c">
-        <h4>打通圖資與 ADAS &middot; L2.9 高速公路自駕技術展示</h4>
-        <p class="xp-sum">獨立對接中國圖資供應商,以<span class="hl">車道線感知取代高精地圖</span>實現<span class="hl">自動上下匝道</span>;向 <span class="hl">6 家</span>一線車廠與 Tier 1 現場展示</p>
+        <h4 data-en='Map Data &times; ADAS Integration &middot; L2.9 Highway NOA Demonstration and On-Site Tuning'>打通圖資與 ADAS &middot; L2.9 高速公路自駕技術展示與實地調適</h4>
         <div class="xp-detail">
         <ul>
-          <li><b>跨公司介面定義與圖資解析</b>:覺非科技的圖資為<b>自定義格式、無公開規格可循</b>,而我獨立負責與其對接,將 SD / ADAS Map 的道路幾何接進自研的 TRJ 軌跡模組,完成<b>自動上下匝道</b>,成功將系統推進至 <b>L2.9 高速 NOA</b> 級別</li>
-          <li><b>融合感知與 SD Map 達成高精地圖等級的車道級定位</b>:SD / ADAS Map <b>不具 lane-level 資訊</b>;改以<b>車道線虛實態樣</b>判定所在車道,並融合車道線幾何求解車道內橫向位置,<span class="out">相對車道線的橫向定位精度達 2 cm</span></li>
-          <li><b>實地技術對接與大廠展示</b>:於<b>深圳、南京、上海、蘇州 4 地</b>進行實車測試與系統除錯;向<b>一汽、BYD、合眾、BOSCH</b> 等廠商共 <b>6 家</b>現場展示時擔任技術窗口,雖 <b>L2.9 屬技術能力展示,未進入量產</b>,但隨後取得 <b>L2 訂單</b></li>
+          <li data-en='<b class="lead">Integrating a Proprietary Map Format</b>: Independently handled a Chinese map data supplier whose SD / ADAS Map used a proprietary format, parsed the road geometry into the in-house TRJ module, achieved automated highway on-ramp and off-ramp maneuvers, and advanced the system to L2.9 highway NOA'><b class="lead">無縫對接自定義圖資</b>:獨立對接覺非科技<b>自定義格式</b>之 SD / ADAS Map,解析道路幾何後接入自研 <b>TRJ 模組</b>,成功實現<b>自動上下匝道</b>,<span class="out">將系統推進至 L2.9 高速 NOA 級別</span></li>
+          <li data-en='<b class="lead">Lane Lines in Place of HD Maps</b>: For map data without lane-level information, determined the ego lane from solid and dashed lane-line patterns and solved in-lane lateral position by fusing lane-line geometry, reaching 2 cm lateral positioning accuracy relative to the lane lines'><b class="lead">車道線取代高精地圖</b>:針對<b>無 lane-level 資訊</b>的圖資,改以<b>車道線虛實態樣</b>判定所在車道,並融合車道線幾何求解車道內橫向位置,<span class="out">相對車道線的橫向定位精度達 2 cm</span></li>
+          <li data-en='<b class="lead">Multi-City Vehicle Debugging and Business Conversion</b>: Ran on-vehicle testing and debugging in Shenzhen, Nanjing, Shanghai and Suzhou, serving as the primary technical point of contact for 6 OEMs and Tier 1 suppliers including FAW, BYD, Hozon and BOSCH; although the L2.9 demonstration did not itself enter production, it laid the groundwork for the L2 orders that followed'><b class="lead">跨區實車除錯與商機轉化</b>:於<b>深圳、南京、上海、蘇州 4 地</b>進行實車測試與除錯,擔任<b>一汽、BYD、合眾、BOSCH</b> 等 <b>6 家</b>車廠與 Tier 1 的<b>主要技術窗口</b>;此技術展示<b>雖未直接進入量產</b>,但<span class="out">成功為公司打下後續 L2 訂單基礎</span></li>
         </ul>
         </div>
       </div>
     </div>
 
     <div class="xp" id="xp-platforms">
-      <div class="xp-m"><div class="big sm">5 款量產車</div><div class="unit">台 3 &middot; 中 2 &middot; L2</div><a class="xp-brief" href="../trj_page/01_trj_page.html#platforms">查看簡述<span class="ic" aria-hidden="true">&rarr;</span></a></div>
+      <div class="xp-m"><div class="big sm" data-en='5 vehicles'>5 款量產車</div><div class="unit" data-en='3 Taiwan &middot; 2 China &middot; L2'>台 3 &middot; 中 2 &middot; L2</div><a class="xp-brief" href="../trj_page/01_trj_page.html#platforms" data-en='View details<span class="ic" aria-hidden="true">&rarr;</span>'>查看簡述<span class="ic" aria-hidden="true">&rarr;</span></a></div>
       <div class="xp-c">
-        <h4>L2 高速公路自駕量產交付</h4>
-        <p class="xp-sum">L2.9 技術展示後取得 <span class="hl">L2 量產訂單</span>,交付 <span class="hl">4 家</span>整車客戶、落地 <span class="hl">5 款量產車</span></p>
+        <h4 data-en='L2 Highway Autonomy Production Delivery'>L2 高速公路自駕量產交付</h4>
         <div class="xp-detail">
         <ul>
-          <li><b>量產落地</b>:自駕系統符合<b>車規驗證標準</b>,先後取得 <b>Lexgen 納智捷、BYD、Windrose 葦渡、CMC 中華汽車</b>共 <b>4 家</b>整車廠 <b>L2</b> 訂單,落地 <span class="out">5 款量產車(台灣 3、中國 2)</span></li>
-          <li><b>跨平台複用</b>:同一套 TRJ 核心跨不同車型平台部署,功能介面完全一致,差異僅在傳入參數而非邏輯;<b>CMC 中華汽車</b>於量產前提出特定需求,即以 TRJ <b>快速開發對應功能並完成驗證</b>,順利納入量產</li>
-          <li><b>ODD 擴充</b>:整合 <b>Free Space</b>(可行駛區域)感知資訊擴充 <b>ODD</b>,讓同一套 TRJ 在<b>缺乏清晰車道線</b>的路段仍能規劃可行駛路徑,<span class="out">不必為此再開一套邏輯</span></li>
+          <li data-en='<b class="lead">Deployment Across Multiple Vehicle Programs</b>: Meeting automotive validation standards, won L2 orders from 4 OEMs (Luxgen, BYD, Windrose and CMC) and reached production on 5 vehicle programs (3 in Taiwan, 2 in China)'><b class="lead">多元車型落地</b>:符合<b>車規驗證標準</b>,先後取得 <b>Luxgen 納智捷、BYD、Windrose 葦渡、CMC 中華汽車</b>共 <b>4 家</b>整車廠 <b>L2</b> 訂單,<span class="out">成功落地 5 款量產車型(台灣 3 款、中國 2 款)</span></li>
+          <li data-en='<b class="lead">Fast Response to Customer Requirements</b>: The same TRJ core deploys across different vehicle platforms with an identical interface, differing only by parameters; a CMC-specific requirement raised before production was developed and validated on TRJ and folded into the program on schedule'><b class="lead">高彈性快速應變</b>:同一套 <b>TRJ 核心</b>跨不同車型平台部署,<b>介面完全一致僅以參數區隔</b>;針對 <b>CMC 中華汽車</b>量產前的特定需求,運用 TRJ <b>快速開發並驗證完畢</b>,<span class="out">順利納入量產</span></li>
+          <li data-en='<b class="lead">ODD Expansion</b>: Integrated Free Space perception data so the same TRJ can still plan a drivable path where lane lines are unclear, with no separate logic branch'><b class="lead">ODD 擴充</b>:整合 <b>Free Space</b>(可行駛區域)感知資訊,使同一套 TRJ 在<b>缺乏清晰車道線</b>的路段仍能規劃可行駛路徑,<span class="out">無需額外開發獨立邏輯</span></li>
         </ul>
         </div>
       </div>
     </div>
 
     <div class="xp" id="xp-process">
-      <div class="xp-m"><div class="big sm">2 個量產模組</div><div class="unit">ISO 26262 落到程式碼</div><a class="xp-brief" href="../process_page/01_process.html">查看簡述<span class="ic" aria-hidden="true">&rarr;</span></a><a class="pt-verify" href="https://www.fihmobile.com/tw/article/143-mobiledrive-iso26262" target="_blank" rel="noopener">公司認證新聞稿查證<span class="ic">&#8599;</span></a></div>
+      <div class="xp-m"><div class="big sm" data-en='2 production modules'>2 個量產模組</div><div class="unit" data-en='ISO 26262 carried into production code'>ISO 26262 落到程式碼</div><a class="xp-brief" href="../process_page/01_process.html" data-en='View details<span class="ic" aria-hidden="true">&rarr;</span>'>查看簡述<span class="ic" aria-hidden="true">&rarr;</span></a><a class="pt-verify" href="https://www.fihmobile.com/tw/article/143-mobiledrive-iso26262" target="_blank" rel="noopener" data-en='Verify via company press release<span class="ic">&#8599;</span>'>公司認證新聞稿查證<span class="ic">&#8599;</span></a></div>
       <div class="xp-c">
-        <h4>功能安全與流程合規 &middot; 訓練、導入與供應商稽核</h4>
-        <p class="xp-sum">把 <span class="hl">ISO 26262 從標準條文落到量產程式碼</span>,於 LFS、TRJ <span class="hl">兩個量產模組</span>建立需求追溯、安全分析與驗證證據鏈;完成 <span class="hl">80h ISO 26262 + 40h ASPICE</span> 正式訓練</p>
+        <h4 data-en='Functional Safety &amp; Process Compliance (ISO 26262 / ASPICE)'>功能安全與流程合規(ISO 26262 / ASPICE)</h4>
         <div class="xp-detail">
         <ul>
-          <li><b>訓練與流程落地</b>:完成 <b>80 小時 ISO 26262</b> 與 <b>40 小時 ASPICE</b> 正式訓練,並將流程實際導入 <b>LFS 車道融合</b>與 <b>TRJ 軌跡規劃</b>兩個量產模組;落實 <b>MAAB 建模規範</b>與 <b>Unit Test</b>,使底層程式碼品質有標準可依</li>
-          <li><b>雙向追溯與安全分析</b>:建立並維護<b>系統需求 &rarr; 架構設計 &rarr; 測試規劃</b>的雙向追溯文件與<b>安全分析</b>作為稽核證據;公司同期取得 <b>DEKRA ISO 26262 ASIL-D</b> 認證(ISO 26262 最高等級,<span class="out">全 ADAS 系統範疇、團隊共同成果</span>),並依同一套要求配合 OEM 交付</li>
-          <li><b>供應商稽核</b>:擔任 <b>ASPICE 供應商稽核</b>,從流程與技術兩個視角檢核供應商的需求追溯、設計依據與驗證產出,<span class="out">確保外部交付接得上內部的車規標準</span></li>
+          <li data-en='<b class="lead">Automotive Process Training and Real Deployment</b>: Completed 80 hours of ISO 26262 and 40 hours of ASPICE formal training and applied the processes to two production modules, LFS lane fusion and TRJ trajectory planning, enforcing MAAB modeling guidelines and unit testing'><b class="lead">車規訓練與實際落地</b>:完成 <b>80 小時 ISO 26262</b> 與 <b>40 小時 ASPICE</b> 正式訓練,並將流程實際導入 <b>LFS 車道融合</b>與 <b>TRJ 軌跡規劃</b>兩個量產模組,<span class="out">嚴格落實 MAAB 建模規範與 Unit Test</span></li>
+          <li data-en='<b class="lead">Audit Evidence Production</b>: Built and maintained bidirectional traceability from system requirements to architecture design to test planning, together with safety analysis, as audit evidence, supporting the DEKRA ISO 26262 ASIL-D certification the company obtained during the same period (full ADAS system scope)'><b class="lead">稽核證據產出</b>:建立並維護<b>「系統需求 &rarr; 架構設計 &rarr; 測試規劃」</b>之雙向追溯文件與<b>安全分析</b>作為稽核證據,<span class="out">助攻公司同期順利取得 DEKRA ISO 26262 ASIL-D 認證(全 ADAS 系統範疇)</span></li>
         </ul>
         </div>
       </div>
@@ -542,67 +575,63 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 <div class="wrap">
   <div class="co reveal" id="co-fih-adas">
     <div class="co-head">
-      <span class="co-name">富智康 FIH · ADAS<span class="co-grp">鴻海集團</span></span>
-      <span class="co-period">2020.05 – 2021.06</span>
-      <span class="co-title">工程師 · ADAS · 車道融合系統(LFS)</span>
+      <span class="co-name" data-en='FIH &middot; ADAS<span class="co-grp">Foxconn Group</span>'>富智康 FIH · ADAS<span class="co-grp">鴻海集團</span></span>
+      <span class="co-period" data-en='2020.05 &ndash; 2021.06<span style="font-weight:600"> (key projects continued into 2023)</span>'>2020.05 – 2021.06<span style="font-weight:600">(關鍵專案延續至 2023)</span></span>
+      <span class="co-title" data-en='Engineer &middot; ADAS &middot; Lane Fusion System (LFS)'>工程師 · ADAS · 車道融合系統(LFS)</span>
     </div>
-    <p class="co-scope">專責 ADAS 橫向控制的<b>車道融合系統(LFS)</b>,做<b>車道線與物件的多源資訊融合</b>,自開發推進至 L2 量產釋出:與 Siemens 依 <b>ISO 26262</b> 流程共同開發,同期解決 LFS 上游兩項<b>感知品質根因問題</b>;並對 <b>4 家感知供應商</b>的輸出特性建模、<b>量化失效邊界</b>,作為平台選型與系統端補償設計的依據。<code>MATLAB / Simulink</code> · <code>Polarion</code> · <code>INCA</code>。</p>
+    <p class="co-scope" data-en='Owned the <b>Lane Fusion System (LFS)</b> for ADAS lateral control, performing <b>multi-source fusion of lane lines and objects</b>, from development through to L2 production release: co-developed with Siemens under the <b>ISO 26262</b> process while resolving two <b>root-cause perception quality issues</b> upstream of LFS; also modeled the output characteristics of <b>4 perception suppliers</b> and <b>quantified their failure boundaries</b> as the basis for platform selection and system-side compensation design. <code>MATLAB / Simulink</code> &middot; <code>Polarion</code> &middot; <code>INCA</code>.'>專責 ADAS 橫向控制的<b>車道融合系統(LFS)</b>,做<b>車道線與物件的多源資訊融合</b>,自開發推進至 L2 量產釋出:與 Siemens 依 <b>ISO 26262</b> 流程共同開發,同期解決 LFS 上游兩項<b>感知品質根因問題</b>;並對 <b>4 家感知供應商</b>的輸出特性建模、<b>量化失效邊界</b>,作為平台選型與系統端補償設計的依據。<code>MATLAB / Simulink</code> · <code>Polarion</code> · <code>INCA</code>。</p>
 
     <div class="xp" id="xp-safety">
-      <div class="xp-m"><div class="big sm">Siemens</div><div class="unit">國際 Tier 1 共同開發</div></div>
+      <div class="xp-m"><div class="big sm">Siemens</div><div class="unit" data-en='joint development with a global Tier 1'>國際 Tier 1 共同開發</div></div>
       <div class="xp-c">
-        <h4>車道融合模組(Lane Fusion)功能安全與實車標定</h4>
-        <p class="xp-sum">我方技術主責,依 <span class="hl">ISO 26262</span> 推進自開發至量產,導入 <span class="hl">2 款量產車型</span></p>
+        <h4 data-en='Joint Development with Siemens (Global Tier 1) &middot; Lane Fusion System (LFS) to Production'>Siemens 國際 Tier 1 共同開發 &middot; 車道融合系統(LFS)量產落地</h4>
         <div class="xp-detail">
         <ul>
-          <li><b>與團隊 PM 共同擔任我方負責人</b>,與 Siemens ADAS 團隊以英文協作,共同推進車道融合模組(Kalman filter 融合車道線偵測與本車動態,狀態為車道多項式係數 C0–C3)自開發至量產</li>
-          <li>依 <b>ISO 26262</b> 完成安全需求定義、<b>FMEA / DFA</b>、驗證證據產出與設計審查,並以 <b>Polarion</b> 進行需求與追溯管理</li>
-          <li>於實車以 <b>INCA</b> 標定 Kalman filter 之 Q / R 雜訊協方差,在追隨性與輸出平順度間取得平衡,確保單幀漏檢或偵測品質下降時輸出連續,避免橫向控制輸入跳變</li>
+          <li data-en='<b class="lead">Cross-Border Collaboration and Ownership</b>: Worked in English with the Siemens ADAS team as the technical lead on our side, driving the L2 Lane Fusion System (LFS) from development through to production'><b class="lead">跨國協作與負責人</b>:與 <b>Siemens ADAS 團隊</b>以英文跨國協作,擔任<b>我方技術負責人</b>,主導 <b>L2 車道融合系統(Lane Fusion System, LFS)</b>自開發至量產全流程</li>
+          <li data-en='<b class="lead">Core Algorithm Design</b>: Implemented a Kalman filter in MATLAB / Simulink fusing lane-line detection with ego vehicle dynamics (outputting C0-C3 polynomial coefficients); calibrated Q / R noise covariance on the vehicle with INCA, balancing tracking response against output smoothness and preventing lateral control input jumps when a single frame is missed'><b class="lead">核心演算法設計</b>:運用 <code>MATLAB / Simulink</code> 實現 <b>Kalman Filter</b>,融合車道線偵測與本車動態(輸出 <b>C0&ndash;C3 多項式係數</b>);透過 <b>INCA</b> 進行實車 <b>Q / R 雜訊協方差</b>標定,在追隨性與輸出平順度間取得平衡,<span class="out">有效防止單幀漏檢時的橫向控制輸入跳變</span></li>
+          <li data-en='<b class="lead">Functional Safety and Quality</b>: Led safety requirement definition, FMEA / DFA and design review to ISO 26262, managing requirements and traceability in Polarion'><b class="lead">功能安全與品質</b>:依 <b>ISO 26262</b> 規範主導安全需求定義、<b>FMEA / DFA</b> 及設計審查,並以 <b>Polarion</b> 進行需求與追溯管理</li>
+          <li data-en='<b class="lead">Production Results</b>: Reached production on 3 vehicle programs with zero customer complaints since launch'><b class="lead">量產成果</b>:成功導入 <b>3 款量產車型</b>,<span class="out">上線至今保持零客訴紀錄</span></li>
         </ul>
         </div>
       </div>
     </div>
 
     <div class="xp" id="xp-architecture">
-      <div class="xp-m"><div class="big sm">零客訴</div><div class="unit">3 款量產車型</div><a class="xp-brief" href="../lfs_page/lfs01.html#architecture">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
+      <div class="xp-m"><div class="big sm" data-en='Zero complaints'>零客訴</div><div class="unit" data-en='3 production vehicle programs'>3 款量產車型</div><a class="xp-brief" href="../lfs_page/lfs01.html#architecture" data-en='View details<span class="ic" aria-hidden="true">&rarr;</span>'>查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
       <div class="xp-c">
-        <h4>C1 Bias 自我學習機制(攝影機光軸偏航偵測)</h4>
-        <p class="xp-sum">自建工具成為驗證團隊標準流程 <span class="hl">3 年</span>;2023 年量產前 FOT 發現產線校正殘留偏差,轉為量產邏輯解決,導入 <span class="hl">3 款車型 零客訴</span></p>
+        <h4 data-en='Camera Optical-Axis Yaw Self-Learning (C1 Bias Estimator)'>相機光軸偏航自我學習機制(C1 Bias Self-learning)</h4>
         <div class="xp-detail">
         <ul>
-          <li><b>起點是給驗證團隊的自檢工具</b>:2020 年自建,以<b>車輛已行駛過的車道軌跡為參考基準</b>反推相機當下偏差,<b>無需額外量測設備</b>即可即時判定校正結果。供驗證團隊(VV Team)檢核 <b>EOL</b>(產線)與 <b>ONL</b>(行車中)校正流程,<span class="out">成為該團隊標準驗證工具並沿用 3 年</span></li>
-          <li><b>轉折是量產前浮現的系統性偏差</b>:2023 年 <b>CMC 量產前 FOT</b> 發現,即使完成 EOL 產線校正仍存在殘留偏差。<span class="out">這不是個案而是系統性問題,意味著每一台出廠車都會有非預期偏移</span>;根因在於產線校正是出廠前量一次,涵蓋不了校正確實度差異與使用過程產生的漂移</li>
-          <li><b>解法是把工具轉正為量產功能</b>:團隊評估後導入本方案。由於它本就只用車上既有感知器,得以<b>常駐車內持續運行</b>,把「產線量一次」變成<b>行駛中持續估測並即時修正</b>。經穩定性與可靠性驗證後產品化,補償率 <b>86.81%</b>、導入 <b>3 款量產車型</b>,<span class="out">量產上線至今零客訴</span></li>
+          <li data-en='<b class="lead">In-House Tool and Standardization (2020)</b>: Independently built a calibration self-check tool that infers camera bias from the driven trajectory, judging calibration results in real time with no additional hardware; adopted by the validation (VV) team as the standard tool for EOL (end-of-line) and ONL (online) calibration and used for 3 years'><b class="lead">工具自建與標準化(2020)</b>:<b>獨立建置</b>以<b>行車軌跡反推相機偏差</b>的校正自檢工具,<b>無需額外硬體設備</b>即可即時判定校正結果,獲驗證團隊(VV Team)採納為 <b>EOL</b>(產線)與 <b>ONL</b>(行車中)<span class="out">標準驗證工具並沿用 3 年</span></li>
+          <li data-en='<b class="lead">Productization of the Algorithm (2023)</b>: During the CMC pre-production FOT, found that a single end-of-line calibration cannot cover the drift and residual bias that develop in service; turned the validation tool into a production-grade compensation algorithm resident in the vehicle, upgrading "measure once on the line" into "correct continuously while driving"'><b class="lead">演算法產品化(2023)</b>:於 <b>CMC 量產前 FOT</b> 階段發現<span class="out">產線單次校正無法覆蓋使用過程中的動態漂移與殘留偏差</span>;將驗證工具轉化為<b>常駐車內的量產級補償演算法</b>,把「產線量一次」升級為<b>「行駛中持續修正」</b></li>
+          <li data-en='<b class="lead">Production Results</b>: Achieved an 86.81% compensation rate across 3 production vehicle programs, with zero customer complaints since launch'><b class="lead">量產成果</b>:達成 <b>86.81% 補償率</b>,成功導入 <b>3 款量產車型</b>,<span class="out">上線至今零客訴</span></li>
         </ul>
         </div>
       </div>
     </div>
 
     <div class="xp" id="xp-decision-1">
-      <div class="xp-m"><div class="big sm">$470–625K</div><div class="unit">替代供應商開發案</div><a class="xp-brief" href="../lfs_page/lfs01.html#decision-1">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
+      <div class="xp-m"><div class="big sm">$470–625K</div><div class="unit" data-en='replaced a supplier development program'>替代供應商開發案</div><a class="xp-brief" href="../lfs_page/lfs01.html#decision-1" data-en='View details<span class="ic" aria-hidden="true">&rarr;</span>'>查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
       <div class="xp-c">
-        <h4>車道線後處理演算法</h4>
-        <p class="xp-sum">以自研軟體後處理取代感知供應商重新開發,零硬體成本,沿用至 <span class="hl">4 款量產車型</span></p>
+        <h4 data-en='Lane-Line Post-Processing Algorithm'>車道線後處理演算法優化</h4>
         <div class="xp-detail">
         <ul>
-          <li>追查根因為<b>模型複雜度超出有效偵測距離所能支撐</b>,短距下高階項外推被放大,造成遠端車道線甩動;原規劃由供應商重新開發感知(報價 USD 470–625K)</li>
-          <li>設計依有效距離動態調整多項式階數的演算法(區間內重新 least-square 擬合、階數間加權內插),消除模型切換造成的不連續;另以<b>進彎前預先辨識</b>加<b>計時機制延續情境判定</b>,解決短視距下彎道無法用 C0&ndash;C1 表述的失真,維持彎道性能</li>
-          <li>不動感知韌體、不加硬體,<span class="out">單幀運算開銷可忽略</span>,獲採納為標準做法</li>
+          <li data-en='<b class="lead">Root-Cause Analysis and Solution</b>: Pinpointed the root cause of far-range lane-line swing as a mismatch between the model high-order terms and the effective viewing range; developed a dynamic-order fitting algorithm (least-squares refitting within each range band, weighted interpolation between orders) and added pre-curve recognition with a timer holding the scenario state, resolving curve distortion at short viewing range and discontinuity at model switch-over'><b class="lead">根因定位與解法</b>:精準定位<b>模型高階項與有效視距失配</b>導致遠端車道線甩動的根本原因;自主開發<b>動態階數擬合演算法</b>(區間內 Least-Square 重新擬合、階數間加權內插),並導入<b>進彎前預先辨識</b>與<b>計時機制</b>,解決短視距下彎道失真與模型切換不連續問題</li>
+          <li data-en='<b class="lead">Business Impact</b>: Avoided the supplier redevelopment quote (USD 470-625K) and any additional hardware cost, at negligible per-frame computation, and was adopted internally as the standard approach'><b class="lead">商業效益</b>:免除外部供應商<b>重新開發報價(USD 470&ndash;625K)</b>與額外硬體成本,<span class="out">單幀運算開銷極低</span>,獲內部採納為標準做法</li>
         </ul>
         </div>
       </div>
     </div>
 
     <div class="xp" id="xp-influence">
-      <div class="xp-m"><div class="big sm">4 家供應商</div><div class="unit">感知品質橫向評測</div><a class="xp-brief" href="../lfs_page/lfs01.html#influence">查看簡述<span class="ic" aria-hidden="true">&rarr;</span></a></div>
+      <div class="xp-m"><div class="big sm" data-en='4 suppliers'>4 家供應商</div><div class="unit" data-en='perception quality benchmark'>感知品質橫向評測</div><a class="xp-brief" href="../lfs_page/lfs01.html#influence" data-en='View details<span class="ic" aria-hidden="true">&rarr;</span>'>查看簡述<span class="ic" aria-hidden="true">&rarr;</span></a></div>
       <div class="xp-c">
-        <h4>Mini-FOT 車道感知驗證框架</h4>
-        <p class="xp-sum">建立<span class="hl">車道線快速標註流程</span>與<span class="hl">場景重播</span>機制,執行深圳 &rarr; 上海 <span class="hl">1,600 km</span> 長途實車驗證</p>
+        <h4 data-en='Mini-FOT Lane Perception Validation Framework &amp; 4-Supplier Benchmark'>Mini-FOT 車道感知驗證框架與 4 大供應商評測</h4>
         <div class="xp-detail">
         <ul>
-          <li>執行深圳至上海 <b>1,600 km</b> 的 <b>Mini-FOT</b>(Field Operational Test)。長里程 log 靠人工逐段看不完,所以先建一套<b>車道線快速標註流程</b>讓跨團隊照著產出 <b>Ground Truth</b>,再拿標註與感知輸出比對,<span class="out">把車道感知的缺陷直接定位出來</span></li>
-          <li>針對篩出來的失效案例建立<b>場景重播機制</b>,把當下的環境條件還原回來,跑變道與橫向控制的<b>回歸測試</b>,用來驗證<b>車道感知與橫向控制</b>在真實極端情況下站不站得住</li>
-          <li>同一套框架與判準橫向套到 <b>Mobileye、StradVision、Horizon Robotics、PCT(FIH) 4 家供應商</b>,建立跨廠牌的品質比較基準,作為<b>平台選型依據</b>;失效案例與評測方法回饋給新創供應商,協助他們找出盲點、改進車道偵測演算法,並把實車反推的<b>感知參數特性與失效邊界</b>轉成<span class="out">訓練資料的標註與參數依據</span>,支援公司自研車道辨識系統落地</li>
+          <li data-en='<b class="lead">Field Testing and Framework Build-Out</b>: Ran a 1,600 km Mini-FOT (Field Operational Test) from Shenzhen to Shanghai and built a cross-team rapid lane-line annotation workflow together with a failure-scenario replay and regression test mechanism, locating perception defects directly'><b class="lead">實測與框架建置</b>:執行深圳至上海共 <b>1,600 km</b> 實測之 <b>Mini-FOT</b>(Field Operational Test),建立<b>跨團隊車道線快速標註流程</b>與<b>失效場景重播回歸測試機制</b>,<span class="out">直接定位感知缺陷</span></li>
+          <li data-en='<b class="lead">Edge-Case Replay and Regression Test Framework</b>: For the high-risk failure cases screened out of the Mini-FOT, built an environment-restoration and scenario-replay mechanism; by reproducing the extreme boundary conditions (edge cases) of lane change and lateral control, automated regression tests systematically verify the robustness and reliability of the lane perception and control modules under extreme conditions'><b class="lead">極端場景重播與回歸測試架構</b>:針對 <b>Mini-FOT</b> 篩選出之高風險失效案例,建置<b>環境條件還原與場景重播機制</b>;藉由重現變道與橫向控制的<b>極端邊界條件(Edge Cases)</b>進行<b>自動化回歸測試</b>,<span class="out">系統化驗證車道感知與控制模組在極端工況下的強健性與可靠度</span></li>
+          <li data-en='<b class="lead">Platform Selection and Supplier Feedback</b>: Established a unified evaluation criterion and benchmarked 4 perception suppliers (Mobileye, StradVision, Horizon Robotics and PCT/FIH) as the basis for platform selection; fed failure boundaries and parameters derived from real vehicle data back to the suppliers to improve their algorithms, while supporting the in-house lane detection system'><b class="lead">平台選型與回饋</b>:建立<b>統一評測判準</b>,橫向評測 <b>Mobileye、StradVision、Horizon Robotics</b> 及 <b>PCT(FIH)</b> 等 <b>4 家感知供應商</b>,作為<b>平台選型依據</b>;並將實車反推的<b>失效邊界與參數</b>回饋供應商協助演算法優化,<span class="out">同時支援公司自研車道辨識系統落地</span></li>
         </ul>
         </div>
       </div>
@@ -615,37 +644,35 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 <div class="wrap">
   <div class="co reveal" id="co-ncsist">
     <div class="co-head">
-      <span class="co-name">國家中山科學研究院</span>
+      <span class="co-name" data-en='NCSIST (National Chung-Shan Institute of Science &amp; Technology)'>國家中山科學研究院</span>
       <span class="co-period">2019.01 – 2020.10</span>
-      <span class="co-title">主導工程師 · 機車 ABS · 碩士期間產學合作</span>
+      <span class="co-title" data-en='Lead Engineer &middot; Motorcycle ABS &middot; Industry collaboration during graduate studies'>主導工程師 · 機車 ABS · 碩士期間產學合作</span>
     </div>
-    <p class="co-scope">碩士最後一年進中科院。<b>中科院具備比例閥油壓硬體、指導教授具備控制理論,我以控制專業擔任兩者之間的技術轉化角色</b>,從零建立機車 ABS 控制系統;帶 4 人跨領域團隊。</p>
+    <p class="co-scope" data-en='Joined NCSIST in the final year of my graduate studies. <b>NCSIST had the proportional-valve hydraulic hardware and my advisor had the control theory; I was the control specialist who bridged the two</b>, building a motorcycle ABS control system from scratch and leading a 4-person cross-disciplinary team.'>碩士最後一年進中科院。<b>中科院具備比例閥油壓硬體、指導教授具備控制理論,我以控制專業擔任兩者之間的技術轉化角色</b>,從零建立機車 ABS 控制系統;帶 4 人跨領域團隊。</p>
 
     <div class="xp" id="xp-ncsist">
-      <div class="xp-m"><div class="big">短 20<span style="font-size:12px">%</span></div><div class="unit">煞停距離</div><a class="xp-brief" href="../ibooster_page/01_ibooster.html#ncsist">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
+      <div class="xp-m"><div class="big" data-en='-20<span style="font-size:12px">%</span>'>短 20<span style="font-size:12px">%</span></div><div class="unit" data-en='braking distance'>煞停距離</div><a class="xp-brief" href="../ibooster_page/01_ibooster.html#ncsist" data-en='View details<span class="ic" aria-hidden="true">&rarr;</span>'>查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
       <div class="xp-c">
-        <h4>機車 ABS · 把控制理論落到既有油壓硬體上</h4>
-        <p class="xp-sum">以 dSPACE 快速原型串起 <span class="hl">控制演算法 → 硬體控制電路 → 比例閥油壓</span>,煞停距離較傳統短 <span class="hl">20%</span>,逼近理論最短</p>
+        <h4 data-en='Motorcycle ABS Control System Built from Scratch and Validated on Vehicle'>機車 ABS 控制系統從零建構與實車驗證</h4>
         <div class="xp-detail">
         <ul>
-          <li>中科院已具備比例閥油壓硬體、指導教授提出控制構想,我負責兩者之間的<b>技術轉化</b>:以 <code>MATLAB / Simulink</code> 開發油壓控制演算法並產生硬體控制電路,透過 <code>dSPACE</code> 快速原型在實車上驗證</li>
-          <li>內容涵蓋輪速信號處理、滑差率鎖死判斷,以及<b>依當下路面條件的閉迴路煞車控制</b></li>
-          <li><span class="out">煞停距離較傳統短 20%,已接近理論最短</span></li>
+          <li data-en='<b class="lead">Cross-Domain Technology Transfer</b>: Acted as the bridge between the hardware (the NCSIST proportional-valve hydraulic module) and the control theory (the advisor team), leading a 4-person cross-disciplinary team to build a motorcycle ABS control system from scratch'><b class="lead">跨領域技術轉化</b>:擔任硬體(中科院<b>比例閥油壓硬體</b>)與控制理論(指導教授團隊)之間的<b>關鍵橋樑</b>,領導 <b>4 人跨領域團隊</b>,<span class="out">從零自主建立機車 ABS 控制系統</span></li>
+          <li data-en='<b class="lead">Algorithm Implementation and Rapid Prototyping</b>: Developed the hydraulic control algorithm in MATLAB / Simulink, generated the hardware control circuit, and completed on-vehicle validation on a dSPACE rapid prototyping platform'><b class="lead">演算法實作與快速原型</b>:以 <code>MATLAB / Simulink</code> 開發<b>油壓控制演算法</b>並產生硬體控制電路,透過 <code>dSPACE</code> 快速原型平台<span class="out">完成實車驗證</span></li>
+          <li data-en='<b class="lead">Closed-Loop Brake Control</b>: Covered wheel-speed signal processing, slip-ratio lock detection, and dynamic closed-loop brake control based on real-time road conditions'><b class="lead">閉迴路煞車控制</b>:完整涵蓋<b>輪速信號處理</b>、<b>滑差率鎖死判斷</b>,以及依據<b>即時路面條件</b>的動態閉迴路煞車控制</li>
+          <li data-en='<b class="lead">Quantified Results</b>: Shortened emergency braking distance by 20% versus the conventional system, approaching the theoretical limit'><b class="lead">量化成果</b>:成功使<b>緊急煞停距離</b>較傳統系統<span class="out">縮短 20%,性能逼近理論極限</span></li>
         </ul>
         </div>
       </div>
     </div>
 
     <div class="xp" id="xp-estimators">
-      <div class="xp-m"><div class="big sm">2 估測器</div><div class="unit">專利 TWI719598B</div><a class="xp-brief" href="../ibooster_page/01_ibooster.html#ncsist">查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
+      <div class="xp-m"><div class="big sm" data-en='2 estimators'>2 估測器</div><div class="unit" data-en='patent TWI719598B'>專利 TWI719598B</div><a class="xp-brief" href="../ibooster_page/01_ibooster.html#ncsist" data-en='View details<span class="ic" aria-hidden="true">&rarr;</span>'>查看簡述<span class="ic" aria-hidden="true">→</span></a></div>
       <div class="xp-c">
-        <h4>車速與最大路面摩擦係數估測器設計</h4>
-        <p class="xp-sum">設計 ABS 的兩個<span class="hl">不可直接量測量</span>;摩擦係數估測方法取得專利 <span class="hl">TWI719598B</span>,掛第一發明人</p>
+        <h4 data-en='Vehicle Speed and Peak Road-Friction Estimator Design (Patented)'>車速與最大路面摩擦係數估測器設計(獲專利)</h4>
         <div class="xp-detail">
         <ul>
-          <li>煞車時車輪打滑,<b>輪速不等於車速</b> → 設計車速估測器,提供滑差率計算的分母</li>
-          <li><b>最佳滑差率隨路面摩擦係數而變</b> → 設計最大路面摩擦係數估測器,使控制器能依當下路面調整目標滑差</li>
-          <li>兩個估測器到位,控制器才能將滑差穩定在最佳點附近,這是逼近理論最短煞停的前提;<span class="out">摩擦係數估測方法取得專利 <a class="pt-link" href="https://patents.google.com/patent/TWI719598B/zh" target="_blank" rel="noopener"><code>TWI719598B</code></a>,於 6 人發明團隊中掛第一發明人</span></li>
+          <li data-en='<b class="lead">Dual-Estimator Architecture</b>: Because wheel speed does not equal vehicle speed once the wheel slips under braking, designed a vehicle speed estimator to supply the denominator of the slip ratio; also developed a peak road-friction estimator so the controller can adjust target slip dynamically with road conditions and stay locked near the optimum grip point'><b class="lead">雙估測器架構</b>:針對煞車打滑導致<b>輪速不等同車速</b>之問題,設計<b>車速估測器</b>以提供滑差率計算分母;同時開發<b>最大路面摩擦係數估測器</b>,使控制器能動態依路面條件調整目標滑差,<span class="out">確保系統穩定鎖定在最佳抓地力點</span></li>
+          <li data-en='<b class="lead">Patent Outcome</b>: The core friction-coefficient estimation method was granted a Taiwan invention patent (TWI719598B), with me as first inventor among a 6-person team'><b class="lead">專利成果</b>:核心摩擦係數估測方法成功取得中華民國發明專利(<a class="pt-link" href="https://patents.google.com/patent/TWI719598B/zh" target="_blank" rel="noopener"><code>TWI719598B</code></a>),<span class="out">於 6 人發明團隊中擔任第一發明人</span></li>
         </ul>
         </div>
       </div>
@@ -658,17 +685,24 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 <div class="wrap">
   <div class="co reveal" id="co-haitec">
     <div class="co-head">
-      <span class="co-name">華創車電技術中心 HAITEC</span>
+      <span class="co-name" data-en='HAITEC (Haitec Automotive Research &amp; Design)'>華創車電技術中心 HAITEC</span>
       <span class="co-period">2018.07 – 2018.08</span>
-      <span class="co-title">暑期實習</span>
+      <span class="co-title" data-en='Summer Internship'>暑期實習</span>
     </div>
-    <p class="co-scope">大學暑期實習,第一次接觸<b>量產級車用演算法開發、功能安全與整車測試</b>。</p>
+    <p class="co-scope" data-en='Undergraduate summer internship, my first exposure to <b>production automotive algorithm development, functional safety and vehicle-level testing</b>.'>大學暑期實習,第一次接觸<b>量產級車用演算法開發、功能安全與整車測試</b>。</p>
 
     <div class="xp">
-      <div class="xp-m"><div class="big sm">4 情境全勝</div><div class="unit">ARTC · VBOX 基準</div></div>
+      <div class="xp-m"><div class="big sm" data-en='4/4 scenarios won'>4 情境全勝</div><div class="unit" data-en='ARTC &middot; VBOX reference'>ARTC · VBOX 基準</div></div>
       <div class="xp-c">
-        <h4>車速估測演算法 · MAAB 模型化開發</h4>
-        <p>用滑差率對多顆輪速感測器與加速規動態加權,專治碎石急加速、過彎、下坡邊緣狀況;ARTC 場地 4 種真實情境以 VBOX 高精度 GPS 為基準,<span class="out">四種情境全勝過輪速平均與純加速規</span>。實戰用到 ISO 26262 與 dSPACE HIL。專利 TWI655435B。</p>
+        <h4 data-en='Vehicle Speed Estimation Algorithm &middot; MAAB Model-Based Development'>車速估測演算法 · MAAB 模型化開發</h4>
+        <div class="xp-detail">
+        <ul>
+          <li data-en='<b class="lead">Dynamic Weighted Fusion Algorithm</b>: For edge conditions such as hard acceleration on gravel, cornering and downhill running, fused multiple wheel-speed sensors with an accelerometer using slip-ratio-based dynamic weighting, going beyond what any single sensor can deliver'><b class="lead">動態加權融合演算法</b>:針對<b>碎石路急加速、過彎及下坡</b>等極端邊緣狀況,以<b>滑差率</b>對多顆輪速感測器與加速規進行<b>動態加權融合</b>,突破單一感測器限制</li>
+          <li data-en='<b class="lead">Proving-Ground Validation</b>: Tested on vehicle at ARTC across 4 real edge scenarios, benchmarked against a VBOX high-precision GPS, outperforming both the conventional "wheel-speed average" and "accelerometer-only" approaches overall'><b class="lead">嚴苛場地實測驗證</b>:於 <b>ARTC</b>(車輛中心)針對 <b>4 種真實極端情境</b>進行實車測試,以 <b>VBOX 高精度 GPS</b> 為基準對比,<span class="out">綜合性能全面超越傳統「輪速平均」與「純加速規」方案</span></li>
+          <li data-en='<b class="lead">Automotive Development and Test Process</b>: Followed MAAB model-based development guidelines and applied ISO 26262 and dSPACE HIL (hardware-in-the-loop) simulation in practice'><b class="lead">車規開發與測試流程</b>:嚴格遵循 <b>MAAB 模型化開發規範</b>,並於實戰中導入 <b>ISO 26262</b> 車規標準與 <code>dSPACE</code> <b>HIL</b>(硬體迴路)模擬驗證</li>
+          <li data-en='<b class="lead">Patent Outcome</b>: The core technique was granted a Taiwan invention patent (TWI655435B)'><b class="lead">專利成果</b>:核心技術成功取得中華民國發明專利(<a class="pt-link" href="https://patents.google.com/patent/TWI655435B/zh" target="_blank" rel="noopener"><code>TWI655435B</code></a>)</li>
+        </ul>
+        </div>
       </div>
     </div>
   </div>
@@ -683,21 +717,19 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 <section id="learning">
 <div class="wrap">
   <div class="edu-wrap reveal" id="education">
-    <div class="eyebrow">學習能力 · Education</div>
-    <h2 class="h">求學經歷</h2>
+    <div class="eyebrow" data-en='Education'>學習能力 · Education</div>
+    <h2 class="h" data-en='Education'>求學經歷</h2>
     <div class="edu-list">
 
       <div class="edu">
         <div class="edu-yr">2017 – 2019</div>
         <div class="edu-c">
-          <div class="edu-sch">國立臺北科技大學</div>
-          <div class="edu-deg">機電學院 · 車輛工程所 · 控制組 · 碩士 · <span class="hi">大四下提早入學（大四提早進入實驗室）</span></div>
+          <div class="edu-sch" data-en='National Taipei University of Technology'>國立臺北科技大學</div>
+          <div class="edu-deg" data-en='College of Mechanical and Electrical Engineering &middot; Graduate Institute of Vehicle Engineering &middot; Control Group &middot; M.S. &middot; <span class="hi">admitted early in the second semester of senior year</span>'>機電學院 · 車輛工程所 · 控制組 · 碩士 · <span class="hi">大四下提早入學（大四提早進入實驗室）</span></div>
           <ul class="edu-ach">
-            <li>碩士論文《應用適應性參數估測器與路面識別於機車防鎖死煞車系統之模糊控制》：<b>僅用市售機車既有的感知器</b>完成「參數估測 → 路面識別 → 模糊控制」全鏈，BikeSim 與自建 HIL 雙層驗證，車速估測平均誤差 <b>1.2%–2.3%</b>，煞停距離逼近理論最佳解且全面優於傳統 Bang-Bang</li>
-            <li>碩二與中科院合作開發<b>機車 ABS 系統</b>，從演算法一路做到 ASIC 晶片；該成果取得專利 <b>TWI722875B</b>（申請人 國立臺北科技大學）</li>
-            <li>兩年間於實驗室承接 <b>7 件</b>業界與法人委託案（見下），含工研院兩件正式學研合作合約 <b>NT$70 萬 + NT$60 萬</b></li>
-            <li><b>ARTC 菁英培育獎助生</b>（2018.07–2019.09）：經申請與面試獲選，每學期繳交研究報告書並通過結業審查</li>
-            <li>研討會論文〈應用卡爾曼濾波器於機車防鎖死煞車系統估測器之設計〉投稿車輛工程研討會；另擔任<b>車輛控制實驗助教</b></li>
+            <li data-en='<b>Academic and project record</b>: admitted early in the second semester of senior year and joined the laboratory. My thesis, "Applying an Adaptive Parameter Estimator and Road Surface Identification to Fuzzy Control of a Motorcycle Anti-lock Braking System", completed the full chain using only the sensors already fitted to a commercial motorcycle, validated in two layers with BikeSim and a self-built HIL rig; mean vehicle speed estimation error was <b>1.2%&ndash;2.3%</b>, and braking distance approached the theoretical optimum while outperforming conventional Bang-Bang control across the board'><b>學術與專案表現</b>：大四下提早入學並進入實驗室。碩士論文《應用適應性參數估測器與路面識別於機車防鎖死煞車系統之模糊控制》<b>僅用市售機車既有感知器</b>完成全鏈路開發，經 BikeSim 與自建 HIL 雙層驗證，車速估測平均誤差僅 <b>1.2%–2.3%</b>，煞停距離逼近理論最佳解且全面優於傳統 Bang-Bang 控制</li>
+            <li data-en='<b>Industry collaboration and patents</b>: in my second graduate year, co-developed a <b>motorcycle ABS system</b> with NCSIST, taking it from algorithm all the way to an ASIC chip, granted a Taiwan invention patent (<b>TWI722875B</b>); over two years took the lead on <b>7</b> industry and government-funded projects in the laboratory, including formal ITRI research contracts of <b>NT$700K</b> and <b>NT$600K</b>'><b>產學合作與專利</b>：碩二與中科院合作開發<b>機車 ABS 系統</b>，自演算法一路做到 ASIC 晶片，獲中華民國發明專利（<b>TWI722875B</b>）；兩年間於實驗室主導承接 <b>7 件</b>業界與法人委託案，含工研院 <b>NT$70 萬</b>及 <b>NT$60 萬</b>正式學研合作合約</li>
+            <li data-en='<b>Honors and academic activity</b>: selected as an <b>ARTC Elite Scholarship recipient</b> (passing the completion review each semester); published the conference paper "Design of a Kalman Filter Based Estimator for a Motorcycle Anti-lock Braking System" and served as <b>teaching assistant for the vehicle control laboratory</b>'><b>榮譽與學術活動</b>：獲選 <b>ARTC 菁英培育獎助生</b>（每學期通過結業審查）；發表研討會論文〈應用卡爾曼濾波器於機車防鎖死煞車系統估測器之設計〉，並擔任<b>車輛控制實驗室助教</b></li>
           </ul>
         </div>
       </div>
@@ -705,12 +737,11 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
       <div class="edu">
         <div class="edu-yr">2013 – 2017</div>
         <div class="edu-c">
-          <div class="edu-sch">國立臺北科技大學</div>
-          <div class="edu-deg">車輛工程系 · 學士 · <span class="hi">動力機械群第一志願</span></div>
+          <div class="edu-sch" data-en='National Taipei University of Technology'>國立臺北科技大學</div>
+          <div class="edu-deg" data-en='Department of Vehicle Engineering &middot; B.S. &middot; <span class="hi">first choice in the power machinery group</span>'>車輛工程系 · 學士 · <span class="hi">動力機械群第一志願</span></div>
           <ul class="edu-ach">
-            <li>大三上 自動駕駛專題 <b>第一名</b></li>
-            <li>華創車電實習，於實習結束前完成<b>車速估測系統</b>開發，成果由公司提出專利申請並獲證 <b>TWI655435B</b>（台、中雙邊獲證）</li>
-            <li>大四<b>提早一年</b>進入研究所實驗室</li>
+            <li data-en='<b>Hands-on work and patents</b>: admitted as first choice in the power machinery group; won <b>first place</b> in the junior-year Autonomous Driving project. During the HAITEC internship, <b>independently completed a vehicle speed estimation system</b>, which the company filed and was granted as an invention patent (<b>TWI655435B</b>, granted in both Taiwan and China)'><b>實作與專利</b>：動力機械群第一志願入學；大三上榮獲「自動駕駛專題」<b>第一名</b>。於華創車電實習期間<b>獨立完成車速估測系統</b>開發，成果獲公司提出專利申請並順利取得發明專利（<b>TWI655435B</b>，台、中雙邊獲證）</li>
+            <li data-en='<b>Academic path</b>: entered the graduate laboratory <b>a year early</b> in senior year to work on forward-looking research'><b>學業歷程</b>：大四<b>提早一年</b>進入研究所實驗室進行前瞻研究</li>
           </ul>
         </div>
       </div>
@@ -718,11 +749,10 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
       <div class="edu">
         <div class="edu-yr">2011 – 2014</div>
         <div class="edu-c">
-          <div class="edu-sch">國立臺南高級工業職業學校</div>
-          <div class="edu-deg">汽車科 · 高級職業 · <span class="hi">職業選手轉換跑道</span></div>
+          <div class="edu-sch" data-en='National Tainan Industrial Vocational High School'>國立臺南高級工業職業學校</div>
+          <div class="edu-deg" data-en='Automotive Department &middot; Vocational High School &middot; <span class="hi">career change from professional sport</span>'>汽車科 · 高級職業 · <span class="hi">職業選手轉換跑道</span></div>
           <ul class="edu-ach">
-            <li>桌球職業選手時期 <b>全國個人第四</b>，之後轉入工科</li>
-            <li>汽車科為<b>第一志願考取</b>，工程領域從零起步</li>
+            <li data-en='<b>Cross-domain path</b>: formerly a professional table tennis player (<b>4th nationally in singles</b>), then moved into engineering at Tainan Industrial High School, Automotive Department, starting from zero and building a solid mechanical and vehicle hands-on foundation'><b>跨域成長歷程</b>：曾為桌球職業選手（獲<b>全國個人第四</b>），後轉入工程領域考入臺南高工汽車科，從零起步奠定紮實的機械與車輛實作基礎</li>
           </ul>
         </div>
       </div>
@@ -733,8 +763,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
          每條的期間、金額與數字都對得上 _專案紀錄/ 下的合約書、報告書或實測 log;
          沒有硬數據的案子(華創 S5 AEB 實車測試)刻意不單獨列,併進第二條的敘述裡。 -->
     <div class="edu-proj">
-      <div class="ep-t">就學期間 · 產學與法人委託專案</div>
-      <p class="ep-lead">碩士兩年在北科大先進車輛控制實驗室(陳柏全教授)承接 <b>7 件</b>業界與法人委託案，主題集中在<b>線控煞車與 ABS 估測控制</b>,同一顆致動器從機構、電路、控制到驗證做過一遍。工研院兩案為有合約金額與查核點的正式學研合作案，我為主要執行人(計畫主持人為指導教授)。</p>
+      <div class="ep-t" data-en='Graduate Studies &middot; Industry &amp; Government-Funded Projects'>碩士期間 · 產學與法人委託專案</div>
 
       <!-- 七件收成四則。工研院那三件是同一顆致動器的三個面向,併成一則;
            聯華聚能與華創車電都是「交付能被審查的軟體」,也併成一則。
@@ -745,58 +774,23 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
       <div class="ep-rows">
         <div class="xp">
           <div class="xp-m">
-            <div class="big">工研院</div>
-            <div class="unit">2017.12 &ndash; 2019.08</div>
-            <a class="xp-brief" href="../ibooster_page/01_ibooster.html#teardown">查看簡述<span class="ic" aria-hidden="true">&rarr;</span></a>
+            <div class="big" data-en='7 projects'>7 件</div>
+            <div class="unit" data-en='2017.07 &ndash; 2019.08'>2017.07 &ndash; 2019.08</div>
+            <a class="xp-brief" href="../ibooster_page/01_ibooster.html#teardown" data-en='View details<span class="ic" aria-hidden="true">&rarr;</span>'>查看簡述<span class="ic" aria-hidden="true">&rarr;</span></a>
           </div>
           <div class="xp-c">
-            <h4>線控煞車致動器 &middot; 3 件學研合作案</h4>
+            <h4 data-en='National Taipei University of Technology &middot; Advanced Vehicle Control Laboratory'>國立臺北科技大學 先進車輛控制實驗室 &middot; 陳柏全教授</h4>
             <div class="xp-detail">
               <ul>
-                <li><b>i-booster 逆向工程</b>:原廠控制器不開放,自己重寫控制律,部署於工研院 CPEV 實驗車。</li>
-                <li><b>EHB 模組整合控制</b><span class="amt">NT$70萬</span>:依煞車命令在「駕駛者操控 / 自動駕駛 / 自動緊急煞車」三情境間切換工作模式。</li>
-                <li><b>低成本 AEB 致動器驗證</b><span class="amt">NT$60萬</span>:把量產機車 ABS 模組反接進汽車煞車迴路。</li>
+                <li data-en='<b class="lead">Laboratory Highlights</b>: Over two graduate years, took the lead on 7 industry and government-funded projects centered on brake-by-wire and ABS estimation and control, working a single actuator end to end from mechanism and circuit through control to validation'><b class="lead">實驗室亮點</b>:碩士兩年間主導承接 <b>7 件</b>業界與法人委託案(聚焦<b>線控煞車與 ABS 估測控制</b>),<span class="out">完整歷練單一致動器從機構、電路、控制到驗證的全端開發流程</span></li>
+                <li data-en='<b class="lead">ITRI Brake-by-Wire and Actuator Projects</b>: Principal engineer on 3 industry-academia projects: i-booster reverse engineering (rewrote the control law and deployed it on the ITRI CPEV test vehicle); EHB module integration control (NT$700K, switching among driver-operated, autonomous and AEB modes); and low-cost AEB actuator validation (NT$600K, connecting a production motorcycle ABS module into a car brake circuit)'><b class="lead">工研院線控煞車與致動器專案</b>:擔任 <b>3 件學研合作案主要執行人</b>。包含 <b>i-booster 逆向工程</b>(重寫控制律並部署於工研院 CPEV 實驗車);<b>EHB 模組整合控制案</b>(<b>NT$70 萬</b>,實現駕駛者操控、自動駕駛與 AEB 三情境切換);以及<b>低成本 AEB 致動器驗證案</b>(<b>NT$60 萬</b>,將量產機車 ABS 模組反接至汽車煞車迴路)</li>
+                <li data-en='<b class="lead">Acer EV Autonomous Test Platform Conversion</b>: Solely responsible for the brake axis conversion, and also completed the EPS steering transplant, throttle signal emulation and vehicle power management, turning a commercial EV into an autonomous platform whose steering, throttle and brake are all commandable over CAN, passing two acceptance deliveries <a class="pt-link" href="../ibooster_page/01_ibooster.html#platform">View details &rarr;</a>'><b class="lead">宏碁電動車自駕實驗平台改裝</b>:獨力負責<b>煞車軸</b>改裝,並完成 <b>EPS 轉向移植</b>、油門訊號模擬及整車電源管理,成功將市售電動車改裝為<b>三軸皆可由 CAN 命令控制</b>之自駕載具,<span class="out">順利通過兩次驗收交付</span> <a class="pt-link" href="../ibooster_page/01_ibooster.html#platform">查看簡述 &rarr;</a></li>
+                <li data-en='<b class="lead">NCSIST Motorcycle Stability Control Analysis</b>: Because motorcycle normal force varies with rider weight and posture, replaced it with a Kalman filter estimating longitudinal force and absolute vehicle speed to determine the optimal target slip directly, removing the need to measure normal force; validated in a BikeSim co-simulation, with the result submitted as an NCSIST patent proposal <a class="pt-link" href="../ibooster_page/01_ibooster.html#ncsist">View details &rarr;</a>'><b class="lead">中科院機車車身動態穩定控制分析</b>:針對機車<b>正向力受騎士體重與姿態影響</b>之痛點,改以<b>卡爾曼濾波器</b>估測縱向力與絕對車速以直接判定最佳滑差目標值,<b>免除正向力量測</b>;經 BikeSim 聯合模擬驗證,<span class="out">成果提交中科院專利申請提案</span> <a class="pt-link" href="../ibooster_page/01_ibooster.html#ncsist">查看簡述 &rarr;</a></li>
+                <li data-en='<b class="lead">V-Model and MAAB Standards Adoption for Two Client Programs</b>: Delivered to automotive software standards, taking the EV BMS high-voltage management module and the EMS engine management module layer by layer from SRS requirements specification to SDD design description to data dictionary to requirement traceability matrix <a class="pt-link" href="../process_page/01_process.html#vmodel">View details &rarr;</a>'><b class="lead">聯華聚能與華創車電 V 模型與 MAAB 規範導入</b>:落實<b>車規軟體交付標準</b>,針對電動車 <b>BMS 高壓管理模組</b>與 <b>EMS 引擎管理模組</b>,自 <b>SRS 需求規格 &rarr; SDD 設計說明 &rarr; 資料字典 &rarr; 需求追溯矩陣</b>進行逐層展開與驗證 <a class="pt-link" href="../process_page/01_process.html#vmodel">查看簡述 &rarr;</a></li>
               </ul>
             </div>
           </div>
         </div>
-
-        <div class="xp">
-          <div class="xp-m">
-            <div class="big">宏碁</div>
-            <div class="unit">2017.07 &ndash; 2019.03</div>
-            <a class="xp-brief" href="../ibooster_page/01_ibooster.html#platform">查看簡述<span class="ic" aria-hidden="true">&rarr;</span></a>
-          </div>
-          <div class="xp-c">
-            <h4>電動車自駕實驗平台改裝</h4>
-            <p>把市售電動車改裝成<b>轉向／油門／煞車三軸皆可由 CAN 命令控制</b>的自駕載具。獨力負責煞車軸,另完成 EPS 轉向移植、油門訊號模擬與整車電源管理,完成兩次驗收交付,這是我第一次做<b>整車級的系統整合</b>。</p>
-          </div>
-        </div>
-
-        <div class="xp">
-          <div class="xp-m">
-            <div class="big">中科院</div>
-            <div class="unit">2018.03 &ndash; 2018.11</div>
-            <a class="xp-brief" href="../ibooster_page/01_ibooster.html#ncsist">查看簡述<span class="ic" aria-hidden="true">&rarr;</span></a>
-          </div>
-          <div class="xp-c">
-            <h4>機車車身動態穩定控制分析 &middot; 107 年度委學案</h4>
-            <p>機車正向力受騎士體重與姿態影響而不可靠,傳統「先估摩擦係數再查表」走不通。改以<b>卡爾曼濾波器</b>估測縱向力與絕對車速,直接判定最佳滑差目標值,<b>免除正向力量測</b>;BikeSim 聯合模擬驗證,成果提交中科院專利申請提案。</p>
-          </div>
-        </div>
-
-        <div class="xp">
-          <div class="xp-m">
-            <div class="big"><span class="nb">聯華聚能</span> &middot; <span class="nb">華創車電</span></div>
-            <div class="unit">2018.01 &ndash; 2018.08</div>
-            <a class="xp-brief" href="../process_page/01_process.html#vmodel">查看簡述<span class="ic" aria-hidden="true">&rarr;</span></a>
-          </div>
-          <div class="xp-c">
-            <h4>V 模型流程與 MAAB 建模規範 &middot; 2 件</h4>
-            <p>交付物是<b>能被審查的軟體</b>:電動車 BMS 高壓管理模組自 <b>SRS 需求規格 &rarr; SDD 設計說明 &rarr; 資料字典 &rarr; 需求追溯矩陣</b>逐層展開;EMS 引擎管理模型依 <b>MAAB 建模規範</b>重構,並依 Model Check List 逐項驗收。</p>
-          </div>
-        </div>
-      </div>
 
     </div>
 
@@ -808,21 +802,21 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 <div class="wrap">
   <div class="co reveal">
     <div class="co-head">
-      <span class="co-name">發明專利</span>
-      <span class="co-period">4 項 · 3 已獲證</span>
-      <span class="co-title">1 項台/中雙邊獲證 · 1 項掛第一發明人</span>
+      <span class="co-name" data-en='Invention Patents'>發明專利</span>
+      <span class="co-period" data-en='4 filed &middot; 3 granted'>4 項 · 3 已獲證</span>
+      <span class="co-title" data-en='1 granted in both Taiwan and China &middot; 1 as first inventor'>1 項台/中雙邊獲證 · 1 項掛第一發明人</span>
     </div>
-    <p class="co-scope">專利號均為<b>公開資料</b>,每一項都附上 <b>Google Patents 查看按鈕</b>,點下去即可核對,不需要相信我的說法。第一項(行車路線規劃)為任職<b>富智捷 MobileDrive</b> 期間之成果,目前審查中;其餘三項為求學與研究階段成果,全數已獲證。</p>
+    <p class="co-scope" data-en='Every patent number is <b>public record</b>, and each entry carries a <b>Google Patents link</b> so you can verify it yourself rather than take my word for it. The first (driving route planning) was produced during my time at <b>MobileDrive</b> and is still under examination; the other three come from my studies and research and are all granted.'>專利號均為<b>公開資料</b>,每一項都附上 <b>Google Patents 查看按鈕</b>,點下去即可核對,不需要相信我的說法。第一項(行車路線規劃)為任職<b>富智捷 MobileDrive</b> 期間之成果,目前審查中;其餘三項為求學與研究階段成果,全數已獲證。</p>
 
     <div class="xp">
-      <div class="xp-m"><div class="big sm"><span class="pt-no-plain">TW202426860A</span></div><div class="unit">審查中 · 尚未獲證</div><a class="pt-verify" href="https://patents.google.com/patent/TW202426860A/zh" target="_blank" rel="noopener">Google Patents 查看<span class="ic">↗</span></a></div>
+      <div class="xp-m"><div class="big sm"><span class="pt-no-plain">TW202426860A</span></div><div class="unit" data-en='under examination &middot; not yet granted'>審查中 · 尚未獲證</div><a class="pt-verify" href="https://patents.google.com/patent/TW202426860A/zh" target="_blank" rel="noopener" data-en='View on Google Patents<span class="ic">↗</span>'>Google Patents 查看<span class="ic">↗</span></a></div>
       <div class="xp-c">
-        <h4>行車路線規劃方法、車載裝置及儲存介質</h4>
-        <p class="xp-sum"><span class="hl">車流軌跡</span>相關發明|申請人 富智捷 MobileDrive</p>
+        <h4 data-en='Driving Route Planning Method, Vehicle-mounted Device and Storage Medium'>行車路線規劃方法、車載裝置及儲存介質</h4>
+        <p class="xp-sum" data-en='Invention related to <span class="hl">traffic trajectories</span> | Applicant: MobileDrive'><span class="hl">車流軌跡</span>相關發明|申請人 富智捷 MobileDrive</p>
         <div class="xp-detail">
         <ul>
-          <li>申請日 <code>2022/12/15</code>;台灣 <code>TW202426860A</code>(公開 2024/07/01)、中國 <code>CN118209120A</code>(公開 2024/06/18)</li>
-          <li>發明人 <b>甘銘凱</b></li>
+          <li data-en='Filed <code>2022/12/15</code>; Taiwan <code>TW202426860A</code> (published 2024/07/01), China <code>CN118209120A</code> (published 2024/06/18)'>申請日 <code>2022/12/15</code>;台灣 <code>TW202426860A</code>(公開 2024/07/01)、中國 <code>CN118209120A</code>(公開 2024/06/18)</li>
+          <li data-en='Inventor: <b>Ming-Kai Kan</b>'>發明人 <b>甘銘凱</b></li>
           <li>Driving Route Planning Method, Vehicle-mounted Device and Storage Medium</li>
         </ul>
         </div>
@@ -830,14 +824,14 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     </div>
 
     <div class="xp">
-      <div class="xp-m"><div class="big sm"><span class="pt-no-plain">TWI722875B</span></div><div class="unit">已獲證</div><a class="pt-verify" href="https://patents.google.com/patent/TWI722875B/zh" target="_blank" rel="noopener">Google Patents 查看<span class="ic">↗</span></a></div>
+      <div class="xp-m"><div class="big sm"><span class="pt-no-plain">TWI722875B</span></div><div class="unit" data-en='granted'>已獲證</div><a class="pt-verify" href="https://patents.google.com/patent/TWI722875B/zh" target="_blank" rel="noopener" data-en='View on Google Patents<span class="ic">↗</span>'>Google Patents 查看<span class="ic">↗</span></a></div>
       <div class="xp-c">
-        <h4>機車防鎖死煞車系統之控制方法及控制器、電腦可讀取的記錄媒體及特殊應用積體電路晶片</h4>
-        <p class="xp-sum">機車 ABS <span class="hl">演算法到 ASIC 晶片</span>|申請人 國立臺北科技大學</p>
+        <h4 data-en='Control Method of Anti-lock Braking System for Motorcycle and Controller, Computer Readable Recording Medium and Application-specific Integrated Circuit Chip'>機車防鎖死煞車系統之控制方法及控制器、電腦可讀取的記錄媒體及特殊應用積體電路晶片</h4>
+        <p class="xp-sum" data-en='Motorcycle ABS <span class="hl">from algorithm to ASIC chip</span> | Applicant: National Taipei University of Technology'>機車 ABS <span class="hl">演算法到 ASIC 晶片</span>|申請人 國立臺北科技大學</p>
         <div class="xp-detail">
         <ul>
-          <li>申請日 <code>2020/04/20</code>;台灣 <code>TWI722875B</code>(公告 2021/03/21)、公開號 <code>TW202141042A</code></li>
-          <li>發明人 陳柏全、<b>甘銘凱</b>(共 2 位)|IPC <code>G01P 3/64</code>|請求項 14、圖式 14</li>
+          <li data-en='Filed <code>2020/04/20</code>; Taiwan <code>TWI722875B</code> (granted 2021/03/21), publication no. <code>TW202141042A</code>'>申請日 <code>2020/04/20</code>;台灣 <code>TWI722875B</code>(公告 2021/03/21)、公開號 <code>TW202141042A</code></li>
+          <li data-en='Inventors: Po-Chuan Chen, <b>Ming-Kai Kan</b> (2 total) | IPC <code>G01P 3/64</code> | 14 claims, 14 figures'>發明人 陳柏全、<b>甘銘凱</b>(共 2 位)|IPC <code>G01P 3/64</code>|請求項 14、圖式 14</li>
           <li>Control Method of Anti-lock Braking System for Motorcycle and Controller, Computer Readable Recording Medium and Application-specific Integrated Circuit Chip</li>
         </ul>
         </div>
@@ -845,14 +839,14 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     </div>
 
     <div class="xp">
-      <div class="xp-m"><div class="big sm"><span class="pt-no-plain">TWI719598B</span></div><div class="unit">已獲證 · 第一發明人</div><a class="pt-verify" href="https://patents.google.com/patent/TWI719598B/zh" target="_blank" rel="noopener">Google Patents 查看<span class="ic">↗</span></a></div>
+      <div class="xp-m"><div class="big sm"><span class="pt-no-plain">TWI719598B</span></div><div class="unit" data-en='granted &middot; first inventor'>已獲證 · 第一發明人</div><a class="pt-verify" href="https://patents.google.com/patent/TWI719598B/zh" target="_blank" rel="noopener" data-en='View on Google Patents<span class="ic">↗</span>'>Google Patents 查看<span class="ic">↗</span></a></div>
       <div class="xp-c">
-        <h4>車輛路面摩擦係數估測方法</h4>
-        <p class="xp-sum">中科院 6 人發明團隊中<span class="hl">掛第一發明人</span>|申請人 國家中山科學研究院</p>
+        <h4 data-en='Method of Estimating the Pavement Friction Coefficient of a Vehicle'>車輛路面摩擦係數估測方法</h4>
+        <p class="xp-sum" data-en='<span class="hl">First inventor</span> among a 6-person NCSIST team | Applicant: NCSIST'>中科院 6 人發明團隊中<span class="hl">掛第一發明人</span>|申請人 國家中山科學研究院</p>
         <div class="xp-detail">
         <ul>
-          <li>申請日 <code>2019/08/20</code>;台灣 <code>TWI719598B</code>(公告 2021/02/21)、公開號 <code>TW202108420A</code></li>
-          <li>發明人 <b>甘銘凱</b>(第一發明人,共 6 位)|IPC <code>B60W 40/068</code>|請求項 6、圖式 9、共 31 頁</li>
+          <li data-en='Filed <code>2019/08/20</code>; Taiwan <code>TWI719598B</code> (granted 2021/02/21), publication no. <code>TW202108420A</code>'>申請日 <code>2019/08/20</code>;台灣 <code>TWI719598B</code>(公告 2021/02/21)、公開號 <code>TW202108420A</code></li>
+          <li data-en='Inventor: <b>Ming-Kai Kan</b> (first inventor, 6 total) | IPC <code>B60W 40/068</code> | 6 claims, 9 figures, 31 pages'>發明人 <b>甘銘凱</b>(第一發明人,共 6 位)|IPC <code>B60W 40/068</code>|請求項 6、圖式 9、共 31 頁</li>
           <li>Method of estimating the pavement friction coefficient of a vehicle</li>
         </ul>
         </div>
@@ -860,14 +854,14 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     </div>
 
     <div class="xp">
-      <div class="xp-m"><div class="big sm"><span class="pt-no-plain">TWI655435B</span></div><div class="unit">台 · 中 雙邊獲證</div><a class="pt-verify" href="https://patents.google.com/patent/TWI655435B/zh" target="_blank" rel="noopener">Google Patents 查看<span class="ic">↗</span></a></div>
+      <div class="xp-m"><div class="big sm"><span class="pt-no-plain">TWI655435B</span></div><div class="unit" data-en='granted in Taiwan and China'>台 · 中 雙邊獲證</div><a class="pt-verify" href="https://patents.google.com/patent/TWI655435B/zh" target="_blank" rel="noopener" data-en='View on Google Patents<span class="ic">↗</span>'>Google Patents 查看<span class="ic">↗</span></a></div>
       <div class="xp-c">
-        <h4>車速估算裝置、車速估算方法、及其電腦程式產品</h4>
-        <p class="xp-sum">台灣、中國<span class="hl">雙邊獲證</span>|申請人 華創車電技術中心</p>
+        <h4 data-en='Velocity Estimating Device, Velocity Estimating Method, and Computer Program Product Thereof'>車速估算裝置、車速估算方法、及其電腦程式產品</h4>
+        <p class="xp-sum" data-en='<span class="hl">Granted in both Taiwan and China</span> | Applicant: HAITEC'>台灣、中國<span class="hl">雙邊獲證</span>|申請人 華創車電技術中心</p>
         <div class="xp-detail">
         <ul>
-          <li>申請日 <code>2017/07/28</code>;台灣 <code>TWI655435B</code>(公告 2019/04/01)、中國 <code>CN109307782B</code>(公告 2020/10/27)</li>
-          <li>發明人 林曄、<b>甘銘凱</b>(共 2 位)|IPC <code>G01P 3/00</code></li>
+          <li data-en='Filed <code>2017/07/28</code>; Taiwan <code>TWI655435B</code> (granted 2019/04/01), China <code>CN109307782B</code> (granted 2020/10/27)'>申請日 <code>2017/07/28</code>;台灣 <code>TWI655435B</code>(公告 2019/04/01)、中國 <code>CN109307782B</code>(公告 2020/10/27)</li>
+          <li data-en='Inventors: Yeh Lin, <b>Ming-Kai Kan</b> (2 total) | IPC <code>G01P 3/00</code>'>發明人 林曄、<b>甘銘凱</b>(共 2 位)|IPC <code>G01P 3/00</code></li>
           <li>Velocity Estimating Device, Velocity Estimating Method, and Computer Program Product Thereof</li>
         </ul>
         </div>
@@ -881,7 +875,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 <section id="skills">
 <div class="wrap">
   <div class="sec-head reveal" style="margin-bottom:0">
-    <h2 class="eyebrow">技能 · Skills</h2>
+    <h2 class="eyebrow" data-en='Technical Skills'>技能 · Skills</h2>
   </div>
 
   <!-- 技能矩陣。曾經被併進「工作經歷」當開場證據,現在移回獨立一節、放在發明專利之後:
@@ -898,7 +892,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
        title 是滑鼠停留時的佐證,每一條都要對得上 docx 或專案頁裡的具體事實,不能是形容詞。 -->
   <div class="sk-wall reveal">
     <div class="sk-group">
-      <div class="sk-cat">程式語言</div>
+      <div class="sk-cat" data-en='Programming Languages'>程式語言</div>
       <div class="chip-row">
         <span class="sk" title="LFS 融合建模、降階方程式">MATLAB / Simulink</span>
         <span class="sk" title="資料分析、驗證框架">Python</span>
@@ -906,40 +900,40 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     </div>
 
     <div class="sk-group">
-      <div class="sk-cat">機器人與中介軟體</div>
+      <div class="sk-cat" data-en='Robotics and Middleware'>機器人與中介軟體</div>
       <div class="chip-row">
         <span class="sk" title="工廠 AMR 導航堆疊(Humble / Jazzy)">ROS 2</span>
         <span class="sk" title="原生全域規劃器調參後仍不適配非結構化廠區,改以自研圖節點式規劃器取代">Nav2</span>
         <span class="sk" title="跨組 topic / message 介面定義,由 CI 每日自動掃描產出">DDS / rclpy</span>
-        <span class="sk" title="ROS 2 節點生命週期管理">節點生命週期</span>
-        <span class="sk" title="系統設計規格撰寫,跨 3 組協作的介面約定">系統設計規格 SDS</span>
+        <span class="sk" title="ROS 2 節點生命週期管理" data-en='Node Lifecycle'>節點生命週期</span>
+        <span class="sk" title="系統設計規格撰寫,跨 3 組協作的介面約定" data-en='System Design Spec (SDS)'>系統設計規格 SDS</span>
       </div>
     </div>
 
     <div class="sk-group">
-      <div class="sk-cat">運動控制與估測</div>
+      <div class="sk-cat" data-en='Motion Control and Estimation'>運動控制與估測</div>
       <div class="chip-row">
-        <span class="sk" title="AMR 有圖走站點拓樸規劃、無圖走區域成本地圖避障">全域 / 區域路徑規劃</span>
+        <span class="sk" title="AMR 有圖走站點拓樸規劃、無圖走區域成本地圖避障" data-en='Global / Local Path Planning'>全域 / 區域路徑規劃</span>
         <!-- 原本這顆叫「解析幾何軌跡」,是自創詞,v9 寫的是「多項式軌跡生成」、
              內文則是「四階多項式建構三段式軌跡生成器」。對外一律用 v9 的說法。 -->
-        <span class="sk" title="四階多項式三段式軌跡生成器,9 項橫向功能收斂至單一模組 · 專利 TW202426860A">多項式軌跡生成</span>
-        <span class="sk" title="回位彈簧特性化為三段線性加庫倫摩擦,殘差 3 kg 內;鑑別推力常數與 6.66 mm 全行程">系統鑑別與建模</span>
-        <span class="sk" title="dq 座標下以 id / iq 步階響應判斷收斂,不看馬達肉眼可見的動作">FOC 電流環 PI 調校</span>
-        <span class="sk" title="工廠 AMR 定位與建圖;未建圖區域切換為不依賴先驗地圖的定位">SLAM 與重定位</span>
+        <span class="sk" title="四階多項式三段式軌跡生成器,9 項橫向功能收斂至單一模組 · 專利 TW202426860A" data-en='Polynomial Trajectory Generation'>多項式軌跡生成</span>
+        <span class="sk" title="回位彈簧特性化為三段線性加庫倫摩擦,殘差 3 kg 內;鑑別推力常數與 6.66 mm 全行程" data-en='System Identification &amp; Modeling'>系統鑑別與建模</span>
+        <span class="sk" title="dq 座標下以 id / iq 步階響應判斷收斂,不看馬達肉眼可見的動作" data-en='FOC Current-Loop PI Tuning'>FOC 電流環 PI 調校</span>
+        <span class="sk" title="工廠 AMR 定位與建圖;未建圖區域切換為不依賴先驗地圖的定位" data-en='SLAM &amp; Relocalization'>SLAM 與重定位</span>
         <span class="sk" title="LFS 車道／物件融合,與 Siemens 依 ISO 26262 共同開發">Kalman Filter</span>
-        <span class="sk" title="離線最小平方擬合改寫為實車上 10 ms 週期執行的遞迴版本">遞迴最小平方法</span>
-        <span class="sk" title="C1 Bias Estimator:估測相機安裝角產線校正後的殘留偏差,3 款量產車補償率 86.81%">感知器偏差補償</span>
-        <span class="sk" title="機車 ABS 路面摩擦係數估測 · 專利 TWI722875B">模糊控制</span>
+        <span class="sk" title="離線最小平方擬合改寫為實車上 10 ms 週期執行的遞迴版本" data-en='Recursive Least Squares'>遞迴最小平方法</span>
+        <span class="sk" title="C1 Bias Estimator:估測相機安裝角產線校正後的殘留偏差,3 款量產車補償率 86.81%" data-en='Sensor Bias Compensation'>感知器偏差補償</span>
+        <span class="sk" title="機車 ABS 路面摩擦係數估測 · 專利 TWI722875B" data-en='Fuzzy Control'>模糊控制</span>
       </div>
     </div>
 
     <div class="sk-group">
-      <div class="sk-cat">模擬與驗證</div>
+      <div class="sk-cat" data-en='Simulation and Validation'>模擬與驗證</div>
       <div class="chip-row">
         <span class="sk" title="AMR 站點任務成功率一個月內自 40% 提升至 99%(297/300)">Isaac Sim</span>
-        <span class="sk" title="整套導航堆疊自 Isaac Sim 部署上實機,3 台廠區運行">Sim-to-Real 遷移</span>
-        <span class="sk" title="批次自動產生 300 組站點任務,自動分類失敗原因並產出成功率報表,演算法每天迭代一輪">夜間無人值守回歸</span>
-        <span class="sk" title="機車 ABS:串接控制演算法、驅動電路、比例閥油壓與實車">dSPACE 快速原型</span>
+        <span class="sk" title="整套導航堆疊自 Isaac Sim 部署上實機,3 台廠區運行" data-en='Sim-to-Real Transfer'>Sim-to-Real 遷移</span>
+        <span class="sk" title="批次自動產生 300 組站點任務,自動分類失敗原因並產出成功率報表,演算法每天迭代一輪" data-en='Unattended Overnight Regression'>夜間無人值守回歸</span>
+        <span class="sk" title="機車 ABS:串接控制演算法、驅動電路、比例閥油壓與實車" data-en='dSPACE Rapid Prototyping'>dSPACE 快速原型</span>
         <span class="sk" title="1,600 km 實車路測前的完整 V 流程">MIL → SIL → CIL → HIL → FOT</span>
         <span class="sk" title="CAN 匯流排訊號分析">Vector CANalyzer</span>
         <span class="sk" title="實車 Kalman filter Q/R 雜訊協方差標定">INCA</span>
@@ -947,19 +941,19 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     </div>
 
     <div class="sk-group">
-      <div class="sk-cat">平台與匯流排</div>
+      <div class="sk-cat" data-en='Platforms and Buses'>平台與匯流排</div>
       <div class="chip-row">
         <span class="sk" title="工廠 AMR 運算平台部署">Jetson Orin / Thor</span>
         <span class="sk" title="線控煞車致動層:PMSM 電流環調校與力量估測">TI C2000 F28069</span>
         <span class="sk" title="ADAS 量產平台,橫向架構收斂後運算量降至 37%">TC277 / TC397</span>
         <span class="sk" title="DBC 訊號與訊息設計">CAN / CAN FD</span>
         <span class="sk" title="對控制迴路的延遲與週期抖動診斷">RS485</span>
-        <span class="sk" title="自製電子電路取代 i-Booster 與 EHB 模組的原廠控制器">控制電路設計</span>
+        <span class="sk" title="自製電子電路取代 i-Booster 與 EHB 模組的原廠控制器" data-en='Control Circuit Design'>控制電路設計</span>
       </div>
     </div>
 
     <div class="sk-group">
-      <div class="sk-cat">部署</div>
+      <div class="sk-cat" data-en='Deployment'>部署</div>
       <div class="chip-row">
         <span class="sk" title="AMR L1–L3 分層驗證管線;於 Jetson 目標硬體自架 ARM Runner">GitLab CI/CD</span>
         <!-- Mermaid 不在 v9 的「電腦技能」欄裡,但 FIH 那段主要貢獻寫得很清楚:
@@ -971,13 +965,13 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
     </div>
 
     <div class="sk-group">
-      <div class="sk-cat">流程與標準</div>
+      <div class="sk-cat" data-en='Processes and Standards'>流程與標準</div>
       <div class="chip-row">
         <span class="sk" title="80h 訓練;LFS、TRJ 兩個量產模組的需求追溯與驗證證據鏈">ISO 26262</span>
         <span class="sk" title="40h 訓練">ASPICE</span>
-        <span class="sk" title="AMR 分層驗證架構:L1 單元 / L2 整合 / L3 系統">V 模型</span>
+        <span class="sk" title="AMR 分層驗證架構:L1 單元 / L2 整合 / L3 系統" data-en='V-Model'>V 模型</span>
         <span class="sk" title="ISO 26262 需求與追溯管理(與 Siemens 共同開發)">Polarion</span>
-        <span class="sk" title="把 ISO 26262 從標準條文落到量產程式碼">需求追溯與證據鏈</span>
+        <span class="sk" title="把 ISO 26262 從標準條文落到量產程式碼" data-en='Requirement Traceability &amp; Evidence Chain'>需求追溯與證據鏈</span>
       </div>
     </div>
   </div>
@@ -986,6 +980,7 @@ h2.h .grad{background:var(--grad);-webkit-background-clip:text;background-clip:t
 </section>
 
 <script src="../assets/nav.js"></script>
+<script src="../assets/i18n.js"></script>
 
 </body>
 </html>

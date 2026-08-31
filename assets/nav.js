@@ -85,3 +85,17 @@
 
   apply();
 })();
+
+/* .chnav 會換行(2~3 列),高度不再固定 —— 量出來寫進 --chnav-h,
+   讓 nav.css 的 scroll-margin-top 跟著走,錨點才不會被導覽列蓋住。
+   六頁共用;沒有 .chnav 的頁面直接跳過,CSS 會用預設值 51px。 */
+(function () {
+  var nav = document.querySelector('.chnav');
+  if (!nav) return;
+  function sync() {
+    document.documentElement.style.setProperty('--chnav-h', nav.offsetHeight + 'px');
+  }
+  sync();
+  window.addEventListener('resize', sync, { passive: true });
+  if ('ResizeObserver' in window) new ResizeObserver(sync).observe(nav);
+})();

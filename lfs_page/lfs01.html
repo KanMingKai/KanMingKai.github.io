@@ -419,13 +419,13 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   <div class="in">
     <a class="chnav-back" id="chnav-back" href="../home/index.html#co-fih-adas"
        data-resume-default="co-fih-adas">← 回履歷</a>
-    <a href="#method" data-sec="method">方法論</a>
-    <a href="#influence" data-sec="influence" data-resume="xp-influence">影響力</a>
-    <a href="#simulation" data-sec="simulation">模擬環境</a>
-    <a href="#root-cause" data-sec="root-cause">根因拆解</a>
-    <a href="#architecture" data-sec="architecture" data-resume="xp-architecture">C1 Bias 補償</a>
-    <a href="#decision-1" data-sec="decision-1" data-resume="xp-decision-1">決策① Lane Degrade</a>
-    <a href="#decision-2" data-sec="decision-2">決策② 半徑公式</a>
+    <a href="#method" data-sec="method">跨團隊主導驗證流程</a>
+    <a href="#influence" data-sec="influence" data-resume="xp-influence">感測器特性分析與建模</a>
+    <a href="#simulation" data-sec="simulation">場景重建與資料驅動開發</a>
+    <a href="#root-cause" data-sec="root-cause">系統化問題分析與歸納</a>
+    <a href="#architecture" data-sec="architecture" data-resume="xp-architecture">洞察痛點與創新發想</a>
+    <a href="#decision-1" data-sec="decision-1" data-resume="xp-decision-1">以演算法取代模型重新訓練</a>
+    <a href="#decision-2" data-sec="decision-2">細節洞察與持續改善</a>
   </div>
 </nav>
 
@@ -434,8 +434,7 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-tag">METHOD · 一切的起點</div>
-        <div class="unit-title">技術主導與專案推進</div>
+        <div class="unit-title">跨團隊主導驗證流程</div>
         <div class="unit-points">
           <p><b>前期評估與提案</b>：針對車道線融合任務，先以手邊現有數據做小規模驗證評估可行性，再把實驗規劃寫成提案，成功向管理層爭取資源。</p>
           <p><b>跨團隊協同測試</b>：主導 <span class="nb">100 km</span> 連續路況實車測試，橫向協調驗證部門與標註團隊，建立<b>標準化測試流程</b>，完成主流相機平台（Mobileye EQ3/EQ4、Horizon J2/J3/J5、StradVision）之效能極限測繪。</p>
@@ -517,7 +516,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-tag">INFLUENCE · 標準與賦能</div>
         <div class="unit-title">感測器特性分析與建模</div>
         <div class="unit-points">
           <p><b>痛點突破與資料探勘</b>：面對供應商規格書<b>只寫標稱偵測距離、不寫真實失效邊界</b>的盲點，主動從 <span class="nb">100 km</span> 實車資料按速域與應用場景分層剖析，逆向擬合出各相機的<b>實際性能衰退公式</b>。</p>
@@ -554,7 +552,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-tag">SIMULATION · 基礎設施</div>
         <div class="unit-title">場景重建與資料驅動開發</div>
         <div class="unit-points">
           <p><b>痛點識別與效能瓶頸突破</b>：針對實車路測「<b>偶發性問題難以重現</b>、驗證成本高昂且耗時」的痛點，打破傳統盲目上路測試的低效模式。</p>
@@ -575,7 +572,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-tag">ROOT CAUSE · 收斂</div>
         <div class="unit-title">系統化問題分析與歸納</div>
         <div class="unit-points">
           <p><b>痛點識別與風險防禦</b>：面對多專案、多測試車輛及 <span class="nb">MIL / CIL</span> 多重測試環境下湧現的雜亂問題，拒絕「一個問題一個補丁（One-off Patch）」的鴕鳥做法，防範軟體架構膨脹與失控。</p>
@@ -806,7 +802,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
              講的是三柱架構。柱子一深度那段移除後,整節只剩 C1 Bias 這條線,
              標題再談三根柱子就對不上內容,所以改成 C1 Bias 自己的題目。
              (根因章那兩句「三柱架構」的預告後來也一併刪了,全頁已無此說法) -->
-        <div class="unit-tag">OWNERSHIP · 自己找的題目</div>
         <div class="unit-title">洞察痛點與創新發想</div>
         <div class="unit-points">
           <p><b>洞察痛點與創新發想</b>：針對 ADAS 相機校正偏差問題，提出「以本車歷史軌跡作為動態量測基準」的創新思維，開發出高精度的車道線偏差驗證腳本。</p>
@@ -905,7 +900,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
   <div class="wrap">
     <div class="unit">
       <div class="unit-head">
-        <div class="unit-tag">KEY DECISION 01</div>
         <div class="unit-title">用演算法對策<br>取代高成本<span class="nb">(USD 470–625K)</span>及高工時<span class="nb">(半年)</span>的模型重新訓練</div>
         <div class="unit-points">
           <p><b>痛點識別與成本防禦</b>：感知模型因 View Range 過短，高階項（C₂、C₃）在遠端被過度外推，引發<b>車道線尾端甩動</b>並影響橫向控制穩定度。成功阻斷供應商提出的「重訓感知模型」高成本方案（報價 <span class="nb">USD 470–625K</span>）。</p>
@@ -1035,7 +1029,6 @@ section{padding:clamp(56px,9vw,104px) 0;scroll-margin-top:96px}
 
       <!-- HERO -->
       <div class="unit-head">
-        <div class="unit-tag">KEY DECISION 02</div>
         <div class="unit-title">細節洞察與持續改善</div>
         <div class="unit-points">
           <p><b>保持懷疑與驗證</b>：面對不合常理的結果，沒有盲目相信既有權威或大眾慣例，而是回頭檢視底層邏輯。</p>
