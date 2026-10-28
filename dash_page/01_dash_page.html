@@ -414,6 +414,120 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
 .dvp-note{margin-top:22px;max-width:760px;margin-left:auto;margin-right:auto;
   text-align:center;font-size:11.5px;color:var(--ink-3);line-height:1.7}
 
+/* ============================================================
+   HIL 測試平台(#hil)—— 搬自 _preview_amr_hil.html(原稿留在根目錄)
+   畫法是「硬體接線圖」:灰框 = 實體硬體(THOR、Host PC 兩台),
+   白卡 = 跑在上面的軟體,藍線 = 兩台之間唯一的 Ethernet。
+   ★ 不像 s2r / isc 用固定寬舞台縮放:這張原稿本來就是響應式的,
+     直接排版字才不會跟著縮小。
+   ★ 斷點改用 container query(以 .hil-fig 的寬度為準)而不是視窗寬:
+     本頁 .wrap 上限 1120,圖卡內寬約 1030,原稿的 1180px 斷點在這裡永遠成立。
+   ★ 所有 class / SVG id 一律 hil- 前綴,避免撞到頁內 .in、.grid 這類通用名。
+   ★ 本節是 band-alt(灰底),所以整張圖放進白色圖卡,灰框硬體才看得出來。
+   ============================================================ */
+#hil .wrap{max-width:1120px}
+.hil-fig{
+  --hair:#e5e5ea;--blue-soft:#eaf3fe;
+  max-width:1076px;margin:0 auto;background:var(--bg);
+  border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);
+  padding:clamp(16px,2.2vw,24px);container:hil / inline-size;
+}
+.hil-eyebrow{margin:0 0 4px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--blue)}
+
+/* 圖例:灰框 = 硬體、白卡 = 軟體、藍線 = Ethernet */
+.hil-legend{list-style:none;margin:0 0 18px;padding:0;display:flex;flex-wrap:wrap;gap:8px 22px;font-size:12.5px;color:var(--ink-2)}
+.hil-legend li{display:flex;align-items:center;gap:8px}
+.hil-legend i{display:inline-block;width:22px;height:14px;border-radius:4px}
+.hil-legend .hw{background:var(--bg-alt);border:1px solid #dcdce2}
+.hil-legend .sw{background:#fff;border:1px solid var(--hair);box-shadow:0 0 0 3px var(--bg-alt)}
+.hil-legend .ln{height:0;border-radius:0;border-top:2px solid var(--blue)}
+
+.hil-rig{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,.85fr) minmax(0,2.1fr);align-items:stretch}
+
+/* 硬體框 */
+.hil-dev{display:flex;flex-direction:column;gap:12px;min-width:0;padding:16px;border-radius:20px;background:var(--bg-alt);border:1px solid #e3e3e9}
+.hil-dev-h{display:grid;grid-template-columns:84px minmax(0,1fr);align-items:center;gap:14px}
+.hil-dev-h img{display:block;width:100%;height:auto;filter:drop-shadow(0 6px 10px rgba(0,0,0,.16))}
+.hil-dev-h h3{margin:0;font-size:19px;font-weight:700;line-height:1.25}
+.hil-runs{margin:2px 2px -4px;font-size:11.5px;font-weight:700;letter-spacing:.04em;color:var(--ink-3)}
+
+/* 軟體卡 */
+.hil-mod{display:flex;flex-direction:column;gap:12px;min-width:0;padding:13px;border-radius:14px;background:#fff;border:1px solid var(--hair)}
+.hil-mod h4{margin:0;font-size:15px;font-weight:700}
+.hil-mod h4 small{display:block;margin-top:1px;font-size:12px;font-weight:500;color:var(--ink-3)}
+.hil-cap{margin:0;font-size:12.5px;line-height:1.5;color:var(--ink-2)}
+
+/* THOR:導航堆疊 */
+.hil-thor .hil-mod{flex:1}
+.hil-pipe{flex:1;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;justify-content:center;gap:16px}
+.hil-pipe li{position:relative;display:flex;align-items:center;min-height:44px;padding:9px 13px;border-radius:10px;background:var(--bg-alt);font-size:13.5px;font-weight:500}
+.hil-pipe li:not(:last-child)::after{content:"";position:absolute;left:22px;bottom:-12px;width:7px;height:7px;
+  border-right:1.5px solid var(--ink-3);border-bottom:1.5px solid var(--ink-3);transform:rotate(45deg)}
+
+/* Host PC:兩個模組 */
+.hil-mods{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr);align-items:stretch}
+.hil-hop{align-self:center;justify-self:center;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#fff;border:1px solid var(--hair);color:var(--blue)}
+.hil-hop svg{width:13px;height:13px}
+.hil-simview{display:grid;grid-template-columns:minmax(0,1fr) 30%;gap:6px}
+.hil-simview img{display:block;width:100%;height:100%;object-fit:cover;border-radius:7px}
+.hil-views{display:grid;grid-template-rows:repeat(3,1fr);gap:6px}
+.hil-fill{flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px}
+
+.hil-plot{padding:10px 12px 6px;border-radius:12px;background:var(--bg-alt)}
+.hil-plot-h{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 10px;margin-bottom:2px}
+.hil-plot-h b{font-size:12.5px}
+.hil-plot-h b span{font-weight:500;color:var(--ink-3)}
+.hil-key{display:flex;gap:10px;font-size:11px;color:var(--ink-2)}
+.hil-key i{display:inline-block;width:14px;height:0;margin-right:4px;vertical-align:.25em;border-top:2px solid var(--blue)}
+.hil-key i.ideal{border-top:2px dashed var(--ink-3)}
+.hil-plot svg{display:block;width:100%;height:auto}
+.hil-plot .axis{stroke:var(--ink-3);stroke-width:1.2;fill:none}
+.hil-plot .ideal{stroke:var(--ink-3);stroke-width:1.6;stroke-dasharray:4 3;fill:none}
+.hil-plot .sig{stroke:var(--blue);stroke-width:2;fill:none;stroke-linejoin:round}
+.hil-plot text{font-size:9px;fill:var(--ink-3);font-family:var(--sans)}
+
+/* Ethernet 連線帶:左右兩端貼著兩台硬體 */
+.hil-link{display:flex;align-items:center;min-width:0}
+.hil-cable{width:100%;display:flex;flex-direction:column;gap:16px;padding:18px 0}
+.hil-eth{display:grid;grid-template-columns:38px minmax(0,1fr);align-items:center;gap:10px;padding:0 14px}
+.hil-eth .ic{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:var(--blue-soft);color:var(--blue)}
+.hil-eth .ic svg{width:21px;height:21px}
+.hil-eth h4{margin:0;font-size:15px}
+.hil-eth p{margin:0;font-size:11.5px;line-height:1.4;color:var(--ink-2)}
+.hil-lane{display:flex;flex-direction:column;gap:8px}
+.hil-lane-t{margin:0;padding:0 14px;display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700}
+.hil-lane-t svg{flex:none;width:15px;height:15px;color:var(--blue)}
+.hil-lane-t .dir{margin-left:auto;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.04em;color:var(--ink-2);white-space:nowrap}
+.hil-out .hil-lane-t svg{transform:scaleX(-1)}
+/* 線本身撐滿寬度,兩端碰到兩台硬體的邊;箭頭指向接收端 */
+.hil-wire{position:relative;height:2px;background:var(--blue)}
+.hil-wire::after{content:"";position:absolute;top:50%;width:11px;height:12px;background:var(--blue);transform:translateY(-50%)}
+.hil-in .hil-wire::after{left:0;clip-path:polygon(0 50%,100% 0,100% 100%)}
+.hil-out .hil-wire::after{right:0;clip-path:polygon(0 0,100% 50%,0 100%)}
+.hil-payload{list-style:none;margin:0 14px;padding:0;border-radius:10px;background:#fff;border:1px solid var(--hair)}
+.hil-payload li{display:grid;grid-template-columns:20px minmax(0,1fr);align-items:center;gap:9px;padding:8px 9px;font-size:12.5px;font-weight:600;line-height:1.3}
+.hil-payload li+li{border-top:1px solid var(--hair)}
+.hil-payload svg{width:19px;height:19px;color:var(--blue)}
+.hil-payload small{display:block;font-size:11px;font-weight:400;color:var(--ink-3)}
+
+/* 圖卡內寬不到 900:改上下排,THOR 在上、Host PC 在下,連線改成直的 */
+@container hil (max-width:900px){
+  .hil-rig{grid-template-columns:minmax(0,1fr);max-width:720px;margin:0 auto}
+  .hil-link{position:relative;padding-left:34px}
+  .hil-link::before{content:"";position:absolute;left:16px;top:0;bottom:0;width:2px;background:var(--blue)}
+  .hil-cable{margin:12px 0;padding:14px 0}
+  .hil-wire{display:none}
+  /* 標題旁的小箭頭轉成上下:感測資料往上到 THOR、控制指令往下回 Host PC */
+  .hil-lane-t svg{transform:rotate(90deg)}
+  .hil-out .hil-lane-t svg{transform:rotate(-90deg)}
+}
+/* 再窄:Host PC 裡兩個模組也改上下排 */
+@container hil (max-width:560px){
+  .hil-mods{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 34px auto}
+  .hil-hop svg{transform:rotate(90deg)}
+  .hil-dev-h{grid-template-columns:72px minmax(0,1fr)}
+}
+
 /* ===== CTA(與另外兩頁同一套) ===== */
 .cta-btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
 .cta-btns a{font-size:14px;font-weight:600;text-decoration:none;padding:12px 22px;border-radius:980px;transition:opacity .2s,background .2s}
@@ -463,6 +577,7 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
     <a href="#flow"    data-sec="flow" data-en='Documentation From Hand-Maintained to Self-Maintaining'>文件從人工維護轉為自動維護</a>
     <a href="#sim2real" data-sec="sim2real" data-en='Sim-to-Real Integration and Automotive Discipline'>Sim-to-Real 系統整合與車規紀律導入</a>
     <a href="#sim247"  data-sec="sim247" data-en='Engineering Throughput and a Closed Validation Loop'>研發效能優化與自動化驗證閉環</a>
+    <a href="#hil"     data-sec="hil" data-en='Hardware-in-the-Loop Test Rig'>硬體在環(HIL)測試平台</a>
   </div>
 </nav>
 
@@ -1620,6 +1735,142 @@ h2.h{font-size:clamp(24px,3.6vw,36px);font-weight:700;letter-spacing:-.015em;lin
   </div>
 </div>
         </div>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<!-- ============ HIL 測試平台 ============ -->
+<!-- 接在 #sim247 後面:那一節的導航堆疊還跑在模擬主機上,這一節把它搬到
+     真正的目標硬體 NVIDIA THOR,模擬只負責供應感測資料。順序就是上真機前的最後一關。
+     圖搬自根目錄的 _preview_amr_hil.html / _preview_amr_hil_zh.html,樣式見 .hil-fig 的註記。
+     原稿的大標與三個標語(Bridging Sim-to-Real…)不搬:大標由 unit-title 取代,
+     標語講的是目的,下面兩點已經寫成具體做法。 -->
+<section id="hil" class="band-alt">
+  <div class="wrap">
+    <div class="unit">
+      <div class="unit-head">
+        <div class="unit-title" data-en='Hardware-in-the-loop test rig<br>The navigation stack runs on the real THOR, with Isaac Sim supplying the sensors'>硬體在環(HIL)測試平台<br>導航堆疊跑在真正的 THOR 上，感測資料由 Isaac Sim 供應</div>
+        <div class="unit-points">
+          <p data-en='<b>Real compute, virtual robot</b>: the navigation software (EKF sensor fusion, localization and mapping, path planning, control) is deployed on the target hardware, <b>NVIDIA THOR</b>, while a Host PC runs Isaac Sim with a virtual Spark robot. The two are joined by a single Ethernet link: <b>sensor data goes from the PC to THOR</b>, and <b>THOR sends control commands back</b> to drive the robot in simulation.'><b>真的運算平台，虛擬的機器人</b>：導航軟體(EKF 感測融合、定位與建圖、路徑規劃、控制)直接部署在目標硬體 <b>NVIDIA THOR</b> 上，Host PC 則用 Isaac Sim 模擬虛擬 Spark 機器人。兩台之間只有一條 Ethernet：<b>感測資料由 PC 送進 THOR</b>，<b>THOR 算出的控制指令再送回 PC</b>，驅動模擬裡的機器人。</p>
+          <p data-en='<b>Simulated sensors carry real sensor flaws</b>: raw Isaac Sim output is too clean, so before it leaves the Host PC the IMU and wheel encoder data pass through an error model that adds <b>bias (zero drift)</b> and <b>quantization</b>, and the Ethernet link simulates latency. Compute load on THOR, communication delay and sensor error all show up here, before the stack ever reaches the real robot.'><b>讓模擬感測帶著真實感測器的缺陷</b>：Isaac Sim 直接輸出的資料太乾淨，所以送出 Host PC 前，IMU 與輪速計會先經過誤差模型，加上<b>偏差(零點漂移)</b>與<b>量化</b>，Ethernet 這段也模擬延遲。THOR 的算力負載、通訊延遲與感測誤差，在這個平台上就會先浮現，不必等上真機。</p>
+        </div>
+      </div>
+    </div>
+
+    <figure class="hil-fig">
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <symbol id="hil-left" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 8H3.5M7 4.5 3.5 8 7 11.5"/></symbol>
+        <symbol id="hil-eth" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 9h10v5h-2.5v2h-5v-2H7z"/><path d="M9.5 9v2.2M12 9v2.2M14.5 9v2.2" stroke-linecap="round"/></symbol>
+        <symbol id="hil-lidar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="9.5" stroke-dasharray="2 2.4"/></symbol>
+        <symbol id="hil-imu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12V3.5M12 12l7.5 4.2M12 12l-7.5 4.2"/><path d="M10 5.5 12 3.5l2 2M17.2 17.6l2.3-1.4-.6-2.6M4.9 13.6l-.4 2.6 2.4 1.4"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/></symbol>
+        <symbol id="hil-wheel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="2.2"/><path d="M12 2.5v7.3M12 14.2v7.3M2.5 12h7.3M14.2 12h7.3M5.3 5.3l5.1 5.1M13.6 13.6l5.1 5.1M18.7 5.3l-5.1 5.1M10.4 13.6l-5.1 5.1"/></symbol>
+      </svg>
+
+      <ul class="hil-legend" aria-label="圖例">
+        <li><i class="hw"></i><span data-en='Hardware'>硬體</span></li>
+        <li><i class="sw"></i><span data-en='Software running on it'>在上面執行的軟體</span></li>
+        <li><i class="ln"></i><span data-en='Ethernet link'>Ethernet 連線</span></li>
+      </ul>
+
+      <div class="hil-rig">
+
+        <!-- 左:NVIDIA THOR -->
+        <div class="hil-dev hil-thor">
+          <div class="hil-dev-h">
+            <img src="../assets/hil/thor-devkit.png" width="438" height="313" alt="NVIDIA THOR 開發套件" loading="lazy">
+            <div><p class="hil-eyebrow" data-en='Target Hardware'>目標硬體</p><h3>NVIDIA THOR</h3></div>
+          </div>
+          <p class="hil-runs" data-en='RUNS'>執行</p>
+          <div class="hil-mod">
+            <h4 data-en='Navigation Software Stack'>導航軟體堆疊</h4>
+            <ol class="hil-pipe">
+              <li data-en='Sensor Fusion (EKF)'>感測融合(EKF)</li>
+              <li data-en='Localization &amp; Mapping'>定位與建圖</li>
+              <li data-en='Path Planning'>路徑規劃</li>
+              <li data-en='Control'>控制</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- 中:Ethernet -->
+        <div class="hil-link">
+          <div class="hil-cable">
+            <div class="hil-eth">
+              <span class="ic" aria-hidden="true"><svg><use href="#hil-eth"/></svg></span>
+              <div><h4>Ethernet</h4><p data-en='High Bandwidth &amp; Latency Simulation'>高頻寬與延遲模擬</p></div>
+            </div>
+            <div class="hil-lane hil-in">
+              <p class="hil-lane-t"><svg aria-hidden="true"><use href="#hil-left"/></svg><span data-en='Sensor Data'>感測資料</span><span class="dir">PC → THOR</span></p>
+              <span class="hil-wire" aria-hidden="true"></span>
+              <ul class="hil-payload">
+                <li><svg aria-hidden="true"><use href="#hil-lidar"/></svg><span data-en='LiDAR Point Cloud<small>High bandwidth</small>'>LiDAR 點雲<small>高頻寬</small></span></li>
+                <li><svg aria-hidden="true"><use href="#hil-imu"/></svg><span data-en='IMU Accelerometer<small>With error model</small>'>IMU 加速度計<small>含誤差模型</small></span></li>
+                <li><svg aria-hidden="true"><use href="#hil-wheel"/></svg><span data-en='Wheel Encoder<small>With error model</small>'>輪速編碼器<small>含誤差模型</small></span></li>
+              </ul>
+            </div>
+            <div class="hil-lane hil-out">
+              <p class="hil-lane-t"><svg aria-hidden="true"><use href="#hil-left"/></svg><span data-en='Control Commands'>控制指令</span><span class="dir">THOR → PC</span></p>
+              <span class="hil-wire" aria-hidden="true"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右:Host PC -->
+        <div class="hil-dev">
+          <div class="hil-dev-h">
+            <img src="../assets/hil/host-pc-acer.png" width="584" height="302" alt="Host PC" loading="lazy">
+            <div><p class="hil-eyebrow" data-en='Simulation &amp; Sensor Modeling Host'>模擬與感測建模主機</p><h3>Host PC</h3></div>
+          </div>
+          <p class="hil-runs" data-en='RUNS'>執行</p>
+          <div class="hil-mods">
+            <div class="hil-mod">
+              <h4 data-en='Sensor Error Modeling<small>Bias &amp; quantization</small>'>感測誤差模型<small>偏差與量化</small></h4>
+              <div class="hil-fill">
+                <div class="hil-plot">
+                  <div class="hil-plot-h"><b data-en='Bias <span>(Zero Drift)</span>'>偏差 <span>(零點漂移)</span></b><span class="hil-key"><span><i class="ideal"></i><span data-en='Ideal'>理想值</span></span><span><i></i><span data-en='With Bias'>含偏差</span></span></span></div>
+                  <svg viewBox="0 0 240 104" role="img" aria-label="含偏差的訊號是理想訊號整條平移一個固定量">
+                    <path class="axis" d="M22 6V88H232"/>
+                    <defs><path id="hil-wave" d="M28 74C52 62 70 84 98 70S146 50 174 60S214 50 228 44"/></defs>
+                    <use href="#hil-wave" class="ideal"/>
+                    <use href="#hil-wave" class="sig" transform="translate(0 -16)"/>
+                    <text x="127" y="101" text-anchor="middle" data-en='Time'>時間</text>
+                    <text x="12" y="47" text-anchor="middle" transform="rotate(-90 12 47)" data-en='Value'>數值</text>
+                  </svg>
+                </div>
+                <div class="hil-plot">
+                  <div class="hil-plot-h"><b data-en='Quantization <span>(Resolution Limit)</span>'>量化 <span>(解析度限制)</span></b><span class="hil-key"><span><i class="ideal"></i><span data-en='Ideal'>理想值</span></span><span><i></i><span data-en='Quantized'>量化後</span></span></span></div>
+                  <svg viewBox="0 0 240 104" role="img" aria-label="量化後的訊號以固定刻度的階梯貼著理想訊號">
+                    <path class="axis" d="M22 6V88H232"/>
+                    <path class="ideal" d="M28 82C104 80 164 58 228 18"/>
+                    <path class="sig" d="M28 82H96V70H140V58H172V46H196V34H216V22H228"/>
+                    <text x="127" y="101" text-anchor="middle" data-en='Time'>時間</text>
+                    <text x="12" y="47" text-anchor="middle" transform="rotate(-90 12 47)" data-en='Value'>數值</text>
+                  </svg>
+                </div>
+              </div>
+              <p class="hil-cap" data-en='Realistic sensor data with bias and quantization noise'>加入偏差與量化雜訊，讓感測資料更貼近真實</p>
+            </div>
+
+            <span class="hil-hop" aria-hidden="true"><svg><use href="#hil-left"/></svg></span>
+
+            <div class="hil-mod">
+              <h4 data-en='NVIDIA Isaac Sim<small>Simulation &amp; physics engine</small>'>NVIDIA Isaac Sim<small>模擬與物理引擎</small></h4>
+              <div class="hil-fill">
+                <div class="hil-simview">
+                  <img src="../assets/hil/screen.png" width="201" height="162" alt="Isaac Sim 畫面:倉儲走道裡的虛擬 Spark 機器人" loading="lazy">
+                  <div class="hil-views">
+                    <img src="../assets/hil/view-lidar-top.png" width="91" height="66" alt="模擬 LiDAR 點雲,俯視" loading="lazy">
+                    <img src="../assets/hil/view-lidar-side.png" width="91" height="66" alt="模擬 LiDAR 點雲,側視" loading="lazy">
+                    <img src="../assets/hil/view-camera.png" width="91" height="66" alt="模擬相機畫面" loading="lazy">
+                  </div>
+                </div>
+              </div>
+              <p class="hil-cap" data-en='Virtual Spark Robot'>虛擬 Spark 機器人</p>
+            </div>
+          </div>
+        </div>
+
       </div>
     </figure>
   </div>
