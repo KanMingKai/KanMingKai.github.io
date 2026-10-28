@@ -1,8 +1,8 @@
 /* ============================================================
    固定導覽 — 六頁共用元件(兩層)
    ------------------------------------------------------------
-     第一層 .pnav   切換六頁:履歷 / 感知融合經驗 / 軌跡規劃經驗 /
-                    AMR系統整合 / 底層控制經驗 / 車規開發流程。
+     第一層 .pnav   切換七頁:履歷 / 感知融合經驗 / 軌跡規劃經驗 /
+                    AMR系統整合 / 底層控制經驗 / 車規開發流程 / 面試簡報。
                     當前頁帶 .cur
      第二層 .chnav  當前頁的章節快速跳轉,捲動時自動高亮
                     (只有分章節的頁才需要;iBooster 各章沒有 chnav)
@@ -19,6 +19,7 @@
            <a class="tab-l" href="…">AMR系統整合</a>
            <a class="tab-l" href="…">底層控制經驗(研究所)</a>
            <a class="tab-l" href="…">車規開發流程</a>
+           <a class="tab-l" href="…">面試簡報</a>
          </div>
        </div>
      </nav>
@@ -35,7 +36,11 @@
 
 /* ---------- 第一層:六頁切換 ---------- */
 .pnav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(0,0,0,.08)}
-.pnav .in{max-width:980px;margin:0 auto;height:52px;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+/* gap 與下方 .tab-l 的左右內距(8px)原本是 14px / 11px。第七格(面試簡報)加進來後,
+   履歷頁(多一顆下載鈕)在 980 寬裡差 40px,最後一格會被切成「面試」兩個字。
+   改用 680px 以下本來就在用的 8px 內距,版寬維持 980,與下方 .chnav、內文左緣仍然對齊。
+   實測(Edge,1440 寬)履歷頁剩約 14px 餘裕,其餘頁約 100px。 */
+.pnav .in{max-width:980px;margin:0 auto;height:52px;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .pnav .brand{font-family:var(--sans);font-size:14.5px;font-weight:700;letter-spacing:-.01em;color:var(--ink);text-decoration:none;white-space:nowrap}
 /* min-width:0 + overflow-x —— .tab-l 全是 nowrap,六格在窄螢幕必定超出容器。
    沒有這兩行,超出的部分是「被裁掉」而不是「捲得到」,最後一個頁籤會直接消失。
@@ -52,7 +57,14 @@
             mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 20px),transparent 100%);
   }
 }
-.pnav .tab-l{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--ink-2);text-decoration:none;padding:7px 11px;border-radius:8px;white-space:nowrap;transition:background .2s,color .2s}
+/* 820px 以上不一定排得下(例如 820~1000 之間的履歷頁),所以 nav.js 會在「右邊真的還有
+   頁籤」時加上 .ovf,任何寬度都給同一道淡出;捲到最右邊時拿掉,最後一格才不會一直是霧的。 */
+.pnav .tabs.ovf{
+  -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 20px),transparent 100%);
+          mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 20px),transparent 100%);
+}
+.pnav .tabs.ovf-end{-webkit-mask-image:none;mask-image:none}
+.pnav .tab-l{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--ink-2);text-decoration:none;padding:7px 8px;border-radius:8px;white-space:nowrap;transition:background .2s,color .2s}
 .pnav .tab-l:hover{color:var(--ink);background:rgba(0,0,0,.05)}
 .pnav .tab-l.cur{color:var(--blue);font-weight:700;background:#eef5ff;cursor:default}
 /* 中 / 英切換鈕(搭配 assets/i18n.js)。外框樣式而非實心:履歷頁旁邊還有一顆

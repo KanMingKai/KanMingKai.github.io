@@ -99,3 +99,35 @@
   window.addEventListener('resize', sync, { passive: true });
   if ('ResizeObserver' in window) new ResizeObserver(sync).observe(nav);
 })();
+
+/* .pnav .tabs 的溢出提示,以及把當前頁籤捲進畫面。七頁共用。
+   ★ 第七格(面試簡報)加進來之後,頁籤列在窄螢幕一定要橫捲,在 820~1000 寬的履歷頁
+     也可能排不下。nav.css 原本只在 820px 以下加右緣淡出;這裡改成量實際狀況:
+       .ovf      右邊還有頁籤 → 淡出
+       .ovf-end  已經捲到最右 → 拿掉淡出(否則最後一格永遠是霧的)
+   ★ 當前頁若在頁籤列的右段(例如面試簡報是最後一格),手機上一進頁會看不到自己在哪一頁,
+     所以載入時把 .cur 捲到頁籤列中間。 */
+(function () {
+  var t = document.querySelector('.pnav .tabs');
+  if (!t) return;
+
+  function sync() {
+    var over = t.scrollWidth > t.clientWidth + 1;
+    var atEnd = t.scrollLeft + t.clientWidth >= t.scrollWidth - 1;
+    t.classList.toggle('ovf', over && !atEnd);
+    t.classList.toggle('ovf-end', over && atEnd);
+  }
+
+  var cur = t.querySelector('.cur');
+  if (cur && t.scrollWidth > t.clientWidth) {
+    var x = cur.getBoundingClientRect().left - t.getBoundingClientRect().left + t.scrollLeft;
+    t.scrollLeft = x - (t.clientWidth - cur.offsetWidth) / 2;
+  }
+
+  sync();
+  t.addEventListener('scroll', sync, { passive: true });
+  window.addEventListener('resize', sync, { passive: true });
+  if ('ResizeObserver' in window) new ResizeObserver(sync).observe(t);
+  // 網頁字型載入後字寬會變,溢出與否要重算一次
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(sync);
+})();
